@@ -1,24 +1,29 @@
 import React from "react";
-import { Link } from "react-router-dom"; // Import Link for internal routing
+import { Link } from "react-router-dom";
+import logo from "../../assets/V - 1.png"; // Adjust this path to where your logo file is
 
 const Navbar = () => (
 	<nav className="fixed top-0 left-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 px-6 md:px-12 py-4 flex items-center justify-between">
 		<div className="flex items-center gap-12">
-			{/* LOGO WITH HOME LINK */}
-			<Link to="/" className="flex items-center gap-2 group cursor-pointer">
-				<span className="material-symbols-outlined text-[#ec5b13] text-3xl transition-transform group-hover:rotate-12">
-					token
-				</span>
-				<span className="text-2xl font-[900] tracking-tighter uppercase text-white">
-					Verp
-				</span>
+			{/* BRANDED LOGO WITH HOME LINK */}
+			<Link to="/" className="flex items-center gap-3 group cursor-pointer">
+				<div className="relative h-10 w-auto overflow-hidden">
+					<img
+						src={logo}
+						alt="Verp Logo"
+						className="h-full w-auto object-contain transition-all duration-300 group-hover:scale-110 invert brightness-200"
+						/* Note: 'invert brightness-200' turns a black logo white. 
+                           If your logo is already white, remove those two classes. */
+					/>
+				</div>
+				<span className="text-2xl font-[900] tracking-tighter uppercase text-white group-hover:text-[#ec5b13] transition-colors"></span>
 			</Link>
 
 			<div className="hidden lg:flex items-center gap-8">
 				{["Shop", "Lookbook", "Sustainability", "Support"].map((link) => (
 					<Link
 						key={link}
-						to={link === "Shop" ? "/" : "#"} // Redirects Shop to Home
+						to={link === "Shop" ? "/" : "#"}
 						className="text-xs font-semibold uppercase tracking-widest text-white/70 hover:text-[#ec5b13] transition-colors"
 					>
 						{link}
@@ -28,7 +33,6 @@ const Navbar = () => (
 		</div>
 
 		<div className="flex items-center gap-6">
-			{/* Search Bar */}
 			<div className="hidden md:flex items-center bg-neutral-900 border border-white/10 rounded-full px-4 py-1.5 focus-within:border-[#ec5b13]/50 transition-all">
 				<span className="material-symbols-outlined text-white/50 text-sm">
 					search
