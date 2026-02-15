@@ -19,7 +19,7 @@ const Hero = () => {
           so it doesn't cover the model's face or sit under the Nav */}
 			<div className="relative z-20 text-center px-6 max-w-4xl pt-32 md:pt-40">
 				<h2 className="text-primary font-bold tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
-					Verp Collective
+					Verp Embodiment
 				</h2>
 				<h1 className="text-5xl md:text-8xl font-black mb-8 leading-tight tracking-tighter text-white">
 					REDEFINING <br />
