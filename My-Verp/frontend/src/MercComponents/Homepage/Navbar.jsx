@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import logo from "../../assets/V - 1.png";
 
 const Navbar = () => (
-	<nav className="fixed top-0 left-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 px-6 md:px-12 py-4 flex items-center justify-between">
+	<nav className="fixed top-0 left-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 px-6 md:px-12 py-2 flex items-center justify-between">
 		<div className="flex items-center gap-12">
 			{/* BRANDED LOGO - INCREASED SIZE */}
 			<Link to="/" className="flex items-center group cursor-pointer">
