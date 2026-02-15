@@ -25,7 +25,7 @@ const categories = [
 		title: "Hoodies",
 		size: "lg:col-span-5 lg:row-span-1",
 		img: hoodImg,
-		path: "/category/hoodies",
+		path: "/category/hoodie",
 	},
 	{
 		id: "04",

@@ -1,11 +1,9 @@
 import React from "react";
-import Navbar from "./Navbar";
 import Hero from "./Hero";
 import CategoriesGrid from "./CategoriesGrid";
 import Bestsellers from "./Bestsellers";
 import BrandNarrative from "./BrandNarrative";
 import Newsletter from "./Newsletter";
-import Footer from "./Footer";
 
 const Homepage = () => {
 	const homeStyles = {
@@ -16,7 +14,6 @@ const Homepage = () => {
 	};
 	return (
 		<div style={homeStyles}>
-			<Navbar />
 			<main>
 				<Hero />
 				<CategoriesGrid />
@@ -24,7 +21,6 @@ const Homepage = () => {
 				<BrandNarrative />
 				<Newsletter />
 			</main>
-			<Footer />
 		</div>
 	);
 };
