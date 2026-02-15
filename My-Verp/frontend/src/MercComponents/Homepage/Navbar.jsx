@@ -1,22 +1,22 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/V - 1.png"; // Adjust this path to where your logo file is
+import logo from "../../assets/V - 1.png";
 
 const Navbar = () => (
 	<nav className="fixed top-0 left-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 px-6 md:px-12 py-4 flex items-center justify-between">
 		<div className="flex items-center gap-12">
-			{/* BRANDED LOGO WITH HOME LINK */}
-			<Link to="/" className="flex items-center gap-3 group cursor-pointer">
-				<div className="relative h-10 w-auto overflow-hidden">
+			{/* BRANDED LOGO - INCREASED SIZE */}
+			<Link to="/" className="flex items-center group cursor-pointer">
+				<div className="relative h-14 w-auto">
+					{" "}
+					{/* Increased from h-10 to h-14 */}
 					<img
 						src={logo}
 						alt="Verp Logo"
-						className="h-full w-auto object-contain transition-all duration-300 group-hover:scale-110 invert brightness-200"
-						/* Note: 'invert brightness-200' turns a black logo white. 
-                           If your logo is already white, remove those two classes. */
+						className="h-full w-auto object-contain transition-all duration-500 group-hover:scale-105 invert brightness-200"
 					/>
 				</div>
-				<span className="text-2xl font-[900] tracking-tighter uppercase text-white group-hover:text-[#ec5b13] transition-colors"></span>
+				{/* Removed the separate text span since the brand name is inside the logo image */}
 			</Link>
 
 			<div className="hidden lg:flex items-center gap-8">
@@ -33,12 +33,13 @@ const Navbar = () => (
 		</div>
 
 		<div className="flex items-center gap-6">
+			{/* Search Bar */}
 			<div className="hidden md:flex items-center bg-neutral-900 border border-white/10 rounded-full px-4 py-1.5 focus-within:border-[#ec5b13]/50 transition-all">
 				<span className="material-symbols-outlined text-white/50 text-sm">
 					search
 				</span>
 				<input
-					className="bg-transparent border-none focus:ring-0 text-sm w-32 placeholder:text-white/30 text-white"
+					className="bg-transparent border-none focus:ring-0 text-sm w-32 placeholder:text-white/30 text-white outline-none"
 					placeholder="Search collection..."
 					type="text"
 				/>
