@@ -6,9 +6,27 @@ require("dotenv").config();
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
 
+app.use(express.json());
+const allowedOrigins = [
+	"http://localhost:3000",
+	"http://localhost:5173",
+	"https://verps-cao1.vercel.app/",
+];
+
+app.use(
+	cors({
+		origin: (origin, callback) => {
+			if (!origin || allowedOrigins.includes(origin)) {
+				callback(null, true);
+			} else {
+				callback(new Error("Not allowed by CORS"));
+			}
+		},
+		methods: ["GET", "POST", "OPTIONS"],
+		credentials: true,
+	}),
+);
 // 1. Configure the Mail Transporter
 // Ensure GMAIL_USER and GMAIL_PASS are set in your .env file
 const transporter = nodemailer.createTransport({
