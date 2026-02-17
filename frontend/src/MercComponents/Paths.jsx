@@ -21,6 +21,7 @@ import Cart from "./Cartoptions/Cart.jsx";
 import AdminDashBoard from "./Administration/AdminDashBoard.jsx";
 // In your router (App.jsx or routes file):
 import AllCategoriesPage from "./Homepage/AllCategoriesPage";
+import Checkout from "./Cartpages/Checkout.jsx";
 
 function ScrollToTop() {
 	const { pathname } = useLocation();
@@ -69,6 +70,7 @@ function Paths() {
 					<Route path="/category/sweatshirts" element={<SweatshirtPage />} />
 					<Route path="/category/bags" element={<BagPage />} />
 					<Route path="/orderpage" element={<OrdersPage />} />
+					<Route path="/checkout" element={<Checkout />} />
 					<Route path="/orderStatus" element={<StatusTracker />} />
 					<Route path="/support" element={<Support />} />
 					<Route path="/about" element={<About />} />

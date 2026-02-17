@@ -6,7 +6,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 	const menuItems = [
 		{ id: "inventory", name: "Vault Inventory", icon: "inventory_2" },
 		{ id: "add-product", name: "Add Product", icon: "add_circle" },
-		{ id: "categories", name: "Manage Categories", icon: "grid_view" },
+
 		{ id: "requests", name: "Client Requests", icon: "hub" },
 		{ id: "inbox", name: "Inbox", icon: "mail" },
 		{ id: "analytics", name: "Analytics", icon: "analytics" },

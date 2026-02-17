@@ -174,7 +174,8 @@ const CategoryTemplate = ({
 									</div>
 									<div className="mt-auto flex flex-col gap-1.5">
 										<button
-											onClick={() => addToCart(p)}
+											/* --- UPDATED addToCart logic below --- */
+											onClick={() => addToCart({ ...p, image: p.image_url })}
 											className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-white font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-[8px] md:text-[9px] uppercase tracking-[0.2em]"
 										>
 											<ShoppingCart className="w-3 h-3" /> Add cart
@@ -201,9 +202,7 @@ const CategoryTemplate = ({
 						onClick={closeQuickView}
 					/>
 
-					{/* Optimized Modal Container */}
 					<div className="relative w-full max-w-4xl max-h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300">
-						{/* Close Button */}
 						<button
 							onClick={closeQuickView}
 							className="absolute top-3 right-3 md:top-4 md:right-4 z-50 p-2 rounded-full bg-black/80 text-white/60 hover:text-[#ec5b13] hover:bg-black transition-all border border-white/10 hover:border-[#ec5b13]/50"
@@ -211,7 +210,6 @@ const CategoryTemplate = ({
 							<X className="w-4 h-4" />
 						</button>
 
-						{/* Image Section - Optimized Size */}
 						<div className="w-full md:w-[45%] h-[35vh] md:h-auto overflow-hidden bg-[#0d0d0d] relative flex-shrink-0">
 							<img
 								src={selectedProduct.image_url}
@@ -221,9 +219,7 @@ const CategoryTemplate = ({
 							<div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent md:hidden" />
 						</div>
 
-						{/* Content Section - Better Proportions */}
 						<div className="w-full md:w-[55%] flex flex-col bg-[#0a0a0a] max-h-[50vh] md:max-h-full">
-							{/* Header - Fixed */}
 							<div className="p-5 md:p-7 pb-3 md:pb-4 flex-shrink-0 border-b border-white/5">
 								<div className="flex items-center gap-2 mb-2">
 									<span className="text-[8px] font-black text-[#ec5b13] uppercase tracking-[0.3em]">
@@ -245,9 +241,7 @@ const CategoryTemplate = ({
 								</div>
 							</div>
 
-							{/* Scrollable Content Area */}
 							<div className="flex-1 overflow-y-auto px-5 md:px-7 py-4 custom-scrollbar">
-								{/* Description Section - Compact & Expandable */}
 								<div className="mb-5">
 									<div className="flex items-center justify-between mb-2">
 										<h4 className="text-[8px] font-bold uppercase tracking-[0.25em] text-white/40">
@@ -277,13 +271,11 @@ const CategoryTemplate = ({
 									</p>
 								</div>
 
-								{/* Related Items - Optimized Grid */}
 								{relatedItems.length > 0 && (
 									<div className="pt-4 border-t border-white/5">
 										<h4 className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30 mb-3">
 											Related Inventory
 										</h4>
-										{/* 2 columns mobile, 3 columns tablet/desktop */}
 										<div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
 											{relatedItems.map((item) => (
 												<button
@@ -316,11 +308,14 @@ const CategoryTemplate = ({
 								)}
 							</div>
 
-							{/* Footer Button - Fixed */}
 							<div className="p-5 md:p-7 pt-3 md:pt-4 bg-[#0a0a0a] border-t border-white/5 flex-shrink-0">
 								<button
+									/* --- UPDATED addToCart logic for modal below --- */
 									onClick={() => {
-										addToCart(selectedProduct);
+										addToCart({
+											...selectedProduct,
+											image: selectedProduct.image_url,
+										});
 										closeQuickView();
 									}}
 									className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-white font-bold py-3 md:py-3.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-3 text-[9px] md:text-[10px] uppercase tracking-[0.25em] shadow-lg hover:shadow-xl"

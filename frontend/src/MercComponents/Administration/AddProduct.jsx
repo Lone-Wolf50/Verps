@@ -7,11 +7,13 @@ const AddProduct = ({ editData, onSuccess }) => {
 	const [loading, setLoading] = useState(false);
 	const [imageFile, setImageFile] = useState(null);
 	const [previewUrl, setPreviewUrl] = useState(null);
-
+	// Add this near your other category states
+	const [editingCategoryId, setEditingCategoryId] = useState(null);
 	// Category section state
 	const [categoryImageFile, setCategoryImageFile] = useState(null);
 	const [categoryPreviewUrl, setCategoryPreviewUrl] = useState(null);
 	const [categoryName, setCategoryName] = useState("");
+	const [categories, setCategories] = useState([]);
 
 	const initialState = {
 		name: "",
@@ -27,6 +29,27 @@ const AddProduct = ({ editData, onSuccess }) => {
 		const savedDraft = localStorage.getItem("product_draft");
 		return savedDraft ? JSON.parse(savedDraft) : initialState;
 	});
+	const handleEditCategory = (category) => {
+		setEditingCategoryId(category.id);
+		setCategoryName(category.name);
+		setCategoryPreviewUrl(category.image_url);
+		// Scroll smoothly back to the top form
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+	const fetchCategories = async () => {
+		const { data, error } = await supabase
+			.from("verp_categories")
+			.select("*") // Get everything (id, name, image_url)
+			.order("name", { ascending: true });
+
+		if (error) {
+			console.error("Vault Error:", error.message);
+		} else {
+			// This is the critical line. Ensure 'categories' is the
+			// same variable used in your .map() functions.
+			setCategories(data || []);
+		}
+	};
 
 	// Sync form with editData and set initial preview
 	useEffect(() => {
@@ -76,7 +99,10 @@ const AddProduct = ({ editData, onSuccess }) => {
 		background: "#1a1a1a",
 		color: "#fff",
 	});
-
+	useEffect(() => {
+		console.log("MANAGE CATEGORIES: Component Mounted");
+		fetchCategories();
+	}, []);
 	const handleFileChange = (e) => {
 		if (e.target.files && e.target.files[0]) {
 			const file = e.target.files[0];
@@ -109,56 +135,86 @@ const AddProduct = ({ editData, onSuccess }) => {
 	};
 
 	const handleCategorySave = async () => {
-		if (!categoryName.trim() || !categoryImageFile) {
+		// If NOT editing, we require an image. If editing, image is optional.
+		if (!categoryName.trim() || (!editingCategoryId && !categoryImageFile)) {
 			return Toast.fire({
 				icon: "warning",
 				title: "Missing Data",
-				text: "Please provide both category name and image.",
+				text: "Please provide the category name and an image asset.",
 			});
 		}
 
 		setLoading(true);
 		try {
-			const fileExt = categoryImageFile.name.split(".").pop();
-			const fileName = `category_${Math.random()}.${fileExt}`;
-			const { error: uploadError } = await supabase.storage
-				.from("verp-products")
-				.upload(fileName, categoryImageFile);
+			let finalImageUrl = categoryPreviewUrl;
 
-			if (uploadError) throw uploadError;
+			// Only upload a new image if the user selected a new file
+			if (categoryImageFile) {
+				const fileExt = categoryImageFile.name.split(".").pop();
+				const fileName = `category_${Math.random()}.${fileExt}`;
+				const { error: uploadError } = await supabase.storage
+					.from("verp-products")
+					.upload(fileName, categoryImageFile);
 
-			const {
-				data: { publicUrl },
-			} = supabase.storage.from("verp-products").getPublicUrl(fileName);
+				if (uploadError) throw uploadError;
 
-			const { error: dbError } = await supabase.from("verp_categories").insert([
-				{
-					name: categoryName,
-					image_url: publicUrl,
-				},
-			]);
+				const {
+					data: { publicUrl },
+				} = supabase.storage.from("verp-products").getPublicUrl(fileName);
 
-			if (dbError) throw dbError;
+				finalImageUrl = publicUrl;
+			}
+
+			const payload = {
+				name: categoryName,
+				image_url: finalImageUrl,
+			};
+
+			let error;
+			if (editingCategoryId) {
+				// UPDATE existing architecture
+				const { error: updateError } = await supabase
+					.from("verp_categories")
+					.update(payload)
+					.eq("id", editingCategoryId);
+				error = updateError;
+			} else {
+				// INSERT new architecture
+				const { error: insertError } = await supabase
+					.from("verp_categories")
+					.insert([payload]);
+				error = insertError;
+			}
+
+			if (error) throw error;
+
+			// Refresh all instances of categories in the UI
+			await fetchCategories();
 
 			await Swal.fire({
-				title: "CATEGORY CREATED",
-				text: `${categoryName} has been added to the vault.`,
+				title: editingCategoryId ? "ARCHITECTURE UPDATED" : "CATEGORY CREATED",
+				text: `${categoryName} has been synchronized in the vault.`,
 				icon: "success",
 				background: "#0a0a0a",
 				color: "#fff",
 				confirmButtonColor: "#ec5b13",
 			});
 
+			// Reset all states back to neutral
 			setCategoryName("");
 			setCategoryImageFile(null);
 			setCategoryPreviewUrl(null);
+			setEditingCategoryId(null); // Critical: exit edit mode
 		} catch (error) {
-			Toast.fire({ icon: "error", title: "Failed", text: error.message });
+			Toast.fire({
+				icon: "error",
+				title: "Operation Failed",
+				text: error.message,
+			});
 		} finally {
 			setLoading(false);
 		}
 	};
-
 	const handleClear = async () => {
 		const result = await Swal.fire({
 			title: "CLEAR ARCHITECTURE?",
@@ -181,7 +237,59 @@ const AddProduct = ({ editData, onSuccess }) => {
 			if (onSuccess) onSuccess();
 		}
 	};
+	const handleDeleteCategory = async (id, name, imageUrl) => {
+		const result = await Swal.fire({
+			title: "PURGE CATEGORY?",
+			text: `Permanently remove ${name} from Vault and Storage?`,
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonText: "CONFIRM PURGE",
+			background: "#0a0a0a",
+			color: "#fff",
+			confirmButtonColor: "#ec5b13",
+		});
 
+		if (result.isConfirmed) {
+			setLoading(true);
+			try {
+				// 1. EXTRACT FILENAME
+				// We split by '/' and take the last part
+				const fileName = imageUrl.split("/").pop();
+
+				// 2. DELETE FROM STORAGE
+
+				const { data: storageData, error: storageError } =
+					await supabase.storage.from("verp-products").remove([fileName]);
+
+				if (storageError) {
+					console.error("STORAGE ERROR:", storageError);
+				} else {
+					console.log("STORAGE SUCCESS:", storageData);
+				}
+
+				// 3. DELETE FROM DATABASE
+
+				const { error: dbError } = await supabase
+					.from("verp_categories")
+					.delete()
+					.eq("id", id);
+
+				if (dbError) throw dbError;
+
+				Toast.fire({
+					icon: "success",
+					title: "Vault Purged",
+					text: "Database row and storage file removed.",
+				});
+
+				await fetchCategories();
+			} catch (error) {
+				console.error("CRITICAL ERROR:", error.message);
+			} finally {
+				setLoading(false);
+			}
+		}
+	};
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
@@ -262,7 +370,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 			setLoading(false);
 		}
 	};
-
+	console.log("Current Component State:", categories);
 	return (
 		<div className="max-w-7xl mx-auto space-y-20 pb-32 px-4 md:px-6">
 			{/* SECTION 01 - CATEGORY ARCHITECTURE */}
@@ -356,27 +464,52 @@ const AddProduct = ({ editData, onSuccess }) => {
 						<div className="flex flex-col justify-center gap-6">
 							<div className="space-y-3">
 								<label className="block text-[9px] md:text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">
-									Category Name
+									{editingCategoryId
+										? "Update Classification Name"
+										: "Category Name"}
 								</label>
 								<input
 									type="text"
 									className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
-									placeholder="Enter category name"
+									placeholder="e.g. Performance Series"
 									value={categoryName}
 									onChange={(e) => setCategoryName(e.target.value)}
 								/>
 							</div>
 
-							<button
-								onClick={handleCategorySave}
-								disabled={loading}
-								className="w-full px-6 md:px-8 py-4 md:py-5 bg-gradient-to-r from-[#ec5b13] to-[#d94e0f] text-white rounded-xl md:rounded-2xl font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] hover:shadow-lg hover:shadow-[#ec5b13]/30 transition-all active:scale-[0.98] disabled:opacity-50"
-							>
-								{loading ? "Creating..." : "Create Category"}
-							</button>
+							<div className="flex flex-col gap-3">
+								<button
+									onClick={handleCategorySave}
+									disabled={loading}
+									className="w-full px-6 md:px-8 py-4 md:py-5 bg-gradient-to-r from-[#ec5b13] to-[#d94e0f] text-white rounded-xl md:rounded-2xl font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] hover:shadow-lg hover:shadow-[#ec5b13]/30 transition-all active:scale-[0.98] disabled:opacity-50"
+								>
+									{loading
+										? "Processing..."
+										: editingCategoryId
+											? "Update Vault Entry"
+											: "Create Category"}
+								</button>
+
+								{/* Cancel Edit Button */}
+								{editingCategoryId && (
+									<button
+										onClick={() => {
+											setEditingCategoryId(null);
+											setCategoryName("");
+											setCategoryPreviewUrl(null);
+											setCategoryImageFile(null);
+										}}
+										className="text-[9px] font-bold uppercase text-white/20 hover:text-red-500 transition-colors tracking-[0.2em] text-center"
+									>
+										Abort Edit
+									</button>
+								)}
+							</div>
 
 							<p className="text-[9px] md:text-[10px] text-white/20 uppercase tracking-widest text-center">
-								Add categories to organize products
+								{editingCategoryId
+									? "Modifying existing vault structure"
+									: "Add categories to organize products"}
 							</p>
 						</div>
 					</div>
@@ -606,6 +739,101 @@ const AddProduct = ({ editData, onSuccess }) => {
 							</div>
 						</div>
 					</div>
+				</div>
+			</section>
+			{/* SECTION 03 - CATEGORY REPOSITORY */}
+			<section className="mt-20 animate-in fade-in slide-in-from-bottom-6 duration-700">
+				<div className="mb-8 md:mb-12">
+					<div className="flex items-center gap-4 mb-3">
+						<div className="w-12 h-[2px] bg-gradient-to-r from-[#ec5b13] to-transparent"></div>
+						<span className="text-[9px] font-black text-[#ec5b13] uppercase tracking-[0.4em]">
+							Section 03
+						</span>
+					</div>
+					<h2 className="text-3xl md:text-5xl font-light text-white tracking-tight">
+						Vault{" "}
+						<span className="font-serif italic text-[#ec5b13]">Repository</span>
+					</h2>
+				</div>
+
+				{/* The Grid */}
+				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+					{/* 1. DATA RENDER: Only maps if categories exist */}
+					{categories.length > 0 &&
+						categories.map((cat) => (
+							<div
+								key={cat.id}
+								className="group relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/5 bg-white/[0.02] transition-all hover:border-[#ec5b13]/30"
+							>
+								<img
+									src={cat.image_url}
+									alt={cat.name}
+									className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-60 group-hover:opacity-100"
+								/>
+
+								<div className="absolute inset-x-0 bottom-0 p-4 md:p-6 bg-gradient-to-t from-black via-black/90 to-transparent">
+									<p className="text-[10px] text-[#ec5b13] font-black uppercase tracking-[0.2em] mb-1">
+										Category
+									</p>
+									<h3 className="text-white font-light text-lg tracking-tight truncate">
+										{cat.name}
+									</h3>
+								</div>
+
+								<div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
+									<button
+										onClick={() => handleEditCategory(cat)}
+										className="w-32 py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-[#ec5b13] hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0"
+									>
+										Edit
+									</button>
+									<button
+										onClick={() =>
+											handleDeleteCategory(cat.id, cat.name, cat.image_url)
+										}
+										className="w-32 py-2.5 border border-white/20 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-red-600 hover:border-red-600 transition-all transform translate-y-4 group-hover:translate-y-0 delay-75"
+									>
+										Delete
+									</button>
+								</div>
+							</div>
+						))}
+
+					{/* 2. LOADING STATE: Prevents "Empty" flash on refresh */}
+					{loading && categories.length === 0 && (
+						<div className="col-span-full py-24 text-center">
+							<div className="inline-block w-8 h-8 border-2 border-t-[#ec5b13] border-white/10 rounded-full animate-spin mb-4"></div>
+							<p className="text-[#ec5b13] uppercase tracking-[0.3em] text-[10px] font-bold animate-pulse">
+								Synchronizing Vault Data...
+							</p>
+						</div>
+					)}
+
+					{/* 3. EMPTY STATE: Only shows if NOT loading and actually empty */}
+					{!loading && categories.length === 0 && (
+						<div className="col-span-full py-24 text-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.01]">
+							<div className="inline-flex p-4 rounded-full bg-white/5 text-white/10 mb-4">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="32"
+									height="32"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="1"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								>
+									<rect width="20" height="20" x="2" y="2" rx="2" ry="2" />
+									<path d="M12 8v8" />
+									<path d="M8 12h8" />
+								</svg>
+							</div>
+							<p className="text-white/20 uppercase tracking-[0.3em] text-[10px] font-bold">
+								The repository is currently empty
+							</p>
+						</div>
+					)}
 				</div>
 			</section>
 		</div>

@@ -54,10 +54,20 @@ export const CartProvider = ({ children }) => {
 		(sum, item) => sum + item.price * item.quantity,
 		0,
 	);
-
+	const clearCart = () => {
+		setCart([]);
+		localStorage.removeItem("luxury_cart");
+	};
 	return (
 		<CartContext.Provider
-			value={{ cart, addToCart, removeFromCart, updateQuantity, cartTotal }}
+			value={{
+				cart,
+				addToCart,
+				removeFromCart,
+				updateQuantity,
+				cartTotal,
+				clearCart,
+			}}
 		>
 			{children}
 		</CartContext.Provider>

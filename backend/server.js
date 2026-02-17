@@ -49,51 +49,33 @@ transporter.verify((error, success) => {
 });
 
 // 2. The Logic Bridge: Notify Admin of New Entry
-app.post("/api/notify-entry", async (req, res) => {
-	const { name, category, price, image_url } = req.body;
+app.post("/api/notify-order", async (req, res) => {
+	const { orderNumber, customer, total, items } = req.body;
+
+	const itemListHtml = items
+		.map((item) => `<li>${item.name} (x${item.quantity}) - $${item.price}</li>`)
+		.join("");
 
 	const mailOptions = {
-		from: `"VERP Vault System" <${process.env.GMAIL_USER}>`,
+		from: `"VERP Order System" <${process.env.GMAIL_USER}>`,
 		to: process.env.ADMIN_EMAIL,
-		subject: `✨ New Masterpiece Registered: ${name}`,
+		subject: `🚨 NEW ORDER: ${orderNumber}`,
 		html: `
-            <div style="background-color: #0a0a0a; color: #ffffff; padding: 40px; font-family: 'Helvetica', sans-serif; border: 1px solid #ec5b13; border-radius: 20px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="color: #ec5b13; font-style: italic; font-weight: 300; margin: 0;">Vault Asset Log</h1>
-                    <p style="color: #666; font-size: 12px; text-transform: uppercase; tracking: 2px;">Automated Security Broadcast</p>
-                </div>
-                <p style="font-size: 16px; line-height: 1.6;">
-                    A new asset has been successfully registered in the <strong style="color: #ec5b13;">${category}</strong> architecture.
-                </p>
-                <hr style="border: 0; border-top: 1px solid #222; margin: 30px 0;" />
-                <div style="margin-bottom: 30px;">
-                    <p style="margin: 5px 0;"><strong>Asset Name:</strong> ${name}</p>
-                    <p style="margin: 5px 0;"><strong>Valuation:</strong> GH₵ ${price}</p>
-                </div>
-                ${
-									image_url
-										? `
-                <div style="margin-top: 20px; text-align: center; background: #111; padding: 20px; border-radius: 15px;">
-                    <img src="${image_url}" alt="Asset Thumbnail" style="width: 100%; max-width: 400px; border-radius: 10px; border: 1px solid #333;" />
-                </div>`
-										: `<p style="color: #444;">No media attached to this log.</p>`
-								}
-                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #222; text-align: center;">
-                    <p style="color: #444; font-size: 11px;">
-                        This transmission is encrypted and intended for the VERP Admin Terminal only. 
-                        Verification ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}
-                    </p>
-                </div>
+            <div style="background: #000; color: #fff; padding: 30px; border: 1px solid #ec5b13;">
+                <h1>New Acquisition Request</h1>
+                <p><strong>Customer:</strong> ${customer}</p>
+                <p><strong>Total:</strong> $${total}</p>
+                <ul>${itemListHtml}</ul>
+                <p>Log in to the Admin Terminal to update status.</p>
             </div>
         `,
 	};
 
 	try {
 		await transporter.sendMail(mailOptions);
-		res.status(200).json({ success: true, message: "Security Broadcast Sent" });
-	} catch (error) {
-		console.error("❌ Mail Error:", error);
-		res.status(500).json({ error: "Failed to send notification" });
+		res.status(200).json({ success: true });
+	} catch (err) {
+		res.status(500).json({ error: err.message });
 	}
 });
 
