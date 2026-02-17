@@ -4,19 +4,36 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import Swal from "sweetalert2";
 
-// ─── Step Indicator ───────────────────────────────────────────────────────────
-const steps = ["Cart", "Details", "Confirm"];
-
 // ─── Input Field Component ────────────────────────────────────────────────────
 const Field = ({ label, icon, error, children }) => (
 	<div className="space-y-2 group">
-		<label className="flex items-center gap-2 text-[9px] font-medium text-white/30 uppercase tracking-[0.35em] ml-1">
-			{icon && <span className="text-[10px]">{icon}</span>}
+		<label
+			className="flex items-center gap-2 ml-1"
+			style={{
+				fontFamily: "'DM Mono', monospace",
+				fontSize: "10px",
+				fontWeight: "600",
+				color: "rgba(255,255,255,0.65)",
+				textTransform: "uppercase",
+				letterSpacing: "0.3em",
+			}}
+		>
+			{icon && <span style={{ fontSize: "11px" }}>{icon}</span>}
 			{label}
 		</label>
 		{children}
 		{error && (
-			<p className="text-[9px] text-red-400 uppercase tracking-wider ml-1 font-medium">
+			<p
+				style={{
+					fontFamily: "'DM Mono', monospace",
+					fontSize: "9px",
+					color: "rgb(248,113,113)",
+					textTransform: "uppercase",
+					letterSpacing: "0.15em",
+					marginLeft: "4px",
+					fontWeight: "500",
+				}}
+			>
 				{error}
 			</p>
 		)}
@@ -108,6 +125,39 @@ const DeliveryCard = ({
 		</p>
 		<p className="text-[10px] text-white/30 leading-relaxed">{description}</p>
 	</button>
+);
+
+// ─── Section Header ───────────────────────────────────────────────────────────
+const SectionHeader = ({ number, title }) => (
+	<div
+		className="px-7 py-5 flex items-center gap-3"
+		style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+	>
+		<div
+			className="w-6 h-6 rounded-lg flex items-center justify-center"
+			style={{
+				background: "rgba(236,91,19,0.15)",
+				color: "#ec5b13",
+				fontFamily: "'DM Mono', monospace",
+				fontSize: "10px",
+				fontWeight: "500",
+			}}
+		>
+			{number}
+		</div>
+		<h2
+			style={{
+				fontFamily: "'DM Mono', monospace",
+				fontSize: "10px",
+				textTransform: "uppercase",
+				letterSpacing: "0.3em",
+				color: "rgba(255,255,255,0.55)",
+				fontWeight: "600",
+			}}
+		>
+			{title}
+		</h2>
+	</div>
 );
 
 // ─── Main Checkout ────────────────────────────────────────────────────────────
@@ -214,8 +264,8 @@ const Checkout = () => {
         .co-display { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; }
         .co-mono { font-family: 'DM Mono', monospace; }
 
-        .co-input:focus { 
-          border-color: rgba(236,91,19,0.5); 
+        .co-input:focus {
+          border-color: rgba(236,91,19,0.5);
           background: rgba(236,91,19,0.03);
           box-shadow: 0 0 0 3px rgba(236,91,19,0.08);
         }
@@ -235,10 +285,6 @@ const Checkout = () => {
         .fade-up { animation: fade-up 0.65s cubic-bezier(.22,1,.36,1) both; }
         .fade-up-delay { animation: fade-up 0.65s 0.15s cubic-bezier(.22,1,.36,1) both; }
 
-        @keyframes shimmer {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
         .btn-submit {
           background: linear-gradient(90deg, #ec5b13, #ff7a3d, #ec5b13);
           background-size: 200% auto;
@@ -249,13 +295,8 @@ const Checkout = () => {
           box-shadow: 0 8px 32px -8px rgba(236,91,19,0.5);
           transform: translateY(-1px);
         }
-        .btn-submit:active:not(:disabled) {
-          transform: translateY(0);
-        }
-        .btn-submit:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+        .btn-submit:active:not(:disabled) { transform: translateY(0); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
         @keyframes spin-ring {
           to { transform: rotate(360deg); }
@@ -310,20 +351,7 @@ const Checkout = () => {
 										border: "1px solid rgba(255,255,255,0.07)",
 									}}
 								>
-									<div className="px-7 py-5 border-b border-white/[0.05] flex items-center gap-3">
-										<div
-											className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px]"
-											style={{
-												background: "rgba(236,91,19,0.15)",
-												color: "#ec5b13",
-											}}
-										>
-											01
-										</div>
-										<h2 className="co-mono text-[10px] uppercase tracking-[0.3em] text-white/40 font-medium">
-											Contact Information
-										</h2>
-									</div>
+									<SectionHeader number="01" title="Contact Information" />
 
 									<div className="p-7 space-y-5">
 										<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -402,20 +430,7 @@ const Checkout = () => {
 										border: "1px solid rgba(255,255,255,0.07)",
 									}}
 								>
-									<div className="px-7 py-5 border-b border-white/[0.05] flex items-center gap-3">
-										<div
-											className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px]"
-											style={{
-												background: "rgba(236,91,19,0.15)",
-												color: "#ec5b13",
-											}}
-										>
-											02
-										</div>
-										<h2 className="co-mono text-[10px] uppercase tracking-[0.3em] text-white/40 font-medium">
-											Delivery Method
-										</h2>
-									</div>
+									<SectionHeader number="02" title="Delivery Method" />
 
 									<div className="p-7 space-y-4">
 										<div className="flex flex-col sm:flex-row gap-3">
@@ -529,18 +544,32 @@ const Checkout = () => {
 								}}
 							>
 								{/* Header */}
-								<div className="px-7 py-5 border-b border-white/[0.05] flex items-center justify-between">
+								<div
+									className="px-7 py-5 flex items-center justify-between"
+									style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+								>
 									<div className="flex items-center gap-3">
 										<div
-											className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px]"
+											className="w-6 h-6 rounded-lg flex items-center justify-center"
 											style={{
 												background: "rgba(236,91,19,0.15)",
 												color: "#ec5b13",
+												fontFamily: "'DM Mono', monospace",
+												fontSize: "10px",
 											}}
 										>
 											◈
 										</div>
-										<h2 className="co-mono text-[10px] uppercase tracking-[0.3em] text-white/40 font-medium">
+										<h2
+											style={{
+												fontFamily: "'DM Mono', monospace",
+												fontSize: "10px",
+												textTransform: "uppercase",
+												letterSpacing: "0.3em",
+												color: "rgba(255,255,255,0.55)",
+												fontWeight: "600",
+											}}
+										>
 											Order Summary
 										</h2>
 									</div>
