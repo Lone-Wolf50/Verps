@@ -92,7 +92,7 @@ const AllCategoriesPage = () => {
 						>
 							<ArrowLeft className="w-4 h-4 text-[#ec5b13] group-hover:-translate-x-1 transition-transform" />
 							<span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
-								Return to Vault
+								Back
 							</span>
 						</button>
 
@@ -104,7 +104,7 @@ const AllCategoriesPage = () => {
 								</span>
 							</div>
 							<h1 className="text-5xl md:text-7xl font-light tracking-tighter">
-								Archive{" "}
+								Verp{" "}
 								<span className="font-serif italic text-[#ec5b13]">
 									Categories
 								</span>

@@ -88,7 +88,7 @@ const CategoryTemplate = ({
 						>
 							<ArrowLeft className="w-3.5 h-3.5 text-[#ec5b13] group-hover:-translate-x-1 transition-transform" />
 							<span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/70">
-								Return to Vault
+								Back
 							</span>
 						</button>
 
