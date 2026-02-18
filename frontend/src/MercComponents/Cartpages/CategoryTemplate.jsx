@@ -43,12 +43,10 @@ const CategoryTemplate = ({
 					`${categoryName.toLowerCase()}s`,
 					`${capitalized}s`,
 				];
-
 				const { data, error } = await supabase
 					.from("verp_products")
 					.select("*")
 					.in("category", searchTerms);
-
 				if (error) throw error;
 				setProducts(data || []);
 			} catch (err) {
@@ -57,7 +55,6 @@ const CategoryTemplate = ({
 				setLoading(false);
 			}
 		};
-
 		if (categoryName) fetchProducts();
 	}, [categoryName]);
 
@@ -78,43 +75,51 @@ const CategoryTemplate = ({
 
 	return (
 		<div className="bg-[#050505] text-white min-h-screen font-sans">
-			<main className="max-w-7xl mx-auto px-6 pt-20 pb-20">
-				{/* --- HEADER SECTION --- */}
-				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-					<div className="space-y-4">
+			<main className="max-w-7xl mx-auto px-4 sm:px-6 pt-[88px] sm:pt-[104px] md:pt-[112px] pb-20">
+				{/* ── HEADER ROW: back button + divider + title + description ── */}
+				<div className="flex flex-col gap-4 mb-10 sm:mb-12">
+					<div className="flex items-center gap-3 sm:gap-5">
+						{/* Compact circular back button */}
 						<button
 							onClick={() => navigate(-1)}
-							className="group flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all w-fit"
+							className="group flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/10 bg-white/5 backdrop-blur-md hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/40 transition-all active:scale-95"
+							aria-label="Go back"
 						>
-							<ArrowLeft className="w-3.5 h-3.5 text-[#ec5b13] group-hover:-translate-x-1 transition-transform" />
-							<span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/70">
-								Back
-							</span>
+							<ArrowLeft className="w-3.5 h-3.5 text-[#ec5b13] group-hover:-translate-x-0.5 transition-transform" />
 						</button>
 
-						<div className="space-y-1">
-							<div className="flex items-center gap-3">
-								<div className="w-10 h-[2px] bg-gradient-to-r from-[#ec5b13] to-transparent"></div>
-								<span className="text-[8px] font-black text-[#ec5b13] uppercase tracking-[0.4em]">
-									Index {collectionIndex}
-								</span>
-							</div>
-							<h1 className="text-4xl md:text-6xl font-light tracking-tighter uppercase">
+						{/* Orange gradient connector */}
+						<div className="flex-shrink-0 w-6 sm:w-8 h-[1px] bg-gradient-to-r from-[#ec5b13]/50 to-transparent" />
+
+						{/* Title block */}
+						<div className="flex-1 min-w-0">
+							<h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-tighter uppercase leading-none">
 								{title}{" "}
 								<span className="font-serif italic text-[#ec5b13] lowercase">
 									{subtitle}
 								</span>
 							</h1>
 						</div>
+
+						{/* Description — large screens only, right-aligned */}
+						{description && (
+							<div className="hidden lg:block flex-shrink-0 max-w-[220px] text-right">
+								<p className="text-[9px] text-white/30 uppercase tracking-[0.3em] leading-relaxed">
+									{description}
+								</p>
+							</div>
+						)}
 					</div>
 
-					<div className="hidden lg:block text-right max-w-[250px]">
-						<p className="text-[9px] text-white/30 uppercase tracking-[0.3em] leading-relaxed">
+					{/* Description below on smaller screens */}
+					{description && (
+						<p className="lg:hidden text-[9px] text-white/30 uppercase tracking-[0.3em] leading-relaxed max-w-sm pl-[52px] sm:pl-[60px]">
 							{description}
 						</p>
-					</div>
+					)}
 				</div>
 
+				{/* Inventory label */}
 				<div className="flex items-center gap-2 mb-6 border-b border-white/5 pb-4">
 					<LayoutGrid className="w-3.5 h-3.5 text-[#ec5b13]" />
 					<h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">
@@ -122,18 +127,18 @@ const CategoryTemplate = ({
 					</h2>
 				</div>
 
-				{/* --- PRODUCT GRID --- */}
+				{/* Product grid */}
 				{loading ? (
 					<div className="flex flex-col items-center justify-center py-32 gap-4">
 						<Loader2 className="w-6 h-6 text-[#ec5b13] animate-spin" />
 						<span className="text-[10px] font-mono tracking-[0.5em] uppercase text-white/20">
-							Syncing Vault...
+							Verp Syncing...
 						</span>
 					</div>
 				) : products.length === 0 ? (
 					<div className="py-32 text-center border border-dashed border-white/10 rounded-xl">
 						<p className="text-[10px] font-mono tracking-widest text-white/30 uppercase italic">
-							No entries found in archive
+							No entries found ...
 						</p>
 					</div>
 				) : (
@@ -157,24 +162,22 @@ const CategoryTemplate = ({
 										</div>
 									)}
 								</div>
-
 								<div className="p-3 md:p-5 flex flex-col flex-grow bg-gradient-to-b from-transparent to-black/20">
 									<div className="mb-2">
 										<h3 className="hidden md:block text-[13px] font-bold tracking-tight uppercase group-hover:text-[#ec5b13] transition-colors line-clamp-1">
 											{p.name}
 										</h3>
-										<p className="text-[7px] md:text-[8px] font-mono text-white/20 tracking-widest uppercase italic">
+										<p className="text-[7px] md:text-[8px] font-mono text-white/40 tracking-widest uppercase italic">
 											SKU // {p.sku || `VERP-${collectionIndex}-${i + 1}`}
 										</p>
 									</div>
 									<div className="mb-3">
 										<span className="text-sm md:text-lg font-light text-white/90">
-											${Number(p.price).toLocaleString()}
+											GH&#8373; {Number(p.price).toLocaleString()}
 										</span>
 									</div>
 									<div className="mt-auto flex flex-col gap-1.5">
 										<button
-											/* --- UPDATED addToCart logic below --- */
 											onClick={() => addToCart({ ...p, image: p.image_url })}
 											className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-white font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-[8px] md:text-[9px] uppercase tracking-[0.2em]"
 										>
@@ -194,14 +197,13 @@ const CategoryTemplate = ({
 				)}
 			</main>
 
-			{/* --- PREMIUM QUICK VIEW MODAL --- */}
+			{/* ── QUICK VIEW MODAL ── */}
 			{selectedProduct && (
 				<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6">
 					<div
 						className="absolute inset-0 bg-black/96 backdrop-blur-xl animate-in fade-in duration-300"
 						onClick={closeQuickView}
 					/>
-
 					<div className="relative w-full max-w-4xl max-h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300">
 						<button
 							onClick={closeQuickView}
@@ -225,14 +227,14 @@ const CategoryTemplate = ({
 									<span className="text-[8px] font-black text-[#ec5b13] uppercase tracking-[0.3em]">
 										Limited Release
 									</span>
-									<div className="h-[1px] flex-grow bg-white/10"></div>
+									<div className="h-[1px] flex-grow bg-white/10" />
 								</div>
 								<h2 className="text-xl md:text-2xl font-light uppercase tracking-tight mb-2 line-clamp-1">
 									{selectedProduct.name}
 								</h2>
 								<div className="flex items-center gap-3">
 									<p className="text-lg md:text-xl text-[#ec5b13] font-mono tracking-tight">
-										${Number(selectedProduct.price).toLocaleString()}
+										GH&#8373; {Number(selectedProduct.price).toLocaleString()}
 									</p>
 									<span className="flex items-center gap-1 px-2 py-0.5 rounded border border-white/5 bg-white/5 text-[7px] text-white/40 uppercase tracking-wider font-bold">
 										<ShieldCheck className="w-2.5 h-2.5 text-[#ec5b13]" />{" "}
@@ -260,11 +262,7 @@ const CategoryTemplate = ({
 										</button>
 									</div>
 									<p
-										className={`
-                                        text-white/60 leading-relaxed font-light transition-all duration-300
-                                        text-[11px] md:text-[12px] tracking-wide
-                                        ${!isDescExpanded ? "line-clamp-3" : "line-clamp-none"}
-                                    `}
+										className={`text-white/60 leading-relaxed font-light transition-all duration-300 text-[11px] md:text-[12px] tracking-wide ${!isDescExpanded ? "line-clamp-3" : "line-clamp-none"}`}
 									>
 										{selectedProduct.description ||
 											"Archived premium selection. Handcrafted for the modern explorer with focus on durability and refined aesthetics. Each piece represents timeless design merged with contemporary functionality."}
@@ -274,7 +272,7 @@ const CategoryTemplate = ({
 								{relatedItems.length > 0 && (
 									<div className="pt-4 border-t border-white/5">
 										<h4 className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30 mb-3">
-											Related Inventory
+											Related Product
 										</h4>
 										<div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
 											{relatedItems.map((item) => (
@@ -310,7 +308,6 @@ const CategoryTemplate = ({
 
 							<div className="p-5 md:p-7 pt-3 md:pt-4 bg-[#0a0a0a] border-t border-white/5 flex-shrink-0">
 								<button
-									/* --- UPDATED addToCart logic for modal below --- */
 									onClick={() => {
 										addToCart({
 											...selectedProduct,

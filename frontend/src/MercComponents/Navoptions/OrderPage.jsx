@@ -119,7 +119,7 @@ const OrderPage = () => {
 			<div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
 				<div className="w-10 h-10 border border-[#ec5b13]/30 border-t-[#ec5b13] rounded-full animate-spin"></div>
 				<span className="vault-mono text-[#ec5b13] text-[10px] uppercase tracking-[0.6em] animate-pulse">
-					Accessing Vault
+					Accessing Page...
 				</span>
 			</div>
 		);
@@ -143,7 +143,7 @@ const OrderPage = () => {
 					<div className="flex items-center gap-3 mb-2">
 						<div className="w-8 h-[1px] bg-[#ec5b13]"></div>
 						<span className="text-[8px] font-black text-[#ec5b13] uppercase tracking-[0.4em]">
-							Operations Log
+							Orders Log
 						</span>
 					</div>
 
@@ -157,7 +157,7 @@ const OrderPage = () => {
 
 						<h1 className="text-4xl md:text-7xl font-light tracking-tighter">
 							Your{" "}
-							<span className="font-serif italic text-[#ec5b13]">Vault</span>
+							<span className="font-serif italic text-[#ec5b13]">Orders</span>
 						</h1>
 					</div>
 				</header>
@@ -187,7 +187,7 @@ const OrderPage = () => {
 					{filteredOrders.length === 0 ? (
 						<div className="text-center py-16 border border-dashed border-white/5 rounded-[2rem]">
 							<h3 className="vault-display text-2xl text-white/10 tracking-widest uppercase">
-								Empty_Archive
+								Empty_Orders
 							</h3>
 						</div>
 					) : (
@@ -267,10 +267,11 @@ const OrderPage = () => {
 
 											<div className="lg:w-64 border-t lg:border-t-0 lg:border-l border-white/[0.06] pt-6 lg:pt-0 lg:pl-8">
 												<label className="vault-mono text-[8px] text-white/20 uppercase tracking-[0.3em] block mb-1">
-													Total Value
+													Total Amount
 												</label>
 												<div className="vault-display text-3xl md:text-5xl tracking-tight text-white/90 mb-6">
-													${Number(order.total_amount).toLocaleString()}
+													GH&#8373;{" "}
+													{Number(order.total_amount).toLocaleString()}
 												</div>
 
 												<div className="space-y-2">
@@ -288,7 +289,7 @@ const OrderPage = () => {
 																onClick={() => handleReacquire(order.items)}
 																className="w-full py-3 rounded-xl vault-mono text-[8px] uppercase tracking-widest text-white/40 border border-white/10 hover:bg-white/05 transition-all"
 															>
-																↺ Re-Acquire
+																↺ Re-Order
 															</button>
 														</>
 													) : (

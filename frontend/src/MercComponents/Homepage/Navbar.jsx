@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../../MercComponents/Cartoptions/CartContext";
+import SearchOverlay from "./SearchOverlay";
 import logo from "../../assets/V - 1.png";
 
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const { cart } = useCart();
 	const location = useLocation();
 
 	const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
 	useEffect(() => {
-		if (isMenuOpen) {
+		if (isMenuOpen || isSearchOpen) {
 			document.body.style.overflow = "hidden";
 		} else {
 			document.body.style.overflow = "unset";
 		}
-	}, [isMenuOpen]);
+	}, [isMenuOpen, isSearchOpen]);
 
 	const navLinks = [
 		{ name: "About", path: "/about", icon: "info" },
@@ -34,7 +36,7 @@ const Navbar = () => {
 
 	return (
 		<>
-			{/* Increased navbar height with better proportions */}
+			{/* ── FIXED NAVBAR ── */}
 			<nav className="fixed top-0 left-0 w-full z-[100] glass-nav px-6 md:px-12 py-2 md:py-3 flex items-center justify-between">
 				<div className="flex items-center gap-12">
 					<Link to="/" className="flex items-center">
@@ -47,7 +49,6 @@ const Navbar = () => {
 						</div>
 					</Link>
 
-					{/* PC & TABLET */}
 					<div className="hidden md:flex items-center gap-8">
 						{navLinks.map((link) => (
 							<Link
@@ -61,7 +62,7 @@ const Navbar = () => {
 							>
 								{link.name}
 								{link.isCart && itemCount > 0 && (
-									<span className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-[#ec5b13] rounded-full animate-pulse"></span>
+									<span className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-[#ec5b13] rounded-full animate-pulse" />
 								)}
 							</Link>
 						))}
@@ -69,7 +70,10 @@ const Navbar = () => {
 				</div>
 
 				<div className="flex items-center gap-2 md:gap-4">
-					<button className="p-2 text-white/70 hover:text-[#ec5b13] transition-colors">
+					<button
+						onClick={() => setIsSearchOpen(true)}
+						className="p-2 text-white/70 hover:text-[#ec5b13] transition-colors"
+					>
 						<span className="material-symbols-outlined text-[26px] md:text-[28px]">
 							search
 						</span>
@@ -98,27 +102,27 @@ const Navbar = () => {
 				</div>
 			</nav>
 
-			{/* FIXED MOBILE MENU SYSTEM - No Overflow */}
+			{/* SEARCH OVERLAY */}
+			<SearchOverlay
+				isOpen={isSearchOpen}
+				onClose={() => setIsSearchOpen(false)}
+			/>
+
+			{/* ── MOBILE MENU ── */}
 			<div
-				className={`fixed inset-0 z-[200] ${
-					isMenuOpen ? "pointer-events-auto" : "pointer-events-none"
-				}`}
+				className={`fixed inset-0 z-[200] ${isMenuOpen ? "pointer-events-auto" : "pointer-events-none"}`}
 			>
 				{/* Backdrop */}
 				<div
-					className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ease-in-out ${
-						isMenuOpen ? "opacity-100" : "opacity-0"
-					}`}
+					className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ease-in-out ${isMenuOpen ? "opacity-100" : "opacity-0"}`}
 					onClick={() => setIsMenuOpen(false)}
-				></div>
+				/>
 
-				{/* Sidebar Panel - Fixed overflow with proper scrolling */}
+				{/* Slide-in panel */}
 				<div
-					className={`absolute top-4 right-4 bottom-4 w-[88%] max-w-sm glass-panel flex flex-col overflow-hidden ${
-						isMenuOpen ? "is-active" : ""
-					}`}
+					className={`absolute top-4 right-4 bottom-4 w-[88%] max-w-sm glass-panel flex flex-col overflow-hidden ${isMenuOpen ? "is-active" : ""}`}
 				>
-					{/* Header - Fixed at top */}
+					{/* Panel header */}
 					<div className="flex-shrink-0 p-6 pb-4 flex justify-end border-b border-white/5">
 						<button
 							onClick={() => setIsMenuOpen(false)}
@@ -130,7 +134,7 @@ const Navbar = () => {
 						</button>
 					</div>
 
-					{/* Scrollable Content Area */}
+					{/* Scrollable nav links */}
 					<div className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
 						<div className="mb-8">
 							<p className="text-[#ec5b13] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
@@ -139,39 +143,43 @@ const Navbar = () => {
 							<h2 className="text-4xl font-[900] italic uppercase text-white tracking-tighter leading-none">
 								The Guest
 							</h2>
-							<div className="h-[2px] w-12 bg-[#ec5b13] mt-4"></div>
+							<div className="h-[2px] w-12 bg-[#ec5b13] mt-4" />
 						</div>
 
 						<div className="flex flex-col gap-6 mb-8">
+							{/* Quick search shortcut */}
+							<button
+								onClick={() => {
+									setIsMenuOpen(false);
+									setIsSearchOpen(true);
+								}}
+								className="flex items-center gap-6 group"
+							>
+								<span className="material-symbols-outlined text-2xl text-[#ec5b13]">
+									search
+								</span>
+								<span className="text-base font-bold uppercase tracking-widest text-white">
+									Quick Search
+								</span>
+							</button>
+
 							{navLinks.map((link, idx) => (
 								<Link
 									key={link.name}
 									to={link.path}
 									onClick={() => setIsMenuOpen(false)}
-									className={`flex items-center gap-6 group transition-all duration-500 ${
-										isMenuOpen
-											? "translate-x-0 opacity-100"
-											: "translate-x-10 opacity-0"
-									}`}
+									className={`flex items-center gap-6 group transition-all duration-500 ${isMenuOpen ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"}`}
 									style={{
 										transitionDelay: isMenuOpen ? `${idx * 50}ms` : "0ms",
 									}}
 								>
 									<span
-										className={`material-symbols-outlined text-2xl transition-all duration-300 ${
-											location.pathname === link.path
-												? "text-[#ec5b13]"
-												: "text-white/30 group-hover:text-[#ec5b13]"
-										}`}
+										className={`material-symbols-outlined text-2xl transition-all duration-300 ${location.pathname === link.path ? "text-[#ec5b13]" : "text-white/30 group-hover:text-[#ec5b13]"}`}
 									>
 										{link.icon}
 									</span>
 									<span
-										className={`text-base font-bold uppercase tracking-widest transition-all ${
-											location.pathname === link.path
-												? "text-white"
-												: "text-white/60 group-hover:text-white"
-										}`}
+										className={`text-base font-bold uppercase tracking-widest transition-all ${location.pathname === link.path ? "text-white" : "text-white/60 group-hover:text-white"}`}
 									>
 										{link.name}
 									</span>
@@ -180,8 +188,9 @@ const Navbar = () => {
 						</div>
 					</div>
 
-					{/* Footer - Fixed at bottom */}
+					{/* ── Footer actions ── */}
 					<div className="flex-shrink-0 p-6 pt-4 border-t border-white/5 flex flex-col gap-3">
+						{/* Sign in */}
 						<Link
 							to="/login"
 							onClick={() => setIsMenuOpen(false)}
@@ -192,37 +201,31 @@ const Navbar = () => {
 							</span>
 							SIGN IN TO LOGIN
 						</Link>
-						<button
+
+						{/* Terminate account */}
+						<Link
+							to="/terminate"
 							onClick={() => setIsMenuOpen(false)}
-							className="w-full bg-red-500/10 border border-red-500/30 text-red-400 font-bold uppercase py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:bg-red-500/20 hover:border-red-500/50 active:scale-95 text-xs tracking-wide"
+							className="
+								w-full border border-red-900/40 bg-red-950/20
+								text-red-400/70 hover:text-red-400 hover:bg-red-950/40 hover:border-red-800/60
+								font-black uppercase py-3 rounded-xl
+								flex items-center justify-center gap-2.5
+								transition-all active:scale-95 text-[11px] tracking-[0.15em]
+							"
 						>
-							<span className="material-symbols-outlined text-lg">
+							<span className="material-symbols-outlined text-[18px]">
 								delete_forever
 							</span>
-							TERMINATE ACCOUNT
-						</button>
+							Terminate Account
+						</Link>
+
 						<p className="text-center text-[8px] text-white/10 mt-1 tracking-[0.4em] uppercase font-bold">
 							Verp Series 2026
 						</p>
 					</div>
 				</div>
 			</div>
-
-			<style jsx>{`
-				.custom-scrollbar::-webkit-scrollbar {
-					width: 4px;
-				}
-				.custom-scrollbar::-webkit-scrollbar-track {
-					background: rgba(255, 255, 255, 0.02);
-				}
-				.custom-scrollbar::-webkit-scrollbar-thumb {
-					background: rgba(236, 91, 19, 0.3);
-					border-radius: 2px;
-				}
-				.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-					background: rgba(236, 91, 19, 0.5);
-				}
-			`}</style>
 		</>
 	);
 };
