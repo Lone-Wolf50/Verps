@@ -144,7 +144,6 @@ const SupportPage = () => {
 	return (
 		<>
 			<style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         .swal-vault { border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 20px !important; }
         .swal-input-vault { background:#111 !important; border-color: rgba(255,255,255,0.1) !important;
           color: white !important; font-family:'JetBrains Mono',monospace !important; font-size:12px !important; }

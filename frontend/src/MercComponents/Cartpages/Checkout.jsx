@@ -196,8 +196,7 @@ const Checkout = () => {
     <>
       {/* Paystack inline script */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,600&family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-        *{box-sizing:border-box}
+       *{box-sizing:border-box}
         input:focus,textarea:focus{border-color:rgba(236,91,19,0.5)!important;box-shadow:0 0 0 3px rgba(236,91,19,0.08)!important;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
         .co-fade{animation:fadeUp 0.6s cubic-bezier(.22,1,.36,1) both}

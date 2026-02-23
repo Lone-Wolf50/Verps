@@ -1922,8 +1922,7 @@ const AssistantTerminal = () => {
 	return (
 		<>
 			<style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-        *{box-sizing:border-box;}
+       *{box-sizing:border-box;}
         ::-webkit-scrollbar{width:3px;height:3px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:rgba(236,91,19,0.3);border-radius:99px}

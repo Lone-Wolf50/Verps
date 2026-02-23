@@ -89,7 +89,6 @@ const SupportPage = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         .swal-vault{border:1px solid rgba(255,255,255,0.08)!important;border-radius:20px!important;}
         @keyframes spinW{to{transform:rotate(360deg)}}
         @keyframes pulseW{0%,100%{opacity:1}50%{opacity:0.3}}

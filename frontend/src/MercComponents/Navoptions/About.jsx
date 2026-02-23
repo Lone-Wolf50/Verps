@@ -60,7 +60,6 @@ const About = () => {
   >
     
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@300;400;600;700;800;900&display=swap');
         @keyframes fadeUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
         .abt-in { animation: fadeUp 0.85s cubic-bezier(0.16,1,0.3,1) both; }
         .val-card { position:relative; padding:44px 36px; background:rgba(255,255,255,0.015); border:1px solid rgba(255,255,255,0.05); border-radius:28px; transition:all 0.4s cubic-bezier(0.16,1,0.3,1); overflow:hidden; cursor:default; }

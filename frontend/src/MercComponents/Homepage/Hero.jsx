@@ -60,7 +60,6 @@ const Hero = () => {
   }}
 >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,500;1,700&family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@300;400;700;800&display=swap');
         @keyframes heroFadeIn  { from{opacity:0;transform:scale(1.04);} to{opacity:1;transform:scale(1);} }
         @keyframes heroFadeOut { from{opacity:1;transform:scale(1);} to{opacity:0;transform:scale(0.98);} }
         @keyframes heroTextIn  { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }

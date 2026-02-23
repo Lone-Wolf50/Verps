@@ -261,8 +261,7 @@ const Navbar = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
-        @keyframes navPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+       @keyframes navPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
         .glass-nav{background:rgba(8,8,8,0.88);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid rgba(255,255,255,0.04);}
         .nav-link{position:relative;transition:color 200ms;}
         .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:#ec5b13;transition:width 250ms cubic-bezier(0.16,1,0.3,1);}

@@ -15,7 +15,6 @@ const NotFoundPage = () => {
 	return (
 		<>
 			<style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,700&family=JetBrains+Mono:wght@400;700&display=swap');
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         @keyframes glitch1{0%,100%{clip-path:inset(0 0 95% 0);transform:translate(-3px,0)}50%{clip-path:inset(40% 0 50% 0);transform:translate(3px,0)}}
         @keyframes glitch2{0%,100%{clip-path:inset(80% 0 0 0);transform:translate(3px,0)}50%{clip-path:inset(20% 0 60% 0);transform:translate(-3px,0)}}

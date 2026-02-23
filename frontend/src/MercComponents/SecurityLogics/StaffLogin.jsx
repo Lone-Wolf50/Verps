@@ -74,7 +74,6 @@ const StaffLogin = () => {
 	return (
 		<>
 			<style>{`
-				@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 				.staff-login-wrap { font-family: 'DM Sans', sans-serif; }
 			`}</style>
 			<div

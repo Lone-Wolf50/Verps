@@ -333,8 +333,7 @@ const Bestsellers = () => {
   return (
     <section id="bestsellers" style={{ padding: "80px 0 100px", background: "#050505", borderTop: "1px solid rgba(255,255,255,0.04)", overflow: "hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@300;400;700;800;900&display=swap');
-
+      
         @keyframes bsFadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
         @keyframes spinSlow { to{transform:rotate(360deg)} }
 

@@ -233,7 +233,6 @@ const InboxPage = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         @keyframes unreadPulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
         @keyframes spin { to{transform:rotate(360deg)} }

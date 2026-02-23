@@ -117,8 +117,7 @@ const Reviews = () => {
   return (
     <div style={{background:"#0a0a0a",color:"white",minHeight:"100vh"}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400;1,600&family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@300;400;600;700;900&display=swap');
-        @keyframes rvFadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+       @keyframes rvFadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
         .rv-fade { animation: rvFadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
         .review-swal-popup { border:1px solid rgba(255,255,255,0.08) !important; border-radius:24px !important; }
       `}</style>

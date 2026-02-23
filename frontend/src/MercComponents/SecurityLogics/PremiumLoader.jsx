@@ -23,7 +23,6 @@ const PremiumLoader = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&family=JetBrains+Mono:wght@700&display=swap');
         @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
         @keyframes scan{0%{top:-30%}100%{top:110%}}

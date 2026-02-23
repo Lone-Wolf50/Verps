@@ -441,8 +441,7 @@ const OrderPage = () => {
   return (
     <div className="min-h-screen bg-[#060606] text-white grain" style={{ fontFamily:"'DM Sans',sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400;1,600&family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@300;400;600;700;800;900&display=swap');
-        @keyframes burnFlicker{0%,100%{opacity:1;}50%{opacity:0.88;}75%{opacity:0.96;}}
+ @keyframes burnFlicker{0%,100%{opacity:1;}50%{opacity:0.88;}75%{opacity:0.96;}}
         @keyframes emberGlow{0%,100%{box-shadow:0 0 6px 2px rgba(236,91,19,0.5),0 0 12px 4px rgba(236,20,0,0.25);}50%{box-shadow:0 0 10px 3px rgba(255,120,20,0.7),0 0 20px 8px rgba(236,60,0,0.35);}}
         @keyframes spin{to{transform:rotate(360deg);}}
         @keyframes fade-up{from{opacity:0;transform:translateY(15px);}to{opacity:1;transform:translateY(0);}}

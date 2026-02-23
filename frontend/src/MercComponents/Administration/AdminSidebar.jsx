@@ -274,7 +274,6 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 	return (
 		<>
 			<style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
         @media (max-width:1023px) { .mobile-close-btn { display:flex !important; } }
       `}</style>
 
