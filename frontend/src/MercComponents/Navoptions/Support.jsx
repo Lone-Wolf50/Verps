@@ -1,123 +1,325 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
+import ChatBot from "./ChatBot";
+import LiveAssistantChat from "./LiveAssistantChat";
+import Swal from "sweetalert2";
 
-const Support = () => {
-	const [message, setMessage] = useState("");
+const SupportPage = () => {
+	const [sessionStatus, setSessionStatus] = useState("bot");
+	const [chatId, setChatId] = useState(null);
+	const [loading, setLoading] = useState(true);
+
+	/* ── Check for existing session on mount ─────────────────── */
+	useEffect(() => {
+		const check = async () => {
+			const userEmail = localStorage.getItem("userEmail");
+			if (!userEmail) {
+				setLoading(false);
+				return;
+			}
+
+			const { data } = await supabase
+				.from("verp_support_sessions")
+				.select("*")
+				.eq("client_email", userEmail)
+				.neq("status", "resolved")
+				.order("created_at", { ascending: false })
+				.maybeSingle();
+
+			if (data) {
+				setChatId(data.id);
+				setSessionStatus(data.status);
+			}
+			setLoading(false);
+		};
+		check();
+	}, []);
+
+	/* ── Realtime session status updates ─────────────────────── */
+	useEffect(() => {
+		if (!chatId) return;
+		const channel = supabase
+			.channel(`sp-session-${chatId}`)
+			.on(
+				"postgres_changes",
+				{
+					event: "UPDATE",
+					schema: "public",
+					table: "verp_support_sessions",
+					filter: `id=eq.${chatId}`,
+				},
+				(payload) => {
+					setSessionStatus(payload.new.status);
+				},
+			)
+			.subscribe();
+		return () => supabase.removeChannel(channel);
+	}, [chatId]);
+
+	/* ── Escalation handler: create session, start connecting ── */
+	const handleEscalate = async () => {
+		let userEmail = localStorage.getItem("userEmail");
+		if (!userEmail) {
+			const { value: email } = await Swal.fire({
+				title: "IDENTIFICATION REQUIRED",
+				html: `<p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.2em;margin-bottom:8px">ENTER YOUR EMAIL TO CONNECT</p>`,
+				input: "email",
+				inputPlaceholder: "your@email.com",
+				background: "#0d0d0d",
+				color: "#fff",
+				confirmButtonColor: "#ec5b13",
+				showCancelButton: true,
+				customClass: {
+					input: "swal-input-vault",
+					popup: "swal-vault",
+				},
+			});
+			if (!email) return;
+			userEmail = email;
+			localStorage.setItem("userEmail", email);
+		}
+
+		const { data, error } = await supabase
+			.from("verp_support_sessions")
+			.insert([{ client_email: userEmail, status: "waiting" }])
+			.select()
+			.single();
+
+		if (data) {
+			setChatId(data.id);
+			setSessionStatus("waiting");
+		} else {
+			Swal.fire({
+				title: "CONNECTION FAILED",
+				text: error?.message || "Could not reach the Vault.",
+				background: "#0d0d0d",
+				color: "#fff",
+				icon: "error",
+				confirmButtonColor: "#ec5b13",
+			});
+		}
+	};
+
+	/* ── Loading ─────────────────────────────────────────────── */
+	if (loading)
+		return (
+			<div
+				style={{
+					minHeight: "100vh",
+					background: "#080808",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					flexDirection: "column",
+					gap: 16,
+				}}
+			>
+				<div
+					style={{
+						width: 32,
+						height: 32,
+						borderRadius: "50%",
+						border: "1.5px solid rgba(236,91,19,0.2)",
+						borderTopColor: "#ec5b13",
+						animation: "spin-ring 1.1s linear infinite",
+					}}
+				/>
+				<style>{`@keyframes spin-ring{to{transform:rotate(360deg)}}`}</style>
+				<p
+					style={{
+						fontFamily: "'JetBrains Mono',monospace",
+						fontSize: 9,
+						letterSpacing: "0.4em",
+						color: "rgba(236,91,19,0.6)",
+						textTransform: "uppercase",
+						animation: "pulse-l 2s ease-in-out infinite",
+					}}
+				>
+					SYNCING
+				</p>
+				<style>{`@keyframes pulse-l{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+			</div>
+		);
 
 	return (
-		<div className="bg-[#0d0d0d] text-white min-h-screen font-sans flex flex-col">
-			<main className="flex-grow max-w-7xl mx-auto w-full px-6 pt-32 pb-12 flex flex-col">
-				{/* Header Section */}
-				<div className="mb-8 flex justify-between items-end">
-					<div>
-						<Link
-							to="/"
-							className="flex items-center gap-2 text-white/40 hover:text-[#ec5b13] transition-all group mb-4"
-						>
-							<span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">
-								arrow_back
-							</span>
-							<span className="text-[10px] font-black uppercase tracking-[0.2em]">
-								Exit Concierge
-							</span>
-						</Link>
-						<h1 className="text-4xl md:text-5xl font-[900] italic tracking-tighter uppercase leading-none">
-							Concierge <span className="text-[#ec5b13]">Support</span>
-						</h1>
-					</div>
-					<div className="hidden md:block text-right">
-						<p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">
-							Status
-						</p>
-						<p className="text-[11px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-2 justify-end">
-							<span className="size-1.5 bg-green-500 rounded-full animate-pulse"></span>
-							Priority Line Active
-						</p>
-					</div>
-				</div>
+		<>
+			<style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        .swal-vault { border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 20px !important; }
+        .swal-input-vault { background:#111 !important; border-color: rgba(255,255,255,0.1) !important;
+          color: white !important; font-family:'JetBrains Mono',monospace !important; font-size:12px !important; }
+      `}</style>
 
-				{/* Chat Interface */}
-				<section className="glass-panel flex-grow rounded-3xl overflow-hidden flex flex-col border border-white/5 bg-white/[0.02] shadow-2xl min-h-[500px] mb-6">
-					{/* Agent Header */}
-					<div className="px-8 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-						<div className="flex items-center gap-4">
-							<div className="relative">
-								<div className="w-12 h-12 rounded-full bg-gradient-to-tr from-neutral-800 to-neutral-600 flex items-center justify-center text-sm font-black tracking-tighter border border-white/10">
-									JS
+			<div
+				style={{
+					minHeight: "100vh",
+					background: "#080808",
+					paddingTop: 96,
+					paddingBottom: 48,
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					padding: "96px 20px 48px",
+				}}
+			>
+				<div
+					style={{
+						width: "100%",
+						maxWidth: 480,
+						height: "calc(100vh - 144px)",
+						minHeight: 520,
+						maxHeight: 680,
+					}}
+				>
+					{/* ── BOT MODE ── */}
+					{sessionStatus === "bot" && (
+						<ChatBot onEscalate={handleEscalate} chatId={chatId} />
+					)}
+
+					{/* ── WAITING MODE ── */}
+					{sessionStatus === "waiting" && (
+						<div
+							style={{
+								height: "100%",
+								background: "#080808",
+								border: "1px solid rgba(255,255,255,0.06)",
+								borderRadius: 28,
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "center",
+								justifyContent: "center",
+								gap: 28,
+							}}
+						>
+							<div style={{ position: "relative", width: 64, height: 64 }}>
+								<div
+									style={{
+										position: "absolute",
+										inset: 0,
+										borderRadius: "50%",
+										border: "1.5px solid rgba(236,91,19,0.1)",
+									}}
+								/>
+								<div
+									style={{
+										position: "absolute",
+										inset: 0,
+										borderRadius: "50%",
+										border: "1.5px solid transparent",
+										borderTopColor: "#ec5b13",
+										animation: "spin-ring 1.1s linear infinite",
+									}}
+								/>
+								<style>{`@keyframes spin-ring{to{transform:rotate(360deg)}}`}</style>
+								<div
+									style={{
+										position: "absolute",
+										inset: 0,
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+									}}
+								>
+									<span
+										className="material-symbols-outlined"
+										style={{ fontSize: 22, color: "#ec5b13", opacity: 0.5 }}
+									>
+										support_agent
+									</span>
 								</div>
-								<span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#0d0d0d] rounded-full"></span>
 							</div>
-							<div>
-								<h3 className="text-sm font-black uppercase tracking-widest text-white">
-									James Sterling
-								</h3>
-								<p className="text-[10px] text-white/40 uppercase font-bold tracking-tight">
-									Senior Lifestyle Manager
+							<div
+								style={{
+									textAlign: "center",
+									display: "flex",
+									flexDirection: "column",
+									gap: 8,
+								}}
+							>
+								<h2
+									style={{
+										fontFamily: "'Playfair Display',serif",
+										fontSize: 24,
+										fontStyle: "italic",
+										color: "white",
+									}}
+								>
+									Awaiting Agent
+								</h2>
+								<p
+									style={{
+										fontFamily: "'JetBrains Mono',monospace",
+										fontSize: 9,
+										letterSpacing: "0.3em",
+										color: "rgba(255,255,255,0.3)",
+										textTransform: "uppercase",
+										animation: "pulse-l 2s ease-in-out infinite",
+									}}
+								>
+									ESTABLISHING SECURE LINK...
 								</p>
 							</div>
+							<button
+								onClick={async () => {
+									if (chatId) {
+										await supabase
+											.from("verp_support_sessions")
+											.update({ status: "resolved" })
+											.eq("id", chatId);
+									}
+									setChatId(null);
+									setSessionStatus("bot");
+								}}
+								style={{
+									background: "transparent",
+									border: "1px solid rgba(239,68,68,0.3)",
+									color: "rgba(239,68,68,0.6)",
+									fontFamily: "'JetBrains Mono',monospace",
+									fontSize: 8,
+									letterSpacing: "0.2em",
+									textTransform: "uppercase",
+									padding: "8px 20px",
+									borderRadius: 999,
+									cursor: "pointer",
+									transition: "all 200ms",
+								}}
+								onMouseEnter={(e) =>
+									(e.currentTarget.style.background = "rgba(239,68,68,0.08)")
+								}
+								onMouseLeave={(e) =>
+									(e.currentTarget.style.background = "transparent")
+								}
+							>
+								Leave Queue
+							</button>
 						</div>
-						<div className="text-[10px] font-black text-white/10 uppercase tracking-widest border border-white/5 px-3 py-1 rounded-md">
-							Verified Agent
-						</div>
-					</div>
+					)}
 
-					{/* Chat Messages */}
-					<div className="flex-grow overflow-y-auto p-8 flex flex-col gap-6 custom-scrollbar">
-						{/* Agent Message */}
-						<div className="flex flex-col gap-2 max-w-[80%] md:max-w-[60%]">
-							<div className="bg-white/5 border border-white/5 rounded-2xl rounded-tl-none p-5 text-sm leading-relaxed text-white/80 font-medium">
-								Good evening. This is James Sterling from the Concierge team. It
-								is a pleasure to assist you today. How may I facilitate your
-								request this evening?
-							</div>
-							<span className="text-[9px] font-bold text-white/20 uppercase tracking-widest ml-1">
-								18:42 — Delivered
-							</span>
-						</div>
+					{/* ── LIVE MODE ── */}
+					{sessionStatus === "live" && chatId && (
+						<LiveAssistantChat
+							chatId={chatId}
+							onSessionEnded={() => setSessionStatus("resolved")}
+						/>
+					)}
 
-						{/* User Message */}
-						<div className="flex flex-col items-end gap-2 self-end max-w-[80%] md:max-w-[60%]">
-							<div className="bg-[#ec5b13] text-black font-bold rounded-2xl rounded-tr-none p-5 text-sm leading-relaxed shadow-[0_10px_30px_rgba(236,91,19,0.2)]">
-								I would like to inquire about the availability of the Limited
-								Edition Chronograph for next week's delivery.
-							</div>
-							<span className="text-[9px] font-bold text-white/20 uppercase tracking-widest mr-1">
-								18:45 — Read
-							</span>
-						</div>
-					</div>
-
-					{/* Input Area */}
-					<div className="p-6 md:p-8 bg-black/20">
-						<div className="relative flex items-center">
-							<input
-								value={message}
-								onChange={(e) => setMessage(e.target.value)}
-								className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 pr-16 text-sm focus:outline-none focus:border-[#ec5b13]/50 transition-all placeholder:text-white/20 font-medium"
-								placeholder="Describe your request to James..."
-								type="text"
-							/>
-							<div className="absolute right-3 flex items-center">
-								{/* Only Send Button as requested */}
-								<button className="bg-[#ec5b13] hover:bg-white text-black p-3 rounded-xl transition-all shadow-lg active:scale-95 group">
-									<span className="material-symbols-outlined font-black text-xl group-hover:scale-110 transition-transform">
-										near_me
-									</span>
-								</button>
-							</div>
-						</div>
-						<div className="flex justify-center items-center gap-4 mt-6">
-							<div className="h-px w-8 bg-white/5"></div>
-							<p className="text-[8px] text-white/20 tracking-[0.4em] uppercase font-black">
-								Encryption Secured • Private Session
-							</p>
-							<div className="h-px w-8 bg-white/5"></div>
-						</div>
-					</div>
-				</section>
-			</main>
-		</div>
+					{/* ── RESOLVED / RATING MODE ── */}
+					{sessionStatus === "resolved" && (
+						<ChatBot
+							mode="rating"
+							chatId={chatId}
+							onFinishedRating={() => {
+								setChatId(null);
+								setSessionStatus("bot");
+								localStorage.removeItem("vault_chat_history");
+								localStorage.removeItem("vault_awaiting_order");
+							}}
+						/>
+					)}
+				</div>
+			</div>
+		</>
 	);
 };
 
-export default Support;
+export default SupportPage;

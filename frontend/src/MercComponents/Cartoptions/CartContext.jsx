@@ -1,84 +1,121 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { supabase } from "../supabaseClient";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-	// Initialize cart from localStorage so it persists on refresh
-	const [cart, setCart] = useState(() => {
-		try {
-			const savedCart = localStorage.getItem("luxury_cart");
-			return savedCart ? JSON.parse(savedCart) : [];
-		} catch (error) {
-			console.error("Cart recovery failed:", error);
-			return [];
-		}
-	});
+  // Initialize from localStorage immediately (fast)
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem("luxury_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [synced, setSynced] = useState(false);
 
-	// Save to localStorage whenever cart changes
-	useEffect(() => {
-		localStorage.setItem("luxury_cart", JSON.stringify(cart));
-	}, [cart]);
+  // ── On mount: pull cart from DB (cross-device restore) ───────
+  const syncFromDB = useCallback(async () => {
+    const email = localStorage.getItem("userEmail");
+    if (!email) { setSynced(true); return; }
+    try {
+      const { data } = await supabase
+        .from("verp_cart_items")
+        .select("*")
+        .eq("user_email", email);
+      if (data && data.length > 0) {
+        const dbCart = data.map((row) => ({
+          id: row.product_id,
+          name: row.product_name,
+          price: Number(row.price),
+          quantity: row.quantity,
+          image: row.image || "",
+          size: row.size || null,
+          color: row.color || null,
+        }));
+        setCart(dbCart);
+        localStorage.setItem("luxury_cart", JSON.stringify(dbCart));
+      }
+    } catch (_) { /* non-critical — fallback to localStorage */ }
+    setSynced(true);
+  }, []);
 
-	const addToCart = (product) => {
-		setCart((prev) => {
-			// Check if product already exists in cart
-			const exists = prev.find((item) => item.id === product.id);
-			if (exists) {
-				return prev.map((item) =>
-					item.id === product.id
-						? { ...item, quantity: item.quantity + 1 }
-						: item,
-				);
-			}
-			// If new, add to array with quantity 1
-			return [...prev, { ...product, quantity: 1 }];
-		});
-	};
+  useEffect(() => { syncFromDB(); }, [syncFromDB]);
 
-	const removeFromCart = (id) => {
-		setCart((prev) => prev.filter((item) => item.id !== id));
-	};
+  // ── Sync to DB whenever cart changes (after initial load) ────
+  useEffect(() => {
+    if (!synced) return; // don't overwrite DB before we've loaded from it
+    localStorage.setItem("luxury_cart", JSON.stringify(cart));
+    const email = localStorage.getItem("userEmail");
+    if (!email) return;
+    const push = async () => {
+      try {
+        await supabase.from("verp_cart_items").delete().eq("user_email", email);
+        if (cart.length > 0) {
+          await supabase.from("verp_cart_items").insert(
+            cart.map((item) => ({
+              user_email: email,
+              product_id: String(item.id),
+              product_name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image || null,
+              size: item.size || null,
+              color: item.color || null,
+            })),
+          );
+        }
+      } catch (_) { /* non-critical */ }
+    };
+    push();
+  }, [cart, synced]);
 
-	const updateQuantity = (id, amount) => {
-		setCart((prev) =>
-			prev.map((item) =>
-				item.id === id
-					? { ...item, quantity: Math.max(1, item.quantity + amount) }
-					: item,
-			),
-		);
-	};
+  const addToCart = (product) => {
+    setCart((prev) => {
+      const exists = prev.find((item) => item.id === product.id);
+      if (exists) {
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item,
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+  };
 
-	const cartTotal = cart.reduce(
-		(sum, item) => sum + item.price * item.quantity,
-		0,
-	);
-	const clearCart = () => {
-		setCart([]);
-		localStorage.removeItem("luxury_cart");
-	};
-	return (
-		<CartContext.Provider
-			value={{
-				cart,
-				addToCart,
-				removeFromCart,
-				updateQuantity,
-				cartTotal,
-				clearCart,
-			}}
-		>
-			{children}
-		</CartContext.Provider>
-	);
+  const removeFromCart = (id) => setCart((prev) => prev.filter((item) => item.id !== id));
+
+  const updateQuantity = (id, amount) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: Math.max(1, item.quantity + amount) } : item,
+      ),
+    );
+  };
+
+  const clearCart = async () => {
+    setCart([]);
+    localStorage.removeItem("luxury_cart");
+    const email = localStorage.getItem("userEmail");
+    if (email) {
+      try { await supabase.from("verp_cart_items").delete().eq("user_email", email); } catch (_) {}
+    }
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  return (
+    <CartContext.Provider
+      value={{ cart, addToCart, removeFromCart, updateQuantity, cartTotal, clearCart, syncFromDB }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
 };
 
-// Custom hook to use the cart
 export const useCart = () => {
-	const context = useContext(CartContext);
-	if (!context) {
-		throw new Error("useCart must be used within a CartProvider");
-	}
-	return context;
+  const context = useContext(CartContext);
+  if (!context) throw new Error("useCart must be used within a CartProvider");
+  return context;
 };

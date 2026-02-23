@@ -119,3 +119,312 @@
 .vault-mono {
 	font-family: "DM Mono", monospace;
 }
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap");
+
+/* ─── DESIGN TOKENS ─────────────────────────────────────────── */
+:root {
+	--void: #080808;
+	--obsidian: #0d0d0d;
+	--graphite: #141414;
+	--smoke: #1c1c1c;
+	--ash: #2a2a2a;
+
+	--ember: #ec5b13;
+	--ember-dim: rgba(236, 91, 19, 0.1);
+	--ember-glow: rgba(236, 91, 19, 0.22);
+	--ember-border: rgba(236, 91, 19, 0.35);
+
+	--ice: #c8d8e8;
+	--slate: #6b7a8d;
+	--ghost: rgba(255, 255, 255, 0.04);
+
+	--live: #22c55e;
+	--waiting: #f59e0b;
+	--resolved: #6b7280;
+	--escalated: #ef4444;
+	--shipped: #38bdf8;
+	--delivered: #a78bfa;
+	--returned: #fb923c;
+	--cancelled: #f87171;
+
+	--border: 1px solid rgba(255, 255, 255, 0.06);
+	--border-active: 1px solid var(--ember-border);
+	--border-subtle: 1px solid rgba(255, 255, 255, 0.03);
+
+	--r-sm: 8px;
+	--r-md: 14px;
+	--r-lg: 20px;
+	--r-xl: 28px;
+	--r-pill: 999px;
+
+	--ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+	--font-display: "Playfair Display", Georgia, serif;
+	--font-mono: "JetBrains Mono", "Courier New", monospace;
+	--font-body: "DM Sans", sans-serif;
+}
+
+/* ─── RESETS & BASE ─────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+	font-family: var(--font-body);
+	background: var(--void);
+	color: rgba(255, 255, 255, 0.85);
+}
+
+/* ─── SCROLLBAR ─────────────────────────────────────────────── */
+::-webkit-scrollbar {
+	width: 3px;
+	height: 3px;
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+::-webkit-scrollbar-thumb {
+	background: rgba(236, 91, 19, 0.3);
+	border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(236, 91, 19, 0.6);
+}
+
+/* ─── TYPOGRAPHY UTILITIES ──────────────────────────────────── */
+.font-display {
+	font-family: var(--font-display);
+}
+.font-mono {
+	font-family: var(--font-mono);
+}
+.font-body {
+	font-family: var(--font-body);
+}
+
+.label {
+	font-family: var(--font-mono);
+	font-size: 9px;
+	font-weight: 600;
+	letter-spacing: 0.28em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.3);
+}
+
+/* ─── BADGE ─────────────────────────────────────────────────── */
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 10px;
+	border-radius: var(--r-pill);
+	font-family: var(--font-mono);
+	font-size: 8px;
+	font-weight: 700;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	border: 1px solid;
+}
+
+.badge-dot {
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.badge-live {
+	color: var(--live);
+	background: rgba(34, 197, 94, 0.08);
+	border-color: rgba(34, 197, 94, 0.25);
+}
+.badge-waiting {
+	color: var(--waiting);
+	background: rgba(245, 158, 11, 0.08);
+	border-color: rgba(245, 158, 11, 0.25);
+}
+.badge-resolved {
+	color: var(--resolved);
+	background: rgba(107, 114, 128, 0.08);
+	border-color: rgba(107, 114, 128, 0.25);
+}
+.badge-escalated {
+	color: var(--escalated);
+	background: rgba(239, 68, 68, 0.08);
+	border-color: rgba(239, 68, 68, 0.25);
+}
+.badge-shipped {
+	color: var(--shipped);
+	background: rgba(56, 189, 248, 0.08);
+	border-color: rgba(56, 189, 248, 0.25);
+}
+.badge-delivered {
+	color: var(--delivered);
+	background: rgba(167, 139, 250, 0.08);
+	border-color: rgba(167, 139, 250, 0.25);
+}
+.badge-returned {
+	color: var(--returned);
+	background: rgba(251, 146, 60, 0.08);
+	border-color: rgba(251, 146, 60, 0.25);
+}
+.badge-cancelled {
+	color: var(--cancelled);
+	background: rgba(248, 113, 113, 0.08);
+	border-color: rgba(248, 113, 113, 0.25);
+}
+.badge-new {
+	color: var(--ember);
+	background: var(--ember-dim);
+	border-color: var(--ember-border);
+}
+
+/* ─── PULSE ANIMATION ───────────────────────────────────────── */
+@keyframes pulse-dot {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.35;
+		transform: scale(0.8);
+	}
+}
+.pulse {
+	animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes spin-ring {
+	to {
+		transform: rotate(360deg);
+	}
+}
+.spin {
+	animation: spin-ring 1.1s linear infinite;
+}
+
+/* ─── FADE IN ───────────────────────────────────────────────── */
+@keyframes fadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+.fade-up {
+	animation: fadeUp 0.45s var(--ease-expo) both;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+.fade-in {
+	animation: fadeIn 0.3s ease both;
+}
+
+/* ─── MESSAGE SLIDE ─────────────────────────────────────────── */
+@keyframes msgBot {
+	from {
+		opacity: 0;
+		transform: translateX(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+@keyframes msgUser {
+	from {
+		opacity: 0;
+		transform: translateX(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+.msg-bot {
+	animation: msgBot 0.25s var(--ease-expo) both;
+}
+.msg-user {
+	animation: msgUser 0.25s var(--ease-expo) both;
+}
+
+/* ─── PANEL SLIDE ───────────────────────────────────────────── */
+@keyframes slideInRight {
+	from {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+.slide-in-right {
+	animation: slideInRight 0.35s var(--ease-expo) both;
+}
+
+/* ─── GLASS ─────────────────────────────────────────────────── */
+.glass {
+	background: linear-gradient(
+		135deg,
+		rgba(255, 255, 255, 0.04) 0%,
+		rgba(255, 255, 255, 0.01) 100%
+	);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+}
+
+/* ─── PROGRESS BAR ──────────────────────────────────────────── */
+@keyframes progressFill {
+	from {
+		width: 0%;
+	}
+	to {
+		width: 100%;
+	}
+}
+.progress-fill {
+	animation: progressFill 900s linear forwards; /* 15 min */
+}
+/* Custom Scrollbar Logic */
+.custom-status-scroll::-webkit-scrollbar {
+  width: 3px; /* Thin, elegant scrollbar */
+}
+
+.custom-status-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+
+.custom-status-scroll::-webkit-scrollbar-thumb {
+  /* Use the dynamic variable we passed from React */
+  background: var(--status-color);
+  border-radius: 10px;
+  box-shadow: 0 0 8px var(--status-color); /* Adds a subtle glow */
+}
+
+/* Firefox support */
+.custom-status-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--status-color) transparent;
+}

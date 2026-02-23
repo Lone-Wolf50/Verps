@@ -13,7 +13,7 @@ const Homepage = () => {
 		"--neutral-card": "#121212",
 	};
 	return (
-		<div style={homeStyles}>
+		<div  style={homeStyles}>
 			<main>
 				<Hero />
 				<CategoriesGrid />

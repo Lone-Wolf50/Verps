@@ -2,93 +2,304 @@ const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
 require("dotenv").config();
+const { createClient } = require("@supabase/supabase-js");
 
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY // ⚠️ MUST be service role
+);
 const app = express();
-
-// Middleware
 app.use(express.json());
 
 const allowedOrigins = [
-	"http://localhost:3000",
-	"http://localhost:5173",
-	"http://localhost:5000",
-	"https://verps-client.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:5000",
+  "https://verps-client.vercel.app",
 ];
 
-app.use(
-	cors({
-		origin: (origin, callback) => {
-			if (!origin || allowedOrigins.includes(origin)) {
-				callback(null, true);
-			} else {
-				callback(new Error("Not allowed by CORS"));
-			}
-		},
-		methods: ["GET", "POST", "OPTIONS"],
-		credentials: true,
-	}),
-);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  credentials: true,
+}));
+// ── 5. Admin: Get All Return Requests ─────────────────────────
+app.get("/api/admin/return-requests", async (req, res) => {
+  const { email, password } = req.query;
 
-// 1. Configure the Mail Transporter
+  // Basic protection using your existing staff login logic
+  const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+
+  if (
+    email?.toLowerCase().trim() !== adminEmail ||
+    password !== process.env.ADMIN_PASS
+  ) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("verp_return_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// ── Transporter ───────────────────────────────────────────────
+// GMAIL_PASS must be a Gmail App Password (not account password).
+// Google Account → Security → 2-Step Verification → App passwords
 const transporter = nodemailer.createTransport({
-	host: "smtp.gmail.com",
-	port: 465,
-	secure: true,
-	auth: {
-		user: process.env.GMAIL_USER,
-		pass: process.env.GMAIL_PASS,
-	},
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
 });
 
-transporter.verify((error, success) => {
-	if (error) {
-		console.error("❌ Mail Server Config Error:", error.message);
-	} else {
-		console.log("✅ Mail Server is live and authorized!");
-	}
+transporter.verify((err) => {
+  if (err) console.error("❌ Email transporter error:", err.message);
+  else console.log("✅ Email transporter ready —", process.env.GMAIL_USER);
 });
 
-// 2. The Logic Bridge: Notify Admin of New Entry
-app.post("/api/notify-order", async (req, res) => {
-	const { orderNumber, customer, total, items } = req.body;
+// ── HTML Email Wrapper ─────────────────────────────────────────
+const wrap = (title, body, ctaUrl, ctaLabel) => `
+<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#000;font-family:sans-serif;">
+<div style="max-width:560px;margin:0 auto;padding:40px 16px;">
+  <div style="background:#0a0a0a;border:1px solid rgba(236,91,19,0.4);border-radius:16px;overflow:hidden;">
+    <div style="background:#080808;padding:22px 28px;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <h1 style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:26px;color:#ec5b13;">The Vault</h1>
+      <p style="margin:4px 0 0;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.25);">SYSTEM NOTIFICATION</p>
+    </div>
+    <div style="padding:28px;">
+      <h2 style="margin:0 0 14px;font-size:17px;font-weight:700;color:#fff;">${title}</h2>
+      ${body}
+      ${ctaUrl ? `<div style="margin-top:24px;"><a href="${ctaUrl}" style="display:inline-block;padding:13px 26px;background:#ec5b13;color:#000;text-decoration:none;font-weight:700;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;border-radius:10px;">${ctaLabel || "OPEN DASHBOARD"}</a></div>` : ""}
+    </div>
+    <div style="padding:14px 28px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
+      <p style="margin:0;font-size:8px;color:rgba(255,255,255,0.12);letter-spacing:0.2em;text-transform:uppercase;">VAULT AUTOMATED SYSTEM · DO NOT REPLY</p>
+    </div>
+  </div>
+</div></body></html>`;
 
-	const itemListHtml = items
-		.map((item) => `<li>${item.name} (x${item.quantity}) - $${item.price}</li>`)
-		.join("");
+const row = (label, value, color) =>
+  `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+    <span style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.15em;">${label}</span>
+    <span style="font-size:11px;font-weight:600;color:${color || "#fff"};">${value || "—"}</span>
+  </div>`;
 
-	const mailOptions = {
-		from: `"VERP Order System" <${process.env.GMAIL_USER}>`,
-		to: process.env.ADMIN_EMAIL,
-		subject: `🚨 NEW ORDER: ${orderNumber}`,
-		html: `
-            <div style="background: #000; color: #fff; padding: 30px; border: 1px solid #ec5b13;">
-                <h1>New Acquisition Request</h1>
-                <p><strong>Customer:</strong> ${customer}</p>
-                <p><strong>Total:</strong> $${total}</p>
-                <ul>${itemListHtml}</ul>
-                <p>Log in to the Admin Terminal to update status.</p>
-            </div>
-        `,
-	};
+// ── 1. Staff Login (email + password from .env) ──────────────────
+app.post("/api/staff-login", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ success: false, error: "Email and password required" });
+  }
+  const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+  const assistantEmail = (process.env.ASSISTANT_EMAIL || "").toLowerCase().trim();
+  const em = String(email).toLowerCase().trim();
 
-	try {
-		await transporter.sendMail(mailOptions);
-		res.status(200).json({ success: true });
-	} catch (err) {
-		res.status(500).json({ error: err.message });
-	}
+  if (em === adminEmail && password === process.env.ADMIN_PASS) {
+    return res.status(200).json({ success: true, role: "admin", message: "Access Granted" });
+  }
+  if (em === assistantEmail && password === process.env.ASSISTANT_PASS) {
+    return res.status(200).json({ success: true, role: "assistant", message: "Access Granted" });
+  }
+  res.status(401).json({ success: false, error: "Invalid email or password" });
 });
 
-// 3. Root Route (Fixes "Cannot GET /")
-app.get("/", (req, res) => {
-	res.send("Vault Server is active and monitoring...");
+// Legacy: role + password only (for backward compatibility)
+app.post("/api/verify-staff", (req, res) => {
+  const { role, password } = req.body;
+  const masterPass = role === "admin" ? process.env.ADMIN_PASS : process.env.ASSISTANT_PASS;
+  if (password === masterPass) return res.status(200).json({ success: true, message: "Access Granted" });
+  res.status(401).json({ success: false, error: "Invalid Credentials" });
 });
 
-// 4. Start the Server
+// ── 2. OTP Delivery ───────────────────────────────────────────
+app.post("/api/send-otp", async (req, res) => {
+  const { email, type } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  try {
+    // Send the email with the OTP
+    await transporter.sendMail({
+      from: `"VERP Security" <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject: `[${otp}] Your Vault Access Code`,
+      html: wrap(
+        "Security Verification Code",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Your one-time code for <strong style="color:#ec5b13;">${type || "verification"}</strong>:</p>
+         <div style="margin:20px 0;text-align:center;padding:20px;background:#111;border-radius:12px;border:1px solid rgba(236,91,19,0.2);">
+           <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#fff;font-family:monospace;">${otp}</span>
+         </div>
+         <p style="color:rgba(255,255,255,0.3);font-size:11px;">Expires in 10 minutes.</p>`,
+        null, null,
+      ),
+    });
+
+    // Return the OTP to the client so it can save it to the DB
+    res.status(200).json({ success: true, otp });
+  } catch (err) {
+    console.error("OTP error:", err.message);
+    res.status(500).json({ error: "Failed to deliver OTP", detail: err.message });
+  }
+});
+
+// ── 3. Paystack Webhook / Order Confirmation ──────────────────
+// Paystack calls this after payment. Used for server-side verification.
+app.post("/api/verify-payment", async (req, res) => {
+  const { reference } = req.body;
+  if (!reference) return res.status(400).json({ error: "Reference required" });
+
+  try {
+    const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+    });
+    const data = await response.json();
+    if (data.status && data.data.status === "success") {
+      return res.status(200).json({ success: true, data: data.data });
+    }
+    res.status(400).json({ success: false, message: "Payment not verified", data: data.data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── 4. All Staff & System Alerts ──────────────────────────────
+app.post("/api/alert-staff", async (req, res) => {
+  const { type, clientId, note, orderNumber, orderValue, orderStatus, subject, recipientCount } = req.body;
+
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.GMAIL_USER;
+  const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.GMAIL_USER;
+  const DASH = "https://verps-client.vercel.app/admin";
+  const TERM = "https://verps-client.vercel.app/assistant";
+
+  let to, emailSubject, html;
+
+  switch (type) {
+    case "ASSISTANT_REQUEST":
+    case "NEW_CHAT":
+      to = ASSISTANT_EMAIL;
+      emailSubject = "🔔 New Client Support Request";
+      html = wrap(
+        "A Client Needs Help",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A client is waiting for live support. Please attend to them promptly.</p>
+         ${row("Client", clientId, "#ec5b13")}${note ? row("Message", note, "#fff") : ""}`,
+        TERM, "OPEN TERMINAL",
+      );
+      break;
+
+    case "ESCALATION":
+    case "PARTIAL_PUSH":
+      to = ADMIN_EMAIL;
+      emailSubject = "⚠️ Chat Escalation — Advice Needed";
+      html = wrap(
+        "Partial Escalation Alert",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has escalated a session and needs your guidance privately. Check the Assistant Inbox and reply. The client is being kept informed.</p>
+         ${row("Client", clientId, "#ec5b13")}${row("Reason", note, "#f59e0b")}`,
+        DASH, "OPEN ASSISTANT INBOX",
+      );
+      break;
+
+    case "ADMIN_TAKEOVER":
+    case "FULL_PUSH":
+      to = ADMIN_EMAIL;
+      emailSubject = "🚨 URGENT — Full Admin Takeover Needed";
+      html = wrap(
+        "Full Takeover Required",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has handed over a session. The client is waiting — please continue the conversation seamlessly.</p>
+         ${row("Client", clientId, "#ec5b13")}${row("Reason", note, "#ef4444")}`,
+        DASH + "#messages", "TAKE OVER CHAT",
+      );
+      break;
+
+    case "NEW_ORDER":
+      to = ADMIN_EMAIL;
+      emailSubject = `🛒 New Order Placed — ${orderNumber || clientId}`;
+      html = wrap(
+        "New Order Received",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A new order has been placed in the Vault.</p>
+         ${row("Client", clientId, "#ec5b13")}
+         ${row("Order ID", orderNumber, "#38bdf8")}
+         ${row("Value", orderValue ? `GH₵ ${Number(orderValue).toLocaleString()}` : "—", "#ec5b13")}
+         ${row("Status", orderStatus || "ordered", "#a78bfa")}`,
+        DASH + "#requests", "VIEW ORDERS",
+      );
+      break;
+
+    case "PUSH_BACK":
+      to = ASSISTANT_EMAIL;
+      emailSubject = "↩️ Session Returned — Resume with Client";
+      html = wrap(
+        "Admin Has Pushed Back",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The admin is done advising. The session has been returned to you — please resume with the client.</p>
+         ${row("Client", clientId, "#ec5b13")}${note ? row("Admin Note", note, "#38bdf8") : ""}`,
+        TERM, "OPEN TERMINAL",
+      );
+      break;
+
+    case "PRIVATE_MESSAGE":
+      to = ADMIN_EMAIL;
+      emailSubject = "💬 New Private Message from Assistant";
+      html = wrap(
+        "Assistant Sent a Private Message",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has sent you a private message.</p>
+         ${clientId ? row("Re: Client", clientId, "#ec5b13") : ""}
+         <div style="margin-top:14px;padding:14px;background:#111;border-radius:10px;border-left:3px solid #ec5b13;">
+           <p style="margin:0;color:rgba(255,255,255,0.7);font-size:13px;line-height:1.7;">${note || ""}</p>
+         </div>`,
+        DASH + "#channel", "OPEN ASSISTANT INBOX",
+      );
+      break;
+
+    case "BROADCAST":
+      to = ADMIN_EMAIL;
+      emailSubject = `📢 Broadcast Confirmed — "${(subject || "").slice(0, 40)}"`;
+      html = wrap(
+        "Broadcast Delivered",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Your broadcast has been sent to all client inboxes.</p>
+         ${row("Subject", subject || "(no subject)", "#38bdf8")}
+         ${row("Recipients", recipientCount ? `${recipientCount} clients` : "All clients", "#22c55e")}
+         ${note ? `<div style="margin-top:12px;padding:12px;background:#111;border-radius:8px;"><p style="margin:0;color:rgba(255,255,255,0.55);font-size:12px;line-height:1.6;">${note}</p></div>` : ""}`,
+        null, null,
+      );
+      break;
+
+    default:
+      to = ADMIN_EMAIL;
+      emailSubject = `[VAULT] ${type}`;
+      html = wrap(
+        `Alert: ${type}`,
+        `${clientId ? row("Client", clientId, "#ec5b13") : ""}${note ? `<p style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:12px;">${note}</p>` : ""}`,
+        DASH, "OPEN DASHBOARD",
+      );
+  }
+
+  try {
+    await transporter.sendMail({
+      from: `"VERP System" <${process.env.GMAIL_USER}>`,
+      to, subject: emailSubject, html,
+    });
+    console.log(`✅ [${type}] → ${to}`);
+    res.status(200).json({ success: true, type, to });
+  } catch (err) {
+    console.error(`❌ [${type}] failed:`, err.message);
+    res.status(500).json({ error: err.message, type });
+  }
+});
+
+app.get("/", (req, res) => res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() }));
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-	console.log(`🚀 Vault Server active on port ${PORT}`);
-});
-
-// CRITICAL FOR VERCEL: Export the app
+app.listen(PORT, () => console.log(`🚀 Vault Server on port ${PORT}`));
 module.exports = app;

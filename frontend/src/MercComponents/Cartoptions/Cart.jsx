@@ -48,7 +48,7 @@ const Cart = () => {
 										{item.name}
 									</h3>
 									<p className="text-[#ec5b13] font-bold">
-										${item.price.toLocaleString()}
+										GH&#8373;{item.price.toLocaleString()}
 									</p>
 									<div className="flex items-center gap-4 mt-4">
 										<div className="flex items-center border border-white/10 rounded-full px-3 py-1 bg-white/5">
@@ -89,7 +89,7 @@ const Cart = () => {
 									Total
 								</span>
 								<span className="text-2xl font-black text-[#ec5b13]">
-									${cartTotal.toLocaleString()}
+									GH&#8373; {cartTotal.toLocaleString()}
 								</span>
 							</div>
 							<button
