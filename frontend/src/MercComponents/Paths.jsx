@@ -1,9 +1,10 @@
-import { useEffect } from "react";
-import { Routes, Route, Navigate, useLocation ,lazy} from "react-router-dom";
+import { useEffect,lazy, } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Homepage from "./Homepage/Homepage.jsx";
 const BoxerPage = lazy(() => import("./Cartpages/BoxerPage.jsx"));
 const ShoePages = lazy(() => import("./Cartpages/ShoePages.jsx"));
 const ShirtPage = lazy(() => import("./Cartpages/ShirtPage.jsx"));
+const InboxPage = lazy(() => import("./Administration/InboxPage.jsx"));
 import Navbar from "./Homepage/Navbar.jsx";
 import Footer from "./Homepage/Footer.jsx";
 const SlidesPage = lazy(() => import("./Cartpages/SlidesPage.jsx"));
