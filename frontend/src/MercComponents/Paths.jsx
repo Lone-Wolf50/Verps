@@ -31,7 +31,7 @@ import SocksPage from "./Cartpages/Sockspage.jsx";
 import WatchesPage from "./Cartpages/WatchesPage.jsx";
 import SneakersPage from "./Cartpages/SneakersPage.jsx";
 import JewelryPage from "./Cartpages/JewelryPage.jsx";
-import JacketPage from "./Cartpages/JacketPageS.jsx";
+import JacketPage from "./Cartpages/JacketPages.jsx";
 import GlassesPage from "./Cartpages/Glassespage.jsx";
 import BeltsPage from "./Cartpages/BeltsPage.jsx";
 
