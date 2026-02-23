@@ -30,7 +30,7 @@ const WatchesPage = lazy(() => import("./Cartpages/WatchesPage.jsx"));
 const SneakersPage = lazy(() => import("./Cartpages/SneakersPage.jsx"));
 const JewelryPage = lazy(() => import("./Cartpages/JewelryPage.jsx"));
 const JacketPages = lazy(() => import("./Cartpages/JacketPages.jsx")); // Fixed your 'S' name
-const GlassesPage = lazy(() => import("./Cartpages/Glassespage.jsx"));
+const GlassesPage = lazy(() => import("./Cartpages/GlassesPage.jsx"));
 const BeltsPage = lazy(() => import("./Cartpages/BeltsPage.jsx"));
 
 /* ── Scroll to top on route change ── */
