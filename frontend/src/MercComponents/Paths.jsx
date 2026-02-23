@@ -1,39 +1,36 @@
 import { useEffect } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation ,lazy} from "react-router-dom";
 import Homepage from "./Homepage/Homepage.jsx";
-import BoxerPage from "./Cartpages/BoxerPage.jsx";
-import ShoePages from "./Cartpages/ShoePages.jsx";
-import ShirtPage from "./Cartpages/ShirtPage.jsx";
+const BoxerPage = lazy(() => import("./Cartpages/BoxerPage.jsx"));
+const ShoePages = lazy(() => import("./Cartpages/ShoePages.jsx"));
+const ShirtPage = lazy(() => import("./Cartpages/ShirtPage.jsx"));
 import Navbar from "./Homepage/Navbar.jsx";
 import Footer from "./Homepage/Footer.jsx";
-import SlidesPage from "./Cartpages/SlidesPage.jsx";
-import CapPage from "./Cartpages/CapPage.jsx";
-import HoodiePage from "./Cartpages/HoodiePage.jsx";
-import SweatshirtPage from "./Cartpages/SweatshirtPage.jsx";
-import BagPage from "./Cartpages/BagPage.jsx";
-import OrdersPage from "./Navoptions/OrderPage.jsx";
-import StatusTracker from "./Navoptions/StatusTracker.jsx";
-import AuthPage from "./SecurityLogics/AuthPage.jsx";
-import NotFoundPage from "./SecurityLogics/NotFoundPage.jsx";
+const SlidesPage = lazy(() => import("./Cartpages/SlidesPage.jsx"));
+const CapPage = lazy(() => import("./Cartpages/CapPage.jsx"));
+const HoodiePage = lazy(() => import("./Cartpages/HoodiePage.jsx"));
+const SweatshirtPage = lazy(() => import("./Cartpages/SweatshirtPage.jsx"));
+const BagPage = lazy(() => import("./Cartpages/BagPage.jsx"));
+const OrdersPage = lazy(() => import("./Navoptions/OrderPage.jsx"));
+const StatusTracker = lazy(() => import("./Navoptions/StatusTracker.jsx"));
+const AuthPage = lazy(() => import("./SecurityLogics/AuthPage.jsx"));
+const NotFoundPage = lazy(() => import("./SecurityLogics/NotFoundPage.jsx"));
 import PremiumLoader from "./SecurityLogics/PremiumLoader.jsx";
-import StaffLogin from "./SecurityLogics/StaffLogin.jsx";
-import About from "./Navoptions/About.jsx";
-import Reviews from "./Navoptions/Reviews.jsx";
-import { CartProvider } from "./Cartoptions/CartContext";
-import Cart from "./Cartoptions/Cart.jsx";
-import AdminDashBoard from "./Administration/AdminDashBoard.jsx";
-import AllCategoriesPage from "./Homepage/AllCategoriesPage";
-import Checkout from "./Cartpages/Checkout.jsx";
-import SupportPage from "./Messages/SupportPage.jsx";
-import AssistantTerminal from "./Assistant/AssistantTerminal.jsx";
-import InboxPage from "./Administration/InboxPage.jsx";
-import SocksPage from "./Cartpages/Sockspage.jsx";
-import WatchesPage from "./Cartpages/WatchesPage.jsx";
-import SneakersPage from "./Cartpages/SneakersPage.jsx";
-import JewelryPage from "./Cartpages/JewelryPage.jsx";
-import JacketPage from "./Cartpages/JacketPages.jsx";
-import GlassesPage from "./Cartpages/Glassespage.jsx";
-import BeltsPage from "./Cartpages/BeltsPage.jsx";
+const StaffLogin = lazy(() => import("./SecurityLogics/StaffLogin.jsx"));
+const About = lazy(() => import("./Navoptions/About.jsx"));
+const Reviews = lazy(() => import("./Navoptions/Reviews.jsx"));import { CartProvider } from "./Cartoptions/CartContext";
+const Cart = lazy(() => import("./Cartoptions/Cart.jsx"));
+const AdminDashBoard = lazy(() => import("./Administration/AdminDashBoard.jsx"));
+const AllCategoriesPage = lazy(() => import("./Homepage/AllCategoriesPage"));
+const Checkout = lazy(() => import("./Cartpages/Checkout.jsx"));
+const SupportPage = lazy(() => import("./Messages/SupportPage.jsx"));
+const AssistantTerminal = lazy(() => import("./Assistant/AssistantTerminal.jsx"));const Sockspage = lazy(() => import("./Cartpages/Sockspage.jsx"));
+const WatchesPage = lazy(() => import("./Cartpages/WatchesPage.jsx"));
+const SneakersPage = lazy(() => import("./Cartpages/SneakersPage.jsx"));
+const JewelryPage = lazy(() => import("./Cartpages/JewelryPage.jsx"));
+const JacketPages = lazy(() => import("./Cartpages/JacketPages.jsx")); // Fixed your 'S' name
+const GlassesPage = lazy(() => import("./Cartpages/Glassespage.jsx"));
+const BeltsPage = lazy(() => import("./Cartpages/BeltsPage.jsx"));
 
 /* ── Scroll to top on route change ── */
 function ScrollToTop() {
@@ -144,7 +141,7 @@ function Paths() {
 					<Route path="/category/Belts" element={<BeltsPage />} />
 					<Route path="/category/watches" element={<WatchesPage />} />
 					<Route path="/category/sneakers" element={<SneakersPage />} />
-					<Route path="/category/socks" element={<SocksPage />} />
+					<Route path="/category/socks" element={<Sockspage />} />
 					<Route path="/category/hoodies" element={<HoodiePage />} />
 					<Route path="/category/sweatshirts" element={<SweatshirtPage />} />
 					<Route path="/category/bags" element={<BagPage />} />
