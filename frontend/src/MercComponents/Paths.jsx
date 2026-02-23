@@ -31,7 +31,7 @@ import SocksPage from "./Cartpages/Sockspage.jsx";
 import WatchesPage from "./Cartpages/WatchesPage.jsx";
 import SneakersPage from "./Cartpages/SneakersPage.jsx";
 import JewelryPage from "./Cartpages/JewelryPage.jsx";
-import JacketPage from "./Cartpages/Jacketpage.jsx";
+import JacketPage from "./Cartpages/JacketPageS.jsx";
 import GlassesPage from "./Cartpages/Glassespage.jsx";
 import BeltsPage from "./Cartpages/BeltsPage.jsx";
 
@@ -139,7 +139,7 @@ function Paths() {
 					<Route path="/category/shirts" element={<ShirtPage />} />
 					<Route path="/category/caps" element={<CapPage />} />
 					<Route path="/category/jewelry" element={<JewelryPage />} />
-					<Route path="/category/jackets" element={<JacketPage />} />
+					<Route path="/category/jackets" element={<JacketPages />} />
 					<Route path="/category/glasses" element={<GlassesPage />} />
 					<Route path="/category/Belts" element={<BeltsPage />} />
 					<Route path="/category/watches" element={<WatchesPage />} />
