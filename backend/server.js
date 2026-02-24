@@ -28,7 +28,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
-  origin: "https://verps-chi.vercel.app",
+  
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -36,7 +36,7 @@ const corsOptions = {
 };
 
 // ✅ Handle ALL preflight OPTIONS requests BEFORE any route
-app.options("*", cors(corsOptions));
+
 // ✅ Apply CORS to every real request too
 app.use(cors(corsOptions));
 
