@@ -36,7 +36,7 @@ const corsOptions = {
 };
 
 // ✅ Handle ALL preflight OPTIONS requests BEFORE any route
-
+app.options('/:path*', cors(corsOptions));
 // ✅ Apply CORS to every real request too
 app.use(cors(corsOptions));
 
