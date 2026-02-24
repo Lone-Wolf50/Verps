@@ -15,7 +15,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5000",
-  "https://verps-client.vercel.app",
+  "https://verps-chi.vercel.app",
 ];
 
 app.use(cors({
@@ -181,9 +181,8 @@ app.post("/api/alert-staff", async (req, res) => {
 
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.GMAIL_USER;
   const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.GMAIL_USER;
-  const DASH = "https://verps-client.vercel.app/admin";
-  const TERM = "https://verps-client.vercel.app/assistant";
-
+  const DASH = "https://verps-chi.vercel.app/admin";
+const TERM = "https://verps-chi.vercel.app/assistant";
   let to, emailSubject, html;
 
   switch (type) {

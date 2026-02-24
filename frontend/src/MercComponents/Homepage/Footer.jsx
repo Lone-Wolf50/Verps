@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/V - 1.png";
+import logo from "../../public/footer.jpg";
 
 const footerLinks = {
   Explore: [
@@ -121,10 +121,10 @@ const Footer = () => {
 
           {/* Brand */}
           <div className="footer-col" style={{ animationDelay: "0s" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
-              <img src={logo} alt="Verp" style={{ height: 36, objectFit: "contain", filter: "invert(1) brightness(2)" }} />
-              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 20, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "white" }}>Verp</span>
-            </div>
+           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+  <img src={logo} alt="Verp" style={{ height: 64, width: 67, objectFit: "contain" }} />
+  <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 28, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "white" }}>Verp</span>
+</div>
             <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.75, marginBottom: 28, maxWidth: 260 }}>
               Premium streetwear born from ambition. Every piece is crafted with intention — for those who know quality when they feel it. Proudly Ghanaian.
             </p>

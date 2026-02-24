@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import Swal from "sweetalert2";
+import { API_URL } from "../config";
 import { Trash2, UploadCloud } from "lucide-react";
 
 const AddProduct = ({ editData, onSuccess }) => {
@@ -341,7 +342,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 			if (dbError) throw dbError;
 
 			try {
-				await fetch("http://localhost:5000/api/notify-entry", {
+				await fetch(`${API_URL}/api/send-otp`, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ ...payload }),
