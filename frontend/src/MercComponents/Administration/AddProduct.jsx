@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import Swal from "sweetalert2";
-import { API_URL } from "../../config";
+import { API_URL } from "../../../config";
 import { Trash2, UploadCloud } from "lucide-react";
 
 const AddProduct = ({ editData, onSuccess }) => {
