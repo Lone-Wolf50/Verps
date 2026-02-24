@@ -11,6 +11,10 @@ const supabase = createClient(
 const app = express();
 app.use(express.json());
 
+// ── CORS ──────────────────────────────────────────────────────
+// Add every origin that will call this server.
+// On Vercel, set VITE_SERVER_URL=https://your-server.railway.app (no trailing slash)
+// in your Vercel project environment variables.
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
@@ -18,41 +22,23 @@ const allowedOrigins = [
   "https://verps-chi.vercel.app",
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) callback(null, true);
-    else callback(new Error("Not allowed by CORS"));
+    // Allow requests with no origin (mobile apps, curl, Postman, same-server calls)
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
   methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-}));
-// ── 5. Admin: Get All Return Requests ─────────────────────────
-app.get("/api/admin/return-requests", async (req, res) => {
-  const { email, password } = req.query;
+  optionsSuccessStatus: 204, // some legacy browsers (IE11) choke on 204
+};
 
-  // Basic protection using your existing staff login logic
-  const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+// ✅ Handle ALL preflight OPTIONS requests BEFORE any route
+app.options("*", cors(corsOptions));
+// ✅ Apply CORS to every real request too
+app.use(cors(corsOptions));
 
-  if (
-    email?.toLowerCase().trim() !== adminEmail ||
-    password !== process.env.ADMIN_PASS
-  ) {
-    return res.status(403).json({ error: "Unauthorized" });
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from("verp_return_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
-    res.status(200).json({ success: true, data });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 // ── Transporter ───────────────────────────────────────────────
 // GMAIL_PASS must be a Gmail App Password (not account password).
 // Google Account → Security → 2-Step Verification → App passwords
@@ -128,10 +114,11 @@ app.post("/api/verify-staff", (req, res) => {
 // ── 2. OTP Delivery ───────────────────────────────────────────
 app.post("/api/send-otp", async (req, res) => {
   const { email, type } = req.body;
+  if (!email) return res.status(400).json({ success: false, error: "Email required" });
+
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   try {
-    // Send the email with the OTP
     await transporter.sendMail({
       from: `"VERP Security" <${process.env.GMAIL_USER}>`,
       to: email,
@@ -147,7 +134,6 @@ app.post("/api/send-otp", async (req, res) => {
       ),
     });
 
-    // Return the OTP to the client so it can save it to the DB
     res.status(200).json({ success: true, otp });
   } catch (err) {
     console.error("OTP error:", err.message);
@@ -155,8 +141,7 @@ app.post("/api/send-otp", async (req, res) => {
   }
 });
 
-// ── 3. Paystack Webhook / Order Confirmation ──────────────────
-// Paystack calls this after payment. Used for server-side verification.
+// ── 3. Paystack Payment Verification ─────────────────────────
 app.post("/api/verify-payment", async (req, res) => {
   const { reference } = req.body;
   if (!reference) return res.status(400).json({ error: "Reference required" });
@@ -175,14 +160,50 @@ app.post("/api/verify-payment", async (req, res) => {
   }
 });
 
+// ── NEW: Paystack Charge Calculator ──────────────────────────
+// POST { amountGHS: 200 }  →  { chargeGHS, chargePesewas, feeGHS }
+//
+// Paystack Ghana fees (local cards):
+//   1.95% of transaction + GH₵0.25 flat fee
+//   Fee is capped at GH₵1,000
+//
+// We reverse-engineer so YOU receive exactly amountGHS after fees.
+// Formula: charge = (amountYouWant + 0.25) / (1 - 0.0195)
+app.post("/api/paystack-charge", (req, res) => {
+  const { amountGHS } = req.body;
+  const amount = parseFloat(amountGHS);
+  if (!amount || isNaN(amount) || amount <= 0) {
+    return res.status(400).json({ error: "Invalid amountGHS" });
+  }
+
+  const RATE = 0.0195;   // 1.95%
+  const FLAT = 0.25;     // GH₵0.25 flat
+  const CAP  = 1000;     // fee cap GH₵1,000
+
+  // Gross charge before cap check
+  let chargeGHS = (amount + FLAT) / (1 - RATE);
+  const feeRaw  = chargeGHS - amount;
+
+  // If uncapped fee exceeds cap, just add the flat cap instead
+  if (feeRaw > CAP) chargeGHS = amount + CAP;
+
+  // Round up to nearest pesewa so you never under-collect
+  chargeGHS = Math.ceil(chargeGHS * 100) / 100;
+  const feeGHS = +(chargeGHS - amount).toFixed(2);
+  const chargePesewas = Math.round(chargeGHS * 100); // pass this to Paystack
+
+  res.status(200).json({ success: true, amountGHS: amount, chargeGHS, chargePesewas, feeGHS });
+});
+
 // ── 4. All Staff & System Alerts ──────────────────────────────
 app.post("/api/alert-staff", async (req, res) => {
   const { type, clientId, note, orderNumber, orderValue, orderStatus, subject, recipientCount } = req.body;
 
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.GMAIL_USER;
+  const ADMIN_EMAIL     = process.env.ADMIN_EMAIL     || process.env.GMAIL_USER;
   const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.GMAIL_USER;
   const DASH = "https://verps-chi.vercel.app/admin";
-const TERM = "https://verps-chi.vercel.app/assistant";
+  const TERM = "https://verps-chi.vercel.app/assistant";
+
   let to, emailSubject, html;
 
   switch (type) {
@@ -297,7 +318,35 @@ const TERM = "https://verps-chi.vercel.app/assistant";
   }
 });
 
-app.get("/", (req, res) => res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() }));
+// ── 5. Admin: Get All Return Requests ─────────────────────────
+app.get("/api/admin/return-requests", async (req, res) => {
+  const { email, password } = req.query;
+  const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+
+  if (
+    email?.toLowerCase().trim() !== adminEmail ||
+    password !== process.env.ADMIN_PASS
+  ) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("verp_return_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Health check ──────────────────────────────────────────────
+app.get("/", (req, res) =>
+  res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() })
+);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Vault Server on port ${PORT}`));
