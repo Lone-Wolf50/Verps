@@ -28,10 +28,11 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
+  origin: "https://verps-chi.vercel.app",
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-  optionsSuccessStatus: 204, // some legacy browsers (IE11) choke on 204
+  optionsSuccessStatus: 200, // some legacy browsers (IE11) choke on 204
 };
 
 // ✅ Handle ALL preflight OPTIONS requests BEFORE any route
