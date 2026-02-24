@@ -32,11 +32,12 @@ const corsOptions = {
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
+    preflightContinue: false, 
   optionsSuccessStatus: 200, // some legacy browsers (IE11) choke on 204
 };
 
 // ✅ Handle ALL preflight OPTIONS requests BEFORE any route
-app.options('/:path*', cors(corsOptions));
+
 // ✅ Apply CORS to every real request too
 app.use(cors(corsOptions));
 
