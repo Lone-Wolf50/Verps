@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../Cartoptions/CartContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -59,6 +59,39 @@ const Checkout = () => {
     deliveryMethod: "pickup",
   });
 
+  // State to hold fee calculations + loading state
+  const [feeData, setFeeData] = useState({ chargeGHS: cartTotal, feeGHS: 0, chargePesewas: Math.round(cartTotal * 100) });
+  const [feeLoading, setFeeLoading] = useState(false);
+  const [feeError, setFeeError] = useState(false);
+
+  // Effect to sync fees from server when cart changes
+  useEffect(() => {
+    if (cartTotal <= 0) return;
+    let cancelled = false;
+    const fetchFees = async () => {
+      setFeeLoading(true);
+      setFeeError(false);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/paystack-charge`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amountGHS: cartTotal }),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!cancelled && data.success) setFeeData(data);
+        else if (!cancelled) setFeeError(true);
+      } catch (err) {
+        console.error("Fee calculation error:", err);
+        if (!cancelled) setFeeError(true);
+      } finally {
+        if (!cancelled) setFeeLoading(false);
+      }
+    };
+    fetchFees();
+    return () => { cancelled = true; };
+  }, [cartTotal]);
+
   const set = (key, val) => {
     setFormData((prev) => ({ ...prev, [key]: val }));
     if (fieldErrors[key]) setFieldErrors((prev) => ({ ...prev, [key]: null }));
@@ -75,134 +108,112 @@ const Checkout = () => {
     return Object.keys(e).length === 0;
   };
 
- const handleSubmit = async (ev) => {
-  ev.preventDefault();
-  console.log("1. Form submitted");
+  const handleSubmit = async (ev) => {
+    ev.preventDefault();
+    if (!validate()) return;
 
-  if (!validate()) {
-    console.log("2. Validation failed", fieldErrors);
-    return;
-  }
+    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+    
+    if (!window.PaystackPop) {
+      Swal.fire({ 
+        title: "System Error", 
+        text: "Payment gateway not loaded. Please refresh.", 
+        icon: "error", 
+        background: "#0a0a0a", color: "#fff" 
+      });
+      return;
+    }
 
-  const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-  
-  if (!window.PaystackPop) {
-    Swal.fire({ 
-      title: "System Error", 
-      text: "Payment gateway not loaded. Please refresh.", 
-      icon: "error", 
-      background: "#0a0a0a", color: "#fff" 
-    });
-    return;
-  }
+    setLoading(true);
 
-  const amountInPesewas = Math.round(cartTotal * 100);
+    try {
+      const handler = window.PaystackPop.setup({
+        key: publicKey,
+        email: formData.email,
+        amount: feeData.chargePesewas, // Use calculated amount from server
+        currency: "GHS",
+        ref: `VRP-${Date.now()}`,
+        metadata: {
+          custom_fields: [
+            { display_name: "Customer", variable_name: "customer_name", value: formData.name },
+            { display_name: "Phone", variable_name: "customer_phone", value: formData.phone },
+            { display_name: "Location", variable_name: "location", value: formData.location },
+            { display_name: "Base Total", variable_name: "base_total", value: cartTotal },
+            { display_name: "Paystack Fee", variable_name: "paystack_fee", value: feeData.feeGHS },
+          ],
+        },
+        callback: async (response) => {
+          setLoading(true);
+          try {
+            const { data: savedOrder, error: dbErr } = await supabase
+              .from("verp_orders")
+              .insert([{
+                customer_name: formData.name,
+                customer_email: formData.email,
+                customer_phone: formData.phone,
+                location: formData.location,
+                delivery_method: formData.deliveryMethod,
+                payment_reference: response.reference,
+                payment_status: "paid",
+                items: cart, 
+                total_amount: cartTotal, // Log what YOU receive
+                status: "ordered",
+              }])
+              .select().single();
 
-  try {
-    const handler = window.PaystackPop.setup({
-      key: publicKey,
-      email: formData.email,
-      amount: amountInPesewas,
-      currency: "GHS",
-      ref: `VRP-${Date.now()}`,
-      metadata: {
-        custom_fields: [
-          { display_name: "Customer", variable_name: "customer_name", value: formData.name },
-          { display_name: "Phone", variable_name: "customer_phone", value: formData.phone },
-          { display_name: "Location", variable_name: "location", value: formData.location },
-        ],
-      },
-      callback: async (response) => {
-        setLoading(true);
-        console.log("6. Payment Successful, saving to DB...");
+            if (dbErr) throw dbErr;
+            await clearCart(); 
+            
+            fetch(`${import.meta.env.VITE_SERVER_URL}/api/alert-staff`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type: "NEW_ORDER",
+                clientId: formData.email,
+                orderNumber: savedOrder?.order_number || response.reference,
+                orderValue: cartTotal,
+                orderStatus: "ordered",
+              }),
+            }).catch(() => {});
 
-        try {
-          // 1. Insert into Supabase - Aligned with your verified schema
-          const { data: savedOrder, error: dbErr } = await supabase
-            .from("verp_orders")
-            .insert([{
-              customer_name: formData.name,
-              customer_email: formData.email,
-              customer_phone: formData.phone,
-              location: formData.location,
-              delivery_method: formData.deliveryMethod,
-              payment_reference: response.reference,
-              payment_status: "paid",
-              items: cart, // Matches your 'jsonb' column type
-              total_amount: cartTotal,
-              status: "ordered",
-            }])
-            .select()
-            .single();
+            await Swal.fire({
+              title: "ACQUISITION COMPLETE",
+              html: `<p style="color:rgba(255,255,255,0.6); font-size:13px;">Ref: ${response.reference}<br/>Payment confirmed.</p>`,
+              icon: "success",
+              background: "#0a0a0a", color: "#fff", confirmButtonColor: "#ec5b13",
+            });
+            navigate("/orderpage");
+          } catch (err) {
+            Swal.fire({ title: "Order Logging Error", text: err.message, icon: "warning", background: "#0a0a0a", color: "#fff" });
+          } finally {
+            setLoading(false);
+          }
+        },
+        onClose: () => setLoading(false),
+      });
 
-          if (dbErr) throw dbErr;
+      handler.openIframe();
+    } catch (err) {
+      setLoading(false);
+    }
+  };
 
-          console.log("7. Order logged successfully");
-
-          // 2. Clear Cart (LocalStorage and Context)
-          await clearCart(); 
-          
-          // 3. Notify Staff (Optional/Background)
-          fetch(`${import.meta.env.VITE_SERVER_URL}/api/alert-staff`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "NEW_ORDER",
-              clientId: formData.email,
-              orderNumber: savedOrder?.order_number || response.reference,
-              orderValue: cartTotal,
-              orderStatus: "ordered",
-            }),
-          }).catch(() => {});
-
-          // 4. Show Success and Navigate
-          await Swal.fire({
-            title: "ACQUISITION COMPLETE",
-            html: `<p style="color:rgba(255,255,255,0.6); font-size:13px;">Payment confirmed. Ref: ${response.reference}</p>`,
-            icon: "success",
-            background: "#0a0a0a",
-            color: "#fff",
-            confirmButtonColor: "#ec5b13",
-          });
-
-          navigate("/orderpage");
-
-        } catch (err) {
-          console.error("Database Save Error Details:", err);
-          Swal.fire({ 
-            title: "Order Logging Error", 
-            text: `Payment successful (Ref: ${response.reference}), but we failed to save the record: ${err.message}`, 
-            icon: "warning", 
-            background: "#0a0a0a", color: "#fff" 
-          });
-        } finally {
-          setLoading(false);
-        }
-      },
-      onClose: () => {
-        setLoading(false);
-        console.log("Window closed");
-      },
-    });
-
-    handler.openIframe();
-  } catch (err) {
-    console.error("8. Paystack Setup Error:", err);
-  }
-};
   const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   return (
     <>
-      {/* Paystack inline script */}
       <style>{`
-       *{box-sizing:border-box}
+        *{box-sizing:border-box}
         input:focus,textarea:focus{border-color:rgba(236,91,19,0.5)!important;box-shadow:0 0 0 3px rgba(236,91,19,0.08)!important;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
         .co-fade{animation:fadeUp 0.6s cubic-bezier(.22,1,.36,1) both}
         .co-fade-d{animation:fadeUp 0.6s 0.14s cubic-bezier(.22,1,.36,1) both}
         @keyframes spinRing{to{transform:rotate(360deg)}}
         .co-spin{animation:spinRing 0.8s linear infinite}
+        @keyframes feeSkeleton{0%,100%{opacity:0.35}50%{opacity:0.7}}
+        .fee-skeleton{display:inline-block;width:64px;height:13px;border-radius:6px;background:rgba(236,91,19,0.25);animation:feeSkeleton 1.1s ease-in-out infinite;vertical-align:middle}
+        @keyframes feePop{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}
+        .fee-value{animation:feePop 0.35s cubic-bezier(.22,1,.36,1) both}
         .co-cta{background:linear-gradient(90deg,#ec5b13,#ff7a3d,#ec5b13);background-size:200% auto;transition:background-position 0.4s,box-shadow 0.3s,transform 0.2s}
         .co-cta:hover:not(:disabled){background-position:right center;box-shadow:0 8px 32px -8px rgba(236,91,19,0.5);transform:translateY(-1px)}
         .co-cta:disabled{opacity:0.5;cursor:not-allowed}
@@ -211,18 +222,16 @@ const Checkout = () => {
 
       <div style={{ minHeight: "100vh", paddingTop: 96, paddingBottom: 64, background: "linear-gradient(180deg,#050505,#080808)", fontFamily: "'DM Sans',sans-serif" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
-          {/* Header */}
+          
           <div className="co-fade" style={{ marginBottom: 40 }}>
             <h1 style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: "clamp(40px,7vw,80px)", color: "white", margin: 0, lineHeight: 1 }}>Checkout</h1>
             <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginTop: 10 }}>SECURE VAULT ACQUISITION</p>
           </div>
 
           <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
-            {/* ── FORM ── */}
             <div className="co-fade" style={{ flex: "1 1 420px", display: "flex", flexDirection: "column", gap: 22 }}>
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 22 }}>
 
-                {/* Section: Client Info */}
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 22, overflow: "hidden" }}>
                   <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 22, height: 22, borderRadius: 8, background: "rgba(236,91,19,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#ec5b13", fontWeight: 700 }}>01</div>
@@ -244,7 +253,6 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Section: Delivery */}
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 22, overflow: "hidden" }}>
                   <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 22, height: 22, borderRadius: 8, background: "rgba(236,91,19,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#ec5b13", fontWeight: 700 }}>02</div>
@@ -255,33 +263,17 @@ const Checkout = () => {
                       <DeliveryCard value="pickup" selected={formData.deliveryMethod === "pickup"} onSelect={(v) => set("deliveryMethod", v)} icon="🏛️" title="Showroom Pickup" desc="Collect from our flagship showroom at no extra charge." />
                       <DeliveryCard value="door" selected={formData.deliveryMethod === "door"} onSelect={(v) => set("deliveryMethod", v)} icon="🚚" title="Door Delivery" desc="White-glove delivery. Fees confirmed after checkout." />
                     </div>
-                    {formData.deliveryMethod === "door" && (
-                      <div style={{ marginTop: 12, padding: "12px 16px", background: "rgba(236,91,19,0.06)", border: "1px solid rgba(236,91,19,0.15)", borderRadius: 12 }}>
-                        <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(236,91,19,0.7)", lineHeight: 1.7 }}>Our team will call you to schedule delivery and confirm fees.</p>
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* CTA */}
-                {fieldErrors.cart && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#f87171", textAlign: "center" }}>{fieldErrors.cart}</p>}
-                <button type="submit" disabled={loading || cart.length === 0} className="co-cta"
+                <button type="submit" disabled={loading || feeLoading || cart.length === 0} className="co-cta"
                   style={{ width: "100%", padding: "17px 0", borderRadius: 16, border: "none", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
                   {loading ? (
                     <><div className="co-spin" style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid rgba(0,0,0,0.2)", borderTopColor: "#000" }} />PROCESSING…</>
                   ) : (
-                    <><span>CONFIRM ACQUISITION</span><span style={{ opacity: 0.55 }}>— GH₵{cartTotal.toLocaleString()}</span></>
+                    <><span>CONFIRM ACQUISITION</span><span style={{ opacity: 0.55 }}>{feeLoading ? "— calculating…" : `— GH₵${(feeData?.chargeGHS || 0).toLocaleString()}`}</span></>
                   )}
                 </button>
-
-                <div style={{ display: "flex", justifyContent: "center", gap: 24 }}>
-                  {[["🔒", "256-bit Encrypted"], ["✦", "Secure Vault"], ["↩", "48h Returns"]].map(([ic, tx]) => (
-                    <div key={tx} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontSize: 10, opacity: 0.3 }}>{ic}</span>
-                      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.2)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{tx}</span>
-                    </div>
-                  ))}
-                </div>
               </form>
             </div>
 
@@ -293,17 +285,30 @@ const Checkout = () => {
                   <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#ec5b13" }}>{itemCount} {itemCount === 1 ? "item" : "items"}</span>
                 </div>
                 <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-                  {cart.length === 0 && (
-                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.15)", textAlign: "center", padding: "24px 0", letterSpacing: "0.25em" }}>CART IS EMPTY</p>
-                  )}
                   {cart.map((item) => <SummaryItem key={item.id} item={item} />)}
                 </div>
+
                 <div style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
                   <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginBottom: 4 }} />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Subtotal</span>
                     <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>GH₵{cartTotal.toLocaleString()}</span>
                   </div>
+                  
+                  {/* Service Fee — with loader */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em", display: "flex", alignItems: "center", gap: 6 }}>
+                      Service Fee
+                      {feeLoading && <span style={{ width: 10, height: 10, borderRadius: "50%", border: "1.5px solid rgba(236,91,19,0.3)", borderTopColor: "#ec5b13", display: "inline-block", animation: "spinRing 0.8s linear infinite" }} />}
+                    </span>
+                    {feeLoading
+                      ? <span className="fee-skeleton" />
+                      : feeError
+                        ? <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,100,100,0.6)", letterSpacing: "0.1em" }}>—</span>
+                        : <span className="fee-value" style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>+ GH₵{(feeData?.feeGHS || 0).toFixed(2)}</span>
+                    }
+                  </div>
+
                   {formData.deliveryMethod === "door" && (
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Delivery</span>
@@ -313,10 +318,13 @@ const Checkout = () => {
                   <div style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Total</span>
-                    <p style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 28, color: "#ec5b13", margin: 0 }}>GH₵{cartTotal.toLocaleString()}</p>
+                    {feeLoading
+                      ? <span className="fee-skeleton" style={{ width: 90, height: 28 }} />
+                      : <p className="fee-value" style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 28, color: "#ec5b13", margin: 0 }}>GH₵{(feeData?.chargeGHS || 0).toLocaleString()}</p>
+                    }
                   </div>
                 </div>
-                {/* Delivery badge */}
+
                 <div style={{ margin: "0 16px 16px", padding: "12px 16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 18 }}>{formData.deliveryMethod === "pickup" ? "🏛️" : "🚚"}</span>
                   <div>

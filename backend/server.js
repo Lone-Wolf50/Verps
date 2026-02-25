@@ -171,32 +171,39 @@ app.post("/api/verify-payment", async (req, res) => {
 //
 // We reverse-engineer so YOU receive exactly amountGHS after fees.
 // Formula: charge = (amountYouWant + 0.25) / (1 - 0.0195)
+// Update this route in your server.js
+// server.js - Update only the /api/paystack-charge route
 app.post("/api/paystack-charge", (req, res) => {
   const { amountGHS } = req.body;
   const amount = parseFloat(amountGHS);
+  
   if (!amount || isNaN(amount) || amount <= 0) {
     return res.status(400).json({ error: "Invalid amountGHS" });
   }
 
-  const RATE = 0.0195;   // 1.95%
-  const FLAT = 0.25;     // GH₵0.25 flat
-  const CAP  = 1000;     // fee cap GH₵1,000
+  // Paystack Ghana: 1.95% flat
+  const RATE = 0.0195; 
 
-  // Gross charge before cap check
-  let chargeGHS = (amount + FLAT) / (1 - RATE);
-  const feeRaw  = chargeGHS - amount;
+  /* Formula to ensure you receive 'amount' after the 1.95% cut:
+     Charge = Amount / (1 - 0.0195)
+  */
+  let chargeGHS = amount / (1 - RATE);
 
-  // If uncapped fee exceeds cap, just add the flat cap instead
-  if (feeRaw > CAP) chargeGHS = amount + CAP;
-
-  // Round up to nearest pesewa so you never under-collect
+  // Round up to the nearest pesewa to ensure you don't lose money
   chargeGHS = Math.ceil(chargeGHS * 100) / 100;
+  
   const feeGHS = +(chargeGHS - amount).toFixed(2);
-  const chargePesewas = Math.round(chargeGHS * 100); // pass this to Paystack
+  const chargePesewas = Math.round(chargeGHS * 100); 
 
-  res.status(200).json({ success: true, amountGHS: amount, chargeGHS, chargePesewas, feeGHS });
+  // FIXED: Changed keys to match Checkout.jsx
+  res.status(200).json({ 
+    success: true, 
+    originalAmount: amount, 
+    chargeGHS: chargeGHS,   // Changed from customerPays
+    feeGHS: feeGHS,         // Changed from paystackFee
+    chargePesewas: chargePesewas 
+  });
 });
-
 // ── 4. All Staff & System Alerts ──────────────────────────────
 app.post("/api/alert-staff", async (req, res) => {
   const { type, clientId, note, orderNumber, orderValue, orderStatus, subject, recipientCount } = req.body;

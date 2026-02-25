@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
 	ArrowLeft,
@@ -10,10 +10,248 @@ import {
 	ChevronDown,
 	ChevronUp,
 	ShieldCheck,
+	CheckCircle2,
 } from "lucide-react";
 import { useCart } from "../Cartoptions/CartContext";
 import { supabase } from "../supabaseClient";
 
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM TOAST — floating, material-design-inspired
+   ════════════════════════════════════════════════════════════ */
+const ToastStack = ({ toasts, onDismiss }) => {
+	return (
+		<div
+			style={{
+				position: "fixed",
+				bottom: 28,
+				right: 24,
+				zIndex: 9999,
+				display: "flex",
+				flexDirection: "column",
+				gap: 10,
+				alignItems: "flex-end",
+				pointerEvents: "none",
+			}}
+		>
+			<style>{`
+				@keyframes toastIn {
+					from { opacity:0; transform: translateY(18px) scale(0.94); }
+					to   { opacity:1; transform: translateY(0)    scale(1);    }
+				}
+				@keyframes toastOut {
+					from { opacity:1; transform: translateY(0) scale(1); max-height:100px; margin-bottom:0; }
+					to   { opacity:0; transform: translateY(10px) scale(0.96); max-height:0; margin-bottom:-10px; }
+				}
+				@keyframes progressBar {
+					from { width: 100%; }
+					to   { width: 0%;   }
+				}
+				@keyframes checkPop {
+					0%   { transform: scale(0) rotate(-20deg); opacity:0; }
+					60%  { transform: scale(1.2) rotate(4deg);  opacity:1; }
+					100% { transform: scale(1) rotate(0deg);   opacity:1; }
+				}
+			`}</style>
+
+			{toasts.map((t) => (
+				<div
+					key={t.id}
+					style={{
+						pointerEvents: "auto",
+						animation: t.exiting
+							? "toastOut 280ms cubic-bezier(0.4,0,1,1) forwards"
+							: "toastIn 340ms cubic-bezier(0.16,1,0.3,1) forwards",
+						willChange: "transform, opacity",
+					}}
+				>
+					<div
+						style={{
+							position: "relative",
+							minWidth: 300,
+							maxWidth: 360,
+							background: "rgba(14,14,14,0.97)",
+							border: "1px solid rgba(255,255,255,0.08)",
+							borderRadius: 16,
+							padding: "14px 16px 18px",
+							boxShadow:
+								"0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+							backdropFilter: "blur(20px)",
+							overflow: "hidden",
+						}}
+					>
+						{/* Accent top-left glow */}
+						<div
+							style={{
+								position: "absolute",
+								top: 0,
+								left: 0,
+								width: 120,
+								height: 2,
+								background:
+									"linear-gradient(90deg, #ec5b13 0%, transparent 100%)",
+								borderRadius: "16px 0 0 0",
+							}}
+						/>
+
+						{/* Content row */}
+						<div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+							{/* Animated check icon */}
+							<div
+								style={{
+									width: 36,
+									height: 36,
+									borderRadius: 10,
+									background:
+										"linear-gradient(135deg, rgba(236,91,19,0.18), rgba(236,91,19,0.06))",
+									border: "1px solid rgba(236,91,19,0.25)",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									flexShrink: 0,
+								}}
+							>
+								<CheckCircle2
+									style={{
+										width: 18,
+										height: 18,
+										color: "#ec5b13",
+										animation: "checkPop 420ms cubic-bezier(0.16,1,0.3,1) both",
+										animationDelay: "80ms",
+									}}
+								/>
+							</div>
+
+							{/* Text */}
+							<div style={{ flex: 1, minWidth: 0 }}>
+								<p
+									style={{
+										fontFamily: "'DM Sans', sans-serif",
+										fontSize: 12,
+										fontWeight: 700,
+										color: "rgba(255,255,255,0.92)",
+										letterSpacing: "0.01em",
+										marginBottom: 3,
+										whiteSpace: "nowrap",
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+									}}
+								>
+									{t.name}
+								</p>
+								<p
+									style={{
+										fontFamily: "'JetBrains Mono', monospace",
+										fontSize: 9,
+										fontWeight: 700,
+										letterSpacing: "0.22em",
+										textTransform: "uppercase",
+										color: "#ec5b13",
+									}}
+								>
+									Added to Cart
+								</p>
+							</div>
+
+							{/* Product thumbnail */}
+							{t.image && (
+								<div
+									style={{
+										width: 38,
+										height: 38,
+										borderRadius: 8,
+										overflow: "hidden",
+										border: "1px solid rgba(255,255,255,0.06)",
+										flexShrink: 0,
+									}}
+								>
+									<img
+										src={t.image}
+										alt={t.name}
+										style={{ width: "100%", height: "100%", objectFit: "cover" }}
+									/>
+								</div>
+							)}
+
+							{/* Dismiss */}
+							<button
+								onClick={() => onDismiss(t.id)}
+								style={{
+									flexShrink: 0,
+									width: 24,
+									height: 24,
+									borderRadius: 6,
+									background: "rgba(255,255,255,0.04)",
+									border: "none",
+									cursor: "pointer",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									color: "rgba(255,255,255,0.25)",
+									transition: "all 150ms",
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.background =
+										"rgba(255,255,255,0.09)";
+									e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.background =
+										"rgba(255,255,255,0.04)";
+									e.currentTarget.style.color = "rgba(255,255,255,0.25)";
+								}}
+							>
+								<X style={{ width: 11, height: 11 }} />
+							</button>
+						</div>
+
+						{/* Progress bar — auto-dismiss indicator */}
+						<div
+							style={{
+								position: "absolute",
+								bottom: 0,
+								left: 0,
+								height: 2,
+								background:
+									"linear-gradient(90deg, #ec5b13, rgba(236,91,19,0.4))",
+								borderRadius: "0 0 16px 16px",
+								animation: `progressBar ${t.duration}ms linear forwards`,
+								animationDelay: "50ms",
+							}}
+						/>
+					</div>
+				</div>
+			))}
+		</div>
+	);
+};
+
+/* ── Toast manager hook ── */
+let _toastId = 0;
+const useToast = () => {
+	const [toasts, setToasts] = useState([]);
+
+	const dismiss = useCallback((id) => {
+		setToasts((prev) =>
+			prev.map((t) => (t.id === id ? { ...t, exiting: true } : t))
+		);
+		setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 300);
+	}, []);
+
+	const addToast = useCallback(
+		({ name, image, duration = 3800 }) => {
+			const id = ++_toastId;
+			setToasts((prev) => [...prev, { id, name, image, duration, exiting: false }]);
+			setTimeout(() => dismiss(id), duration);
+		},
+		[dismiss]
+	);
+
+	return { toasts, addToast, dismiss };
+};
+
+/* ══════════════════════════════════════════════════════════════
+   CATEGORY TEMPLATE
+   ════════════════════════════════════════════════════════════ */
 const CategoryTemplate = ({
 	title,
 	subtitle,
@@ -27,6 +265,7 @@ const CategoryTemplate = ({
 	const [loading, setLoading] = useState(true);
 	const [selectedProduct, setSelectedProduct] = useState(null);
 	const [isDescExpanded, setIsDescExpanded] = useState(false);
+	const { toasts, addToast, dismiss } = useToast();
 
 	useEffect(() => {
 		const fetchProducts = async () => {
@@ -69,17 +308,25 @@ const CategoryTemplate = ({
 		document.body.style.overflow = "unset";
 	};
 
+	// Wrapped add-to-cart that fires the toast
+	const handleAddToCart = (product) => {
+		addToCart({ ...product, image: product.image_url });
+		addToast({ name: product.name, image: product.image_url });
+	};
+
 	const relatedItems = products
 		.filter((p) => p.id !== selectedProduct?.id)
 		.slice(0, 6);
 
 	return (
 		<div className="bg-[#050505] text-white min-h-screen font-sans">
+			{/* Toast portal */}
+			<ToastStack toasts={toasts} onDismiss={dismiss} />
+
 			<main className="max-w-7xl mx-auto px-4 sm:px-6 pt-[88px] sm:pt-[104px] md:pt-[112px] pb-20">
-				{/* ── HEADER ROW: back button + divider + title + description ── */}
+				{/* ── HEADER ROW ── */}
 				<div className="flex flex-col gap-4 mb-10 sm:mb-12">
 					<div className="flex items-center gap-3 sm:gap-5">
-						{/* Compact circular back button */}
 						<button
 							onClick={() => navigate(-1)}
 							className="group flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/10 bg-white/5 backdrop-blur-md hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/40 transition-all active:scale-95"
@@ -88,10 +335,8 @@ const CategoryTemplate = ({
 							<ArrowLeft className="w-3.5 h-3.5 text-[#ec5b13] group-hover:-translate-x-0.5 transition-transform" />
 						</button>
 
-						{/* Orange gradient connector */}
 						<div className="flex-shrink-0 w-6 sm:w-8 h-[1px] bg-gradient-to-r from-[#ec5b13]/50 to-transparent" />
 
-						{/* Title block */}
 						<div className="flex-1 min-w-0">
 							<h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-tighter uppercase leading-none">
 								{title}{" "}
@@ -101,7 +346,6 @@ const CategoryTemplate = ({
 							</h1>
 						</div>
 
-						{/* Description — large screens only, right-aligned */}
 						{description && (
 							<div className="hidden lg:block flex-shrink-0 max-w-[220px] text-right">
 								<p className="text-[9px] text-white/30 uppercase tracking-[0.3em] leading-relaxed">
@@ -111,7 +355,6 @@ const CategoryTemplate = ({
 						)}
 					</div>
 
-					{/* Description below on smaller screens */}
 					{description && (
 						<p className="lg:hidden text-[9px] text-white/30 uppercase tracking-[0.3em] leading-relaxed max-w-sm pl-[52px] sm:pl-[60px]">
 							{description}
@@ -178,7 +421,7 @@ const CategoryTemplate = ({
 									</div>
 									<div className="mt-auto flex flex-col gap-1.5">
 										<button
-											onClick={() => addToCart({ ...p, image: p.image_url })}
+											onClick={() => handleAddToCart(p)}
 											className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-white font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-[8px] md:text-[9px] uppercase tracking-[0.2em]"
 										>
 											<ShoppingCart className="w-3 h-3" /> Add cart
@@ -296,7 +539,7 @@ const CategoryTemplate = ({
 															{item.name}
 														</p>
 														<p className="text-[8px] text-[#ec5b13] font-mono">
-															${Number(item.price).toLocaleString()}
+															GH&#8373;{Number(item.price).toLocaleString()}
 														</p>
 													</div>
 												</button>
@@ -309,10 +552,7 @@ const CategoryTemplate = ({
 							<div className="p-5 md:p-7 pt-3 md:pt-4 bg-[#0a0a0a] border-t border-white/5 flex-shrink-0">
 								<button
 									onClick={() => {
-										addToCart({
-											...selectedProduct,
-											image: selectedProduct.image_url,
-										});
+										handleAddToCart(selectedProduct);
 										closeQuickView();
 									}}
 									className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-white font-bold py-3 md:py-3.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-3 text-[9px] md:text-[10px] uppercase tracking-[0.25em] shadow-lg hover:shadow-xl"

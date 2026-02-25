@@ -4,6 +4,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Optimize mobile performance */
+@media (max-width: 768px) {
+  /* Disable backdrop-filter on mobile for better performance */
+  .glass-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(8,8,8,0.98) !important;
+  }
+  
+  /* Optimize animations on mobile */
+  .nav-link, button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Ensure smooth scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
 @layer base {
 	html,
 	body,
