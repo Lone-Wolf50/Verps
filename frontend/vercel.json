@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://verps-server.onrender.com*"
+      "destination": "https://verps-server.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
