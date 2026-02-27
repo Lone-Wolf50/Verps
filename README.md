@@ -1,3 +1,65 @@
+## Verp
+
+Verp is a React-based project located in the `Verp` folder of this repository.
+
+### Overview
+
+- **Purpose**: Describe briefly what this project does and who it is for.
+- **Status**: Draft – update this section as the project evolves.
+
+### Getting Started
+
+1. **Navigate into the folder**:
+   ```bash
+   cd "My React/Verp"
+   ```
+2. **Install dependencies** (adjust to your setup):
+   ```bash
+   npm install
+   ```
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+### Project Structure
+
+Common entries you might see here:
+
+- **`src/`**: React components, hooks, and other front-end logic.
+- **`public/`**: Static assets such as images and icons.
+- **`package.json`**: Project metadata, scripts, and dependencies.
+
+Update this section to reflect the actual folders and files in `Verp` as the project grows.
+
+### Available Scripts
+
+Typical scripts you might have in `package.json`:
+
+- **`npm run dev`**: Starts the development server.
+- **`npm run build`**: Builds the app for production.
+- **`npm run preview`** or **`npm start`**: Serves the production build locally.
+- **`npm test`**: Runs tests, if configured.
+
+Confirm these commands against your `package.json` and adjust as needed.
+
+### Technologies
+
+Fill this out with the exact stack you are using. For example:
+
+- **React** for building the UI.
+- **TypeScript** or **JavaScript** for application logic.
+- **Vite**, **Create React App**, or another bundler/tooling setup.
+
+### Customization Notes
+
+- Replace the placeholder text in each section with project-specific information.
+- Add screenshots or GIFs to demonstrate key features.
+- Document any environment variables or configuration files required to run the app.
+
+### License
+
+Add licensing information here (for example, MIT) or state that the project is private.
 # VERP - E-Commerce Platform
 
 A full-stack **VERP** e-commerce platform built with **React**, **Vite**, **Node.js/Express**, **Supabase**, and **TailwindCSS**. Features admin dashboard, order tracking, chat support, and product management.
