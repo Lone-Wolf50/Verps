@@ -1,31 +1,22 @@
 const express = require("express");
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const SALT_ROUNDS = 12;
 require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
 
-// ── ENV CHECK ON STARTUP ──────────────────────────────────────
-console.log("🔍 [STARTUP] Checking environment variables...");
-console.log("  SUPABASE_URL        :", process.env.SUPABASE_URL ? "✅ set" : "❌ MISSING");
-console.log("  SUPABASE_SERVICE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "✅ set" : "❌ MISSING");
-console.log("  RESEND_API_KEY      :", process.env.RESEND_API_KEY ? "✅ set" : "❌ MISSING");
-console.log("  ADMIN_EMAIL         :", process.env.ADMIN_EMAIL ? "✅ set" : "❌ MISSING");
-console.log("  ADMIN_PASS          :", process.env.ADMIN_PASS  ? "✅ set" : "❌ MISSING");
-console.log("  PAYSTACK_SECRET_KEY :", process.env.PAYSTACK_SECRET_KEY ? "✅ set" : "❌ MISSING");
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY // ⚠️ MUST be service role
 );
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const app = express();
 app.use(express.json());
 
 // ── CORS ──────────────────────────────────────────────────────
+// Add every origin that will call this server.
+// On Vercel, set VITE_SERVER_URL=https://your-server.railway.app (no trailing slash)
+// in your Vercel project environment variables.
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
@@ -36,36 +27,42 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log("🌐 [CORS] Request from origin:", origin || "(no origin)");
-    if (!origin || allowedOrigins.includes(origin)) {
-      console.log("🌐 [CORS] ✅ Allowed");
-      return callback(null, true);
-    }
-    console.error("🌐 [CORS] ❌ Blocked:", origin);
+    // Allow requests with no origin (mobile apps, curl, Postman, same-server calls)
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
+  
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 200,
+    preflightContinue: false, 
+  optionsSuccessStatus: 200, // some legacy browsers (IE11) choke on 204
 };
 
+// ✅ Handle ALL preflight OPTIONS requests BEFORE any route
+
+// ✅ Apply CORS to every real request too
 app.use(cors(corsOptions));
 
-// ── Helper: send email via Resend ────────────────────────────
-const sendEmail = async ({ to, subject, html, from }) => {
-  const result = await resend.emails.send({
-    from: from || "VERP System <onboarding@resend.dev>",
-    to,
-    subject,
-    html,
-  });
-  if (result.error) throw new Error(result.error.message);
-  return result;
-};
+// ── Transporter ───────────────────────────────────────────────
+// GMAIL_PASS must be a Gmail App Password (not account password).
+// Google Account → Security → 2-Step Verification → App passwords
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
 
-// ── HTML Email Wrapper ────────────────────────────────────────
+transporter.verify((err) => {
+  if (err) console.error("❌ Email transporter error:", err.message);
+  else console.log("✅ Email transporter ready —", process.env.GMAIL_USER);
+});
+
+// ── HTML Email Wrapper ─────────────────────────────────────────
 const wrap = (title, body, ctaUrl, ctaLabel) => `
 <!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#000;font-family:sans-serif;">
@@ -92,74 +89,57 @@ const row = (label, value, color) =>
     <span style="font-size:11px;font-weight:600;color:${color || "#fff"};">${value || "—"}</span>
   </div>`;
 
-// ── 1. Staff Login ────────────────────────────────────────────
+// ── 1. Staff Login (email + password from .env) ──────────────────
 app.post("/api/staff-login", (req, res) => {
   const { email, password } = req.body;
-  console.log("[staff-login] called — email:", email);
   if (!email || !password) {
-    console.error("[staff-login] ❌ Missing email or password");
     return res.status(400).json({ success: false, error: "Email and password required" });
   }
   const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
   const assistantEmail = (process.env.ASSISTANT_EMAIL || "").toLowerCase().trim();
   const em = String(email).toLowerCase().trim();
-  console.log("[staff-login] Comparing against admin:", adminEmail, "| assistant:", assistantEmail);
 
   if (em === adminEmail && password === process.env.ADMIN_PASS) {
-    console.log("[staff-login] ✅ Admin login success");
     return res.status(200).json({ success: true, role: "admin", message: "Access Granted" });
   }
   if (em === assistantEmail && password === process.env.ASSISTANT_PASS) {
-    console.log("[staff-login] ✅ Assistant login success");
     return res.status(200).json({ success: true, role: "assistant", message: "Access Granted" });
   }
-  console.error("[staff-login] ❌ Invalid credentials for:", em);
   res.status(401).json({ success: false, error: "Invalid email or password" });
 });
 
-// Legacy
+// Legacy: role + password only (for backward compatibility)
 app.post("/api/verify-staff", (req, res) => {
   const { role, password } = req.body;
-  console.log("[verify-staff] called — role:", role);
   const masterPass = role === "admin" ? process.env.ADMIN_PASS : process.env.ASSISTANT_PASS;
-  if (password === masterPass) {
-    console.log("[verify-staff] ✅ Access granted for role:", role);
-    return res.status(200).json({ success: true, message: "Access Granted" });
-  }
-  console.error("[verify-staff] ❌ Invalid credentials for role:", role);
+  if (password === masterPass) return res.status(200).json({ success: true, message: "Access Granted" });
   res.status(401).json({ success: false, error: "Invalid Credentials" });
 });
 
 // ── 2. OTP Delivery ───────────────────────────────────────────
+// ── 2. OTP Delivery ───────────────────────────────────────────
 app.post("/api/send-otp", async (req, res) => {
   const { email, type } = req.body;
-  console.log("[send-otp] called — email:", email, "| type:", type);
-
-  if (!email) {
-    console.error("[send-otp] ❌ No email provided");
-    return res.status(400).json({ success: false, error: "Email required" });
-  }
+  if (!email) return res.status(400).json({ success: false, error: "Email required" });
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-  console.log("[send-otp] Generated OTP — expiry:", expiry);
+  const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min from now
 
   try {
-    console.log("[send-otp] Saving OTP to DB for:", email);
+    // ── 1. Save OTP to DB BEFORE sending email ──────────────────
     const { error: dbErr } = await supabase
       .from("verp_users")
       .update({ otp_code: otp, otp_expiry: expiry })
       .eq("email", email.toLowerCase().trim());
 
     if (dbErr) {
-      console.error("[send-otp] ❌ DB save failed:", dbErr.message);
+      console.error("Failed to save OTP to DB:", dbErr.message);
       return res.status(500).json({ error: "Failed to prepare OTP", detail: dbErr.message });
     }
-    console.log("[send-otp] ✅ OTP saved to DB");
 
-    console.log("[send-otp] Sending email via Resend to:", email);
-    await sendEmail({
-      from: "VERP Security <onboarding@resend.dev>",
+    // ── 2. Now send the email ───────────────────────────────────
+    await transporter.sendMail({
+      from: `"VERP Security" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: `[${otp}] Your Vault Access Code`,
       html: wrap(
@@ -173,19 +153,21 @@ app.post("/api/send-otp", async (req, res) => {
       ),
     });
 
-    console.log("[send-otp] ✅ Email sent successfully to:", email);
     res.status(200).json({ success: true });
+    //                                 ^ don't return otp to client in production
   } catch (err) {
-    console.error("[send-otp] ❌ CAUGHT EXCEPTION:", err.message);
-    console.error("[send-otp] ❌ Full error:", err);
+    console.error("OTP error:", err.message);
     res.status(500).json({ error: "Failed to deliver OTP", detail: err.message });
   }
 });
 
 // ── 3. OTP Verification ───────────────────────────────────────
+// Validates the code but does NOT clear it yet — clearing happens
+// atomically inside /api/reset-password after the password is saved.
 app.post("/api/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
   console.log("[verify-otp] called — email:", email, "| otp:", otp);
+  console.log("[verify-otp] SUPABASE_URL set?", !!process.env.SUPABASE_URL);
 
   if (!email || !otp) return res.status(400).json({ message: "Email and code required." });
 
@@ -200,39 +182,42 @@ app.post("/api/verify-otp", async (req, res) => {
     console.log("[verify-otp] DB err :", error?.message ?? "none");
 
     if (error) {
-      console.error("[verify-otp] ❌ Supabase error:", error.message);
+      console.error("[verify-otp] ❌ Supabase error:", error.message, error);
       return res.status(500).json({ message: "DB error.", detail: error.message });
     }
-    if (!data) return res.status(404).json({ message: "No account found for this email." });
+    if (!data)  return res.status(404).json({ message: "No account found for this email." });
 
     if (!data.otp_code) {
-      console.error("[verify-otp] ❌ otp_code is NULL for", email);
+      console.error("[verify-otp] ❌ otp_code is NULL for", email,
+        "— send-otp saved it, but something cleared it between then and now.");
       return res.status(400).json({ message: "No active code — please request a new one." });
     }
 
     console.log("[verify-otp] DB code  :", JSON.stringify(String(data.otp_code).trim()));
     console.log("[verify-otp] Provided :", JSON.stringify(String(otp).trim()));
 
-    if (String(data.otp_code).trim() !== String(otp).trim()) {
-      console.error("[verify-otp] ❌ Code mismatch");
+    if (String(data.otp_code).trim() !== String(otp).trim())
       return res.status(400).json({ message: "Incorrect code — please check and try again." });
-    }
 
     if (data.otp_expiry && new Date() > new Date(data.otp_expiry)) {
       console.error("[verify-otp] ❌ OTP expired at", data.otp_expiry);
       return res.status(400).json({ message: "Code expired — please request a new one." });
     }
 
+    // ✅ Valid — do NOT clear here, reset-password clears it atomically
     console.log("[verify-otp] ✅ OTP valid for", email);
     res.status(200).json({ success: true });
 
   } catch (e) {
+    // Catches TypeError: fetch failed and any other network/runtime errors
     console.error("[verify-otp] ❌ CAUGHT EXCEPTION:", e.message, e);
     res.status(500).json({ message: "Server error during OTP check.", detail: e.message });
   }
 });
 
 // ── 4. Reset Password ─────────────────────────────────────────
+// Hashes new password with bcrypt → saves to password_hash → clears OTP
+
 app.post("/api/reset-password", async (req, res) => {
   const { email, password } = req.body;
   console.log("[reset-password] called — email:", email);
@@ -256,15 +241,15 @@ app.post("/api/reset-password", async (req, res) => {
     if (!user)    return res.status(404).json({ message: "No account found for this email." });
 
     if (!user.otp_code) {
-      console.error("[reset-password] ❌ otp_code is NULL — session expired or flow broken");
+      console.error("[reset-password] ❌ otp_code is NULL — OTP was cleared before password was saved.",
+        "Flow must be: send-otp → verify-otp (no clear) → reset-password (clears here).");
       return res.status(400).json({ message: "Session expired — please start over." });
     }
 
-    if (user.otp_expiry && new Date() > new Date(user.otp_expiry)) {
-      console.error("[reset-password] ❌ OTP expired at", user.otp_expiry);
+    if (user.otp_expiry && new Date() > new Date(user.otp_expiry))
       return res.status(400).json({ message: "Session expired — please request a new code." });
-    }
 
+    // Hash and save, clear OTP atomically in same update
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
     console.log("[reset-password] ✅ password hashed");
 
@@ -278,7 +263,7 @@ app.post("/api/reset-password", async (req, res) => {
       return res.status(500).json({ message: "Failed to save new password.", detail: updateErr.message });
     }
 
-    console.log("[reset-password] ✅ password saved and OTP cleared for", email);
+    console.log("[reset-password] ✅ password_hash saved and OTP cleared for", email);
     res.status(200).json({ success: true });
 
   } catch (e) {
@@ -287,10 +272,9 @@ app.post("/api/reset-password", async (req, res) => {
   }
 });
 
-// ── 5. Paystack Verification ──────────────────────────────────
+// ── 3. Paystack Payment Verification ─────────────────────────
 app.post("/api/verify-payment", async (req, res) => {
   const { reference } = req.body;
-  console.log("[verify-payment] called — reference:", reference);
   if (!reference) return res.status(400).json({ error: "Reference required" });
 
   try {
@@ -298,53 +282,53 @@ app.post("/api/verify-payment", async (req, res) => {
       headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     });
     const data = await response.json();
-    console.log("[verify-payment] Paystack response status:", data?.data?.status);
     if (data.status && data.data.status === "success") {
-      console.log("[verify-payment] ✅ Payment verified");
       return res.status(200).json({ success: true, data: data.data });
     }
-    console.error("[verify-payment] ❌ Payment not verified:", data?.data?.status);
     res.status(400).json({ success: false, message: "Payment not verified", data: data.data });
   } catch (err) {
-    console.error("[verify-payment] ❌ CAUGHT EXCEPTION:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ── 6. Paystack Charge Calculation ───────────────────────────
+
 app.post("/api/paystack-charge", (req, res) => {
   const { amountGHS } = req.body;
-  console.log("[paystack-charge] called — amountGHS:", amountGHS);
   const amount = parseFloat(amountGHS);
-
+  
   if (!amount || isNaN(amount) || amount <= 0) {
-    console.error("[paystack-charge] ❌ Invalid amount:", amountGHS);
     return res.status(400).json({ error: "Invalid amountGHS" });
   }
 
-  const RATE = 0.0195;
-  let chargeGHS = amount / (1 - RATE);
-  chargeGHS = Math.ceil(chargeGHS * 100) / 100;
-  const feeGHS = +(chargeGHS - amount).toFixed(2);
-  const chargePesewas = Math.round(chargeGHS * 100);
+  // Paystack Ghana: 1.95% flat
+  const RATE = 0.0195; 
 
-  console.log("[paystack-charge] ✅ Calculated — charge:", chargeGHS, "fee:", feeGHS);
-  res.status(200).json({
-    success: true,
-    originalAmount: amount,
-    chargeGHS,
-    feeGHS,
-    chargePesewas,
+  /* Formula to ensure you receive 'amount' after the 1.95% cut:
+     Charge = Amount / (1 - 0.0195)
+  */
+  let chargeGHS = amount / (1 - RATE);
+
+  // Round up to the nearest pesewa to ensure you don't lose money
+  chargeGHS = Math.ceil(chargeGHS * 100) / 100;
+  
+  const feeGHS = +(chargeGHS - amount).toFixed(2);
+  const chargePesewas = Math.round(chargeGHS * 100); 
+
+  // FIXED: Changed keys to match Checkout.jsx
+  res.status(200).json({ 
+    success: true, 
+    originalAmount: amount, 
+    chargeGHS: chargeGHS,   // Changed from customerPays
+    feeGHS: feeGHS,         // Changed from paystackFee
+    chargePesewas: chargePesewas 
   });
 });
-
-// ── 7. Staff & System Alerts ──────────────────────────────────
+// ── 4. All Staff & System Alerts ──────────────────────────────
 app.post("/api/alert-staff", async (req, res) => {
   const { type, clientId, note, orderNumber, orderValue, orderStatus, subject, recipientCount } = req.body;
-  console.log("[alert-staff] called — type:", type, "| clientId:", clientId);
 
-  const ADMIN_EMAIL     = process.env.ADMIN_EMAIL;
-  const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.ADMIN_EMAIL;
+  const ADMIN_EMAIL     = process.env.ADMIN_EMAIL     || process.env.GMAIL_USER;
+  const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.GMAIL_USER;
   const DASH = "https://verps-chi.vercel.app/admin";
   const TERM = "https://verps-chi.vercel.app/assistant";
 
@@ -355,105 +339,122 @@ app.post("/api/alert-staff", async (req, res) => {
     case "NEW_CHAT":
       to = ASSISTANT_EMAIL;
       emailSubject = "🔔 New Client Support Request";
-      html = wrap("A Client Needs Help",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A client is waiting for live support.</p>
+      html = wrap(
+        "A Client Needs Help",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A client is waiting for live support. Please attend to them promptly.</p>
          ${row("Client", clientId, "#ec5b13")}${note ? row("Message", note, "#fff") : ""}`,
-        TERM, "OPEN TERMINAL");
+        TERM, "OPEN TERMINAL",
+      );
       break;
 
     case "ESCALATION":
     case "PARTIAL_PUSH":
       to = ADMIN_EMAIL;
       emailSubject = "⚠️ Chat Escalation — Advice Needed";
-      html = wrap("Partial Escalation Alert",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant needs your guidance.</p>
+      html = wrap(
+        "Partial Escalation Alert",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has escalated a session and needs your guidance privately. Check the Assistant Inbox and reply. The client is being kept informed.</p>
          ${row("Client", clientId, "#ec5b13")}${row("Reason", note, "#f59e0b")}`,
-        DASH, "OPEN ASSISTANT INBOX");
+        DASH, "OPEN ASSISTANT INBOX",
+      );
       break;
 
     case "ADMIN_TAKEOVER":
     case "FULL_PUSH":
       to = ADMIN_EMAIL;
       emailSubject = "🚨 URGENT — Full Admin Takeover Needed";
-      html = wrap("Full Takeover Required",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has handed over a session.</p>
+      html = wrap(
+        "Full Takeover Required",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has handed over a session. The client is waiting — please continue the conversation seamlessly.</p>
          ${row("Client", clientId, "#ec5b13")}${row("Reason", note, "#ef4444")}`,
-        DASH + "#messages", "TAKE OVER CHAT");
+        DASH + "#messages", "TAKE OVER CHAT",
+      );
       break;
 
     case "NEW_ORDER":
       to = ADMIN_EMAIL;
       emailSubject = `🛒 New Order Placed — ${orderNumber || clientId}`;
-      html = wrap("New Order Received",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A new order has been placed.</p>
+      html = wrap(
+        "New Order Received",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A new order has been placed in the Vault.</p>
          ${row("Client", clientId, "#ec5b13")}
          ${row("Order ID", orderNumber, "#38bdf8")}
          ${row("Value", orderValue ? `GH₵ ${Number(orderValue).toLocaleString()}` : "—", "#ec5b13")}
          ${row("Status", orderStatus || "ordered", "#a78bfa")}`,
-        DASH + "#requests", "VIEW ORDERS");
+        DASH + "#requests", "VIEW ORDERS",
+      );
       break;
 
     case "PUSH_BACK":
       to = ASSISTANT_EMAIL;
       emailSubject = "↩️ Session Returned — Resume with Client";
-      html = wrap("Admin Has Pushed Back",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Session returned to you.</p>
+      html = wrap(
+        "Admin Has Pushed Back",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The admin is done advising. The session has been returned to you — please resume with the client.</p>
          ${row("Client", clientId, "#ec5b13")}${note ? row("Admin Note", note, "#38bdf8") : ""}`,
-        TERM, "OPEN TERMINAL");
+        TERM, "OPEN TERMINAL",
+      );
       break;
 
     case "PRIVATE_MESSAGE":
       to = ADMIN_EMAIL;
       emailSubject = "💬 New Private Message from Assistant";
-      html = wrap("Assistant Sent a Private Message",
-        `${clientId ? row("Re: Client", clientId, "#ec5b13") : ""}
+      html = wrap(
+        "Assistant Sent a Private Message",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has sent you a private message.</p>
+         ${clientId ? row("Re: Client", clientId, "#ec5b13") : ""}
          <div style="margin-top:14px;padding:14px;background:#111;border-radius:10px;border-left:3px solid #ec5b13;">
            <p style="margin:0;color:rgba(255,255,255,0.7);font-size:13px;line-height:1.7;">${note || ""}</p>
          </div>`,
-        DASH + "#channel", "OPEN ASSISTANT INBOX");
+        DASH + "#channel", "OPEN ASSISTANT INBOX",
+      );
       break;
 
     case "BROADCAST":
       to = ADMIN_EMAIL;
       emailSubject = `📢 Broadcast Confirmed — "${(subject || "").slice(0, 40)}"`;
-      html = wrap("Broadcast Delivered",
-        `${row("Subject", subject || "(no subject)", "#38bdf8")}
-         ${row("Recipients", recipientCount ? `${recipientCount} clients` : "All clients", "#22c55e")}`,
-        null, null);
+      html = wrap(
+        "Broadcast Delivered",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Your broadcast has been sent to all client inboxes.</p>
+         ${row("Subject", subject || "(no subject)", "#38bdf8")}
+         ${row("Recipients", recipientCount ? `${recipientCount} clients` : "All clients", "#22c55e")}
+         ${note ? `<div style="margin-top:12px;padding:12px;background:#111;border-radius:8px;"><p style="margin:0;color:rgba(255,255,255,0.55);font-size:12px;line-height:1.6;">${note}</p></div>` : ""}`,
+        null, null,
+      );
       break;
 
     default:
       to = ADMIN_EMAIL;
       emailSubject = `[VAULT] ${type}`;
-      html = wrap(`Alert: ${type}`,
+      html = wrap(
+        `Alert: ${type}`,
         `${clientId ? row("Client", clientId, "#ec5b13") : ""}${note ? `<p style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:12px;">${note}</p>` : ""}`,
-        DASH, "OPEN DASHBOARD");
+        DASH, "OPEN DASHBOARD",
+      );
   }
 
   try {
-    console.log("[alert-staff] Sending email — type:", type, "→ to:", to);
-    await sendEmail({
-      from: "VERP System <onboarding@resend.dev>",
-      to,
-      subject: emailSubject,
-      html,
+    await transporter.sendMail({
+      from: `"VERP System" <${process.env.GMAIL_USER}>`,
+      to, subject: emailSubject, html,
     });
-    console.log(`[alert-staff] ✅ [${type}] → ${to}`);
+    console.log(`✅ [${type}] → ${to}`);
     res.status(200).json({ success: true, type, to });
   } catch (err) {
-    console.error(`[alert-staff] ❌ [${type}] failed:`, err.message);
+    console.error(`❌ [${type}] failed:`, err.message);
     res.status(500).json({ error: err.message, type });
   }
 });
 
-// ── 8. Admin: Return Requests ─────────────────────────────────
+// ── 5. Admin: Get All Return Requests ─────────────────────────
 app.get("/api/admin/return-requests", async (req, res) => {
   const { email, password } = req.query;
-  console.log("[return-requests] called — email:", email);
   const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
 
-  if (email?.toLowerCase().trim() !== adminEmail || password !== process.env.ADMIN_PASS) {
-    console.error("[return-requests] ❌ Unauthorized access attempt — email:", email);
+  if (
+    email?.toLowerCase().trim() !== adminEmail ||
+    password !== process.env.ADMIN_PASS
+  ) {
     return res.status(403).json({ error: "Unauthorized" });
   }
 
@@ -463,11 +464,7 @@ app.get("/api/admin/return-requests", async (req, res) => {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("[return-requests] ❌ DB error:", error.message);
-      throw error;
-    }
-    console.log("[return-requests] ✅ Returned", data?.length, "records");
+    if (error) throw error;
     res.status(200).json({ success: true, data });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -475,10 +472,9 @@ app.get("/api/admin/return-requests", async (req, res) => {
 });
 
 // ── Health check ──────────────────────────────────────────────
-app.get("/", (req, res) => {
-  console.log("[health] ping received");
-  res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() });
-});
+app.get("/", (req, res) =>
+  res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() })
+);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Vault Server on port ${PORT}`));
