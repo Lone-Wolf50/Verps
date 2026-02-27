@@ -61,7 +61,7 @@ const Navbar_AuthPrompt = ({ isOpen, onClose, targetPath }) => {
             color: "#fff", fontWeight: 800, fontSize: 10,
             letterSpacing: "0.22em", textTransform: "uppercase",
             border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
-          }}>SIGN IN</button>
+          }}>LOGIN</button>
           <button onClick={() => goTo("/signup")} style={{
             width: "100%", borderRadius: 14, padding: "14px 0",
             background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
