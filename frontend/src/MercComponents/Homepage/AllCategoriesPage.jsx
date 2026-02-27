@@ -103,24 +103,10 @@ const AllCategoriesPage = () => {
 		<div className="min-h-screen bg-[#050505] text-white">
 
 			{/* ── Header — pt-16 instead of pt-32, tight and close to nav ── */}
-			<div className="pt- pb-10 px-6 max-w-7xl mx-auto">
+			<div className="pt-10 pb-10 px-6 max-w-7xl mx-auto">
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
 
 					<div className="space-y-5">
-						{/* Back button */}
-						<button
-							onClick={() => navigate(-1)}
-							className="group flex items-center gap-2.5 text-white/30 hover:text-white/60 transition-colors duration-300"
-						>
-							<ArrowLeft
-								className="group-hover:-translate-x-0.5 transition-transform duration-300"
-								style={{ width: 14, height: 14, color: "#ec5b13" }}
-							/>
-							<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase" }}>
-								Back
-							</span>
-						</button>
-
 						{/* Title */}
 						<div>
 							<div className="flex items-center gap-3 mb-3">
@@ -139,6 +125,20 @@ const AllCategoriesPage = () => {
 								</span>
 							</h1>
 						</div>
+
+						{/* Back button */}
+						<button
+							onClick={() => navigate(-1)}
+							className="group flex items-center gap-2.5 text-white/30 hover:text-white/60 transition-colors duration-300"
+						>
+							<ArrowLeft
+								className="group-hover:-translate-x-0.5 transition-transform duration-300"
+								style={{ width: 14, height: 14, color: "#ec5b13" }}
+							/>
+							<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase" }}>
+								Back
+							</span>
+						</button>
 					</div>
 
 					{/* Right descriptor */}
