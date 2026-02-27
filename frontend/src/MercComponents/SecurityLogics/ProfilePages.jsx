@@ -704,11 +704,23 @@ const OverviewCard = ({ userId, email, joinedAt }) => {
   const [orderCount, setOrderCount] = useState(null);
 
   useEffect(() => {
-    if (!userId) return;
-    supabase.from("verp_orders").select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .then(({ count }) => setOrderCount(count ?? 0));
-  }, [userId]);
+    if (!email) {
+      setOrderCount(0);
+      return;
+    }
+    supabase
+      .from("verp_orders")
+      .select("*", { count: "exact", head: true })
+      .eq("customer_email", email)
+      .then(({ count, error }) => {
+        if (error) {
+          console.error("[OverviewCard] ❌ Order count error:", error.message);
+          setOrderCount(0);
+        } else {
+          setOrderCount(count ?? 0);
+        }
+      });
+  }, [email]);
 
   // member since: prop → localStorage fallback → "—"
   const memberSince = (() => {
