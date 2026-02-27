@@ -6,17 +6,24 @@ const SALT_ROUNDS = 12;
 require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
 
+// ── ENV CHECK ON STARTUP ──────────────────────────────────────
+console.log("🔍 [STARTUP] Checking environment variables...");
+console.log("  SUPABASE_URL        :", process.env.SUPABASE_URL ? "✅ set" : "❌ MISSING");
+console.log("  SUPABASE_SERVICE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "✅ set" : "❌ MISSING");
+console.log("  GMAIL_USER          :", process.env.GMAIL_USER  ? "✅ set" : "❌ MISSING");
+console.log("  GMAIL_PASS          :", process.env.GMAIL_PASS  ? "✅ set" : "❌ MISSING");
+console.log("  ADMIN_EMAIL         :", process.env.ADMIN_EMAIL ? "✅ set" : "❌ MISSING");
+console.log("  ADMIN_PASS          :", process.env.ADMIN_PASS  ? "✅ set" : "❌ MISSING");
+console.log("  PAYSTACK_SECRET_KEY :", process.env.PAYSTACK_SECRET_KEY ? "✅ set" : "❌ MISSING");
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // ⚠️ MUST be service role
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 const app = express();
 app.use(express.json());
 
 // ── CORS ──────────────────────────────────────────────────────
-// Add every origin that will call this server.
-// On Vercel, set VITE_SERVER_URL=https://your-server.railway.app (no trailing slash)
-// in your Vercel project environment variables.
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
@@ -27,26 +34,24 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman, same-server calls)
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    console.log("🌐 [CORS] Request from origin:", origin || "(no origin)");
+    if (!origin || allowedOrigins.includes(origin)) {
+      console.log("🌐 [CORS] ✅ Allowed");
+      return callback(null, true);
+    }
+    console.error("🌐 [CORS] ❌ Blocked:", origin);
     return callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
-  
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-    preflightContinue: false, 
-  optionsSuccessStatus: 200, // some legacy browsers (IE11) choke on 204
+  preflightContinue: false,
+  optionsSuccessStatus: 200,
 };
 
-// ✅ Handle ALL preflight OPTIONS requests BEFORE any route
-
-// ✅ Apply CORS to every real request too
 app.use(cors(corsOptions));
 
 // ── Transporter ───────────────────────────────────────────────
-// GMAIL_PASS must be a Gmail App Password (not account password).
-// Google Account → Security → 2-Step Verification → App passwords
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
@@ -58,8 +63,8 @@ const transporter = nodemailer.createTransport({
 });
 
 transporter.verify((err) => {
-  if (err) console.error("❌ Email transporter error:", err.message);
-  else console.log("✅ Email transporter ready —", process.env.GMAIL_USER);
+  if (err) console.error("❌ [SMTP] Email transporter error:", err.message);
+  else console.log("✅ [SMTP] Email transporter ready —", process.env.GMAIL_USER);
 });
 
 // ── HTML Email Wrapper ─────────────────────────────────────────
@@ -89,55 +94,72 @@ const row = (label, value, color) =>
     <span style="font-size:11px;font-weight:600;color:${color || "#fff"};">${value || "—"}</span>
   </div>`;
 
-// ── 1. Staff Login (email + password from .env) ──────────────────
+// ── 1. Staff Login ──────────────────────────────────────────
 app.post("/api/staff-login", (req, res) => {
   const { email, password } = req.body;
+  console.log("[staff-login] called — email:", email);
   if (!email || !password) {
+    console.error("[staff-login] ❌ Missing email or password");
     return res.status(400).json({ success: false, error: "Email and password required" });
   }
   const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
   const assistantEmail = (process.env.ASSISTANT_EMAIL || "").toLowerCase().trim();
   const em = String(email).toLowerCase().trim();
+  console.log("[staff-login] Comparing against admin:", adminEmail, "| assistant:", assistantEmail);
 
   if (em === adminEmail && password === process.env.ADMIN_PASS) {
+    console.log("[staff-login] ✅ Admin login success");
     return res.status(200).json({ success: true, role: "admin", message: "Access Granted" });
   }
   if (em === assistantEmail && password === process.env.ASSISTANT_PASS) {
+    console.log("[staff-login] ✅ Assistant login success");
     return res.status(200).json({ success: true, role: "assistant", message: "Access Granted" });
   }
+  console.error("[staff-login] ❌ Invalid credentials for:", em);
   res.status(401).json({ success: false, error: "Invalid email or password" });
 });
 
-// Legacy: role + password only (for backward compatibility)
+// Legacy
 app.post("/api/verify-staff", (req, res) => {
   const { role, password } = req.body;
+  console.log("[verify-staff] called — role:", role);
   const masterPass = role === "admin" ? process.env.ADMIN_PASS : process.env.ASSISTANT_PASS;
-  if (password === masterPass) return res.status(200).json({ success: true, message: "Access Granted" });
+  if (password === masterPass) {
+    console.log("[verify-staff] ✅ Access granted for role:", role);
+    return res.status(200).json({ success: true, message: "Access Granted" });
+  }
+  console.error("[verify-staff] ❌ Invalid credentials for role:", role);
   res.status(401).json({ success: false, error: "Invalid Credentials" });
 });
 
 // ── 2. OTP Delivery ───────────────────────────────────────────
-// ── 2. OTP Delivery ───────────────────────────────────────────
 app.post("/api/send-otp", async (req, res) => {
   const { email, type } = req.body;
-  if (!email) return res.status(400).json({ success: false, error: "Email required" });
+  console.log("[send-otp] called — email:", email, "| type:", type);
+
+  if (!email) {
+    console.error("[send-otp] ❌ No email provided");
+    return res.status(400).json({ success: false, error: "Email required" });
+  }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min from now
+  const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+  console.log("[send-otp] Generated OTP — expiry:", expiry);
 
   try {
-    // ── 1. Save OTP to DB BEFORE sending email ──────────────────
+    console.log("[send-otp] Saving OTP to DB for:", email);
     const { error: dbErr } = await supabase
       .from("verp_users")
       .update({ otp_code: otp, otp_expiry: expiry })
       .eq("email", email.toLowerCase().trim());
 
     if (dbErr) {
-      console.error("Failed to save OTP to DB:", dbErr.message);
+      console.error("[send-otp] ❌ DB save failed:", dbErr.message);
       return res.status(500).json({ error: "Failed to prepare OTP", detail: dbErr.message });
     }
+    console.log("[send-otp] ✅ OTP saved to DB");
 
-    // ── 2. Now send the email ───────────────────────────────────
+    console.log("[send-otp] Sending email to:", email);
     await transporter.sendMail({
       from: `"VERP Security" <${process.env.GMAIL_USER}>`,
       to: email,
@@ -153,17 +175,16 @@ app.post("/api/send-otp", async (req, res) => {
       ),
     });
 
+    console.log("[send-otp] ✅ Email sent successfully to:", email);
     res.status(200).json({ success: true });
-    //                                 ^ don't return otp to client in production
   } catch (err) {
-    console.error("OTP error:", err.message);
+    console.error("[send-otp] ❌ CAUGHT EXCEPTION:", err.message);
+    console.error("[send-otp] ❌ Full error:", err);
     res.status(500).json({ error: "Failed to deliver OTP", detail: err.message });
   }
 });
 
 // ── 3. OTP Verification ───────────────────────────────────────
-// Validates the code but does NOT clear it yet — clearing happens
-// atomically inside /api/reset-password after the password is saved.
 app.post("/api/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
   console.log("[verify-otp] called — email:", email, "| otp:", otp);
@@ -182,42 +203,39 @@ app.post("/api/verify-otp", async (req, res) => {
     console.log("[verify-otp] DB err :", error?.message ?? "none");
 
     if (error) {
-      console.error("[verify-otp] ❌ Supabase error:", error.message, error);
+      console.error("[verify-otp] ❌ Supabase error:", error.message);
       return res.status(500).json({ message: "DB error.", detail: error.message });
     }
-    if (!data)  return res.status(404).json({ message: "No account found for this email." });
+    if (!data) return res.status(404).json({ message: "No account found for this email." });
 
     if (!data.otp_code) {
-      console.error("[verify-otp] ❌ otp_code is NULL for", email,
-        "— send-otp saved it, but something cleared it between then and now.");
+      console.error("[verify-otp] ❌ otp_code is NULL for", email);
       return res.status(400).json({ message: "No active code — please request a new one." });
     }
 
     console.log("[verify-otp] DB code  :", JSON.stringify(String(data.otp_code).trim()));
     console.log("[verify-otp] Provided :", JSON.stringify(String(otp).trim()));
 
-    if (String(data.otp_code).trim() !== String(otp).trim())
+    if (String(data.otp_code).trim() !== String(otp).trim()) {
+      console.error("[verify-otp] ❌ Code mismatch");
       return res.status(400).json({ message: "Incorrect code — please check and try again." });
+    }
 
     if (data.otp_expiry && new Date() > new Date(data.otp_expiry)) {
       console.error("[verify-otp] ❌ OTP expired at", data.otp_expiry);
       return res.status(400).json({ message: "Code expired — please request a new one." });
     }
 
-    // ✅ Valid — do NOT clear here, reset-password clears it atomically
     console.log("[verify-otp] ✅ OTP valid for", email);
     res.status(200).json({ success: true });
 
   } catch (e) {
-    // Catches TypeError: fetch failed and any other network/runtime errors
     console.error("[verify-otp] ❌ CAUGHT EXCEPTION:", e.message, e);
     res.status(500).json({ message: "Server error during OTP check.", detail: e.message });
   }
 });
 
 // ── 4. Reset Password ─────────────────────────────────────────
-// Hashes new password with bcrypt → saves to password_hash → clears OTP
-
 app.post("/api/reset-password", async (req, res) => {
   const { email, password } = req.body;
   console.log("[reset-password] called — email:", email);
@@ -241,15 +259,15 @@ app.post("/api/reset-password", async (req, res) => {
     if (!user)    return res.status(404).json({ message: "No account found for this email." });
 
     if (!user.otp_code) {
-      console.error("[reset-password] ❌ otp_code is NULL — OTP was cleared before password was saved.",
-        "Flow must be: send-otp → verify-otp (no clear) → reset-password (clears here).");
+      console.error("[reset-password] ❌ otp_code is NULL — session expired or flow broken");
       return res.status(400).json({ message: "Session expired — please start over." });
     }
 
-    if (user.otp_expiry && new Date() > new Date(user.otp_expiry))
+    if (user.otp_expiry && new Date() > new Date(user.otp_expiry)) {
+      console.error("[reset-password] ❌ OTP expired at", user.otp_expiry);
       return res.status(400).json({ message: "Session expired — please request a new code." });
+    }
 
-    // Hash and save, clear OTP atomically in same update
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
     console.log("[reset-password] ✅ password hashed");
 
@@ -263,7 +281,7 @@ app.post("/api/reset-password", async (req, res) => {
       return res.status(500).json({ message: "Failed to save new password.", detail: updateErr.message });
     }
 
-    console.log("[reset-password] ✅ password_hash saved and OTP cleared for", email);
+    console.log("[reset-password] ✅ password saved and OTP cleared for", email);
     res.status(200).json({ success: true });
 
   } catch (e) {
@@ -272,9 +290,10 @@ app.post("/api/reset-password", async (req, res) => {
   }
 });
 
-// ── 3. Paystack Payment Verification ─────────────────────────
+// ── 5. Paystack Verification ──────────────────────────────────
 app.post("/api/verify-payment", async (req, res) => {
   const { reference } = req.body;
+  console.log("[verify-payment] called — reference:", reference);
   if (!reference) return res.status(400).json({ error: "Reference required" });
 
   try {
@@ -282,50 +301,50 @@ app.post("/api/verify-payment", async (req, res) => {
       headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     });
     const data = await response.json();
+    console.log("[verify-payment] Paystack response status:", data?.data?.status);
     if (data.status && data.data.status === "success") {
+      console.log("[verify-payment] ✅ Payment verified");
       return res.status(200).json({ success: true, data: data.data });
     }
+    console.error("[verify-payment] ❌ Payment not verified:", data?.data?.status);
     res.status(400).json({ success: false, message: "Payment not verified", data: data.data });
   } catch (err) {
+    console.error("[verify-payment] ❌ CAUGHT EXCEPTION:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-
+// ── 6. Paystack Charge Calculation ───────────────────────────
 app.post("/api/paystack-charge", (req, res) => {
   const { amountGHS } = req.body;
+  console.log("[paystack-charge] called — amountGHS:", amountGHS);
   const amount = parseFloat(amountGHS);
-  
+
   if (!amount || isNaN(amount) || amount <= 0) {
+    console.error("[paystack-charge] ❌ Invalid amount:", amountGHS);
     return res.status(400).json({ error: "Invalid amountGHS" });
   }
 
-  // Paystack Ghana: 1.95% flat
-  const RATE = 0.0195; 
-
-  /* Formula to ensure you receive 'amount' after the 1.95% cut:
-     Charge = Amount / (1 - 0.0195)
-  */
+  const RATE = 0.0195;
   let chargeGHS = amount / (1 - RATE);
-
-  // Round up to the nearest pesewa to ensure you don't lose money
   chargeGHS = Math.ceil(chargeGHS * 100) / 100;
-  
   const feeGHS = +(chargeGHS - amount).toFixed(2);
-  const chargePesewas = Math.round(chargeGHS * 100); 
+  const chargePesewas = Math.round(chargeGHS * 100);
 
-  // FIXED: Changed keys to match Checkout.jsx
-  res.status(200).json({ 
-    success: true, 
-    originalAmount: amount, 
-    chargeGHS: chargeGHS,   // Changed from customerPays
-    feeGHS: feeGHS,         // Changed from paystackFee
-    chargePesewas: chargePesewas 
+  console.log("[paystack-charge] ✅ Calculated — charge:", chargeGHS, "fee:", feeGHS);
+  res.status(200).json({
+    success: true,
+    originalAmount: amount,
+    chargeGHS,
+    feeGHS,
+    chargePesewas,
   });
 });
-// ── 4. All Staff & System Alerts ──────────────────────────────
+
+// ── 7. Staff & System Alerts ──────────────────────────────────
 app.post("/api/alert-staff", async (req, res) => {
   const { type, clientId, note, orderNumber, orderValue, orderStatus, subject, recipientCount } = req.body;
+  console.log("[alert-staff] called — type:", type, "| clientId:", clientId);
 
   const ADMIN_EMAIL     = process.env.ADMIN_EMAIL     || process.env.GMAIL_USER;
   const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.GMAIL_USER;
@@ -434,27 +453,27 @@ app.post("/api/alert-staff", async (req, res) => {
   }
 
   try {
+    console.log("[alert-staff] Sending email — type:", type, "→ to:", to);
     await transporter.sendMail({
       from: `"VERP System" <${process.env.GMAIL_USER}>`,
       to, subject: emailSubject, html,
     });
-    console.log(`✅ [${type}] → ${to}`);
+    console.log(`[alert-staff] ✅ [${type}] → ${to}`);
     res.status(200).json({ success: true, type, to });
   } catch (err) {
-    console.error(`❌ [${type}] failed:`, err.message);
+    console.error(`[alert-staff] ❌ [${type}] failed:`, err.message);
     res.status(500).json({ error: err.message, type });
   }
 });
 
-// ── 5. Admin: Get All Return Requests ─────────────────────────
+// ── 8. Admin: Return Requests ─────────────────────────────────
 app.get("/api/admin/return-requests", async (req, res) => {
   const { email, password } = req.query;
+  console.log("[return-requests] called — email:", email);
   const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
 
-  if (
-    email?.toLowerCase().trim() !== adminEmail ||
-    password !== process.env.ADMIN_PASS
-  ) {
+  if (email?.toLowerCase().trim() !== adminEmail || password !== process.env.ADMIN_PASS) {
+    console.error("[return-requests] ❌ Unauthorized access attempt — email:", email);
     return res.status(403).json({ error: "Unauthorized" });
   }
 
@@ -464,7 +483,11 @@ app.get("/api/admin/return-requests", async (req, res) => {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error("[return-requests] ❌ DB error:", error.message);
+      throw error;
+    }
+    console.log("[return-requests] ✅ Returned", data?.length, "records");
     res.status(200).json({ success: true, data });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -472,9 +495,10 @@ app.get("/api/admin/return-requests", async (req, res) => {
 });
 
 // ── Health check ──────────────────────────────────────────────
-app.get("/", (req, res) =>
-  res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() })
-);
+app.get("/", (req, res) => {
+  console.log("[health] ping received");
+  res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Vault Server on port ${PORT}`));
