@@ -353,7 +353,7 @@ const PersonalInfoCard = ({ userId, email, initialName }) => {
           <Field label="Display Name"     icon="badge"       value={name}    onChange={e => setName(e.target.value)}    placeholder="Your full name" />
           <Field label="Email Address"    icon="mail"        value={email}   disabled hint="EMAIL CANNOT BE CHANGED" />
           <Field label="Phone Number"     icon="phone"       value={phone}   onChange={e => setPhone(e.target.value)}   placeholder="+233 XX XXX XXXX" />
-          <Field label="Delivery Address" icon="location_on" value={address} onChange={e => setAddress(e.target.value)} placeholder="Street, City, Region" />
+          <Field label="Address Location" icon="location_on" value={address} onChange={e => setAddress(e.target.value)} placeholder="Street, City, Region" />
         </div>
         <Toast show={saved} type="success" message="Changes saved successfully" />
       </div>
