@@ -9,8 +9,8 @@ const VISIBLE    = 4;
 const POOL_SIZE  = 40;
 const PAGE_COUNT = 3;          // 3 pages × 4 cards = 12 per slot
 const SLOT_SIZE  = VISIBLE * PAGE_COUNT;
-const PAGE_MS    = 20000;      // desktop: advance one page every 20s
-const REFRESH_MS = 15000;      // mobile: new products every 15s
+const PAGE_MS    = 40000;      // desktop: advance one page every 20s
+const REFRESH_MS = 40000;      // mobile: new products every 15s
 const FADE_MS    = 900;
 const GAP        = 20;
 

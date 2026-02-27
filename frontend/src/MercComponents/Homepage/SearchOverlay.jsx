@@ -188,7 +188,23 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                     <SectionLabel text="Categories" />
                     <div className="flex flex-wrap gap-2">
                       {results.categories.map(cat => (
-                        <CategoryPill key={cat.id} name={cat.name} onClick={() => { navigate(`/shop?category=${cat.name}`); onClose(); }} />
+                        <CategoryPill key={cat.id} name={cat.name} onClick={() => {
+                          const slugMap = {
+                            boxers:"boxers", shoes:"shoes", slides:"slides", shirts:"shirts",
+                            caps:"caps", jewelry:"jewelry", jackets:"jackets", glasses:"glasses",
+                            belts:"Belts", watches:"watches", sneakers:"sneakers", socks:"socks",
+                            hoodies:"hoodies", sweatshirts:"sweatshirts", bags:"bags",
+                          };
+                          const KNOWN_SLUGS = new Set(Object.values(slugMap));
+                          const key = cat.name.toLowerCase();
+                          const slug = slugMap[key] || (cat.slug && KNOWN_SLUGS.has(cat.slug) ? cat.slug : null);
+                          if (slug) {
+                            navigate(`/category/${slug}`);
+                          } else {
+                            navigate("/categories");
+                          }
+                          onClose();
+                        }} />
                       ))}
                     </div>
                   </section>
@@ -198,7 +214,18 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                     <SectionLabel text="Products" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       {results.products.map((p, i) => (
-                        <ProductCard key={p.id} product={p} index={i} onClick={() => openQV(p)} />
+                        <ProductCard key={p.id} product={p} index={i} onClick={() => {
+                          const slugMap = {
+                            boxers:"boxers", shoes:"shoes", slides:"slides", shirts:"shirts",
+                            caps:"caps", jewelry:"jewelry", jackets:"jackets", glasses:"glasses",
+                            belts:"Belts", watches:"watches", sneakers:"sneakers", socks:"socks",
+                            hoodies:"hoodies", sweatshirts:"sweatshirts", bags:"bags",
+                          };
+                          const key = (p.category || "").toLowerCase();
+                          const slug = slugMap[key] || key;
+                          if (slug) { navigate(`/category/${slug}`); onClose(); }
+                          else openQV(p);
+                        }} />
                       ))}
                     </div>
                   </section>

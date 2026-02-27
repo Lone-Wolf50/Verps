@@ -92,7 +92,17 @@ function useFloatVisible() {
   const isStaffPath   = location.pathname.startsWith("/admin") ||
                         location.pathname.startsWith("/assistant");
 
-  return isLoggedIn && !isHomepage && !isSupportPage && !isAuthPath && !isStaffPath;
+  const KNOWN_FLOAT_PATHS = [
+    "/","/about","/categories","/orderpage","/cart","/checkout","/orderStatus",
+    "/inbox","/support","/reviews","/profile",
+    "/category/boxers","/category/shoes","/category/slides","/category/shirts",
+    "/category/caps","/category/jewelry","/category/jackets","/category/glasses",
+    "/category/Belts","/category/watches","/category/sneakers","/category/socks",
+    "/category/hoodies","/category/sweatshirts","/category/bags",
+  ];
+  const isKnownPath = KNOWN_FLOAT_PATHS.some((p) => location.pathname === p || location.pathname.startsWith(p + "/"));
+
+  return isLoggedIn && isKnownPath && !isHomepage && !isSupportPage && !isAuthPath && !isStaffPath;
 }
 
 function Paths() {
@@ -101,7 +111,20 @@ function Paths() {
   const isAssistantPath = location.pathname.startsWith("/assistant");
   const AUTH_PATHS      = ["/login","/signup","/verify-otp","/forgot-password","/reset-password","/loading","/staff-login"];
   const isAuthPath      = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
-  const showShell       = !isAdminPath && !isAssistantPath && !isAuthPath;
+
+  // Check if current path matches any known route — if not, it's a 404
+  const KNOWN_PATHS = [
+    "/","/about","/categories","/orderpage","/cart","/checkout","/orderStatus",
+    "/inbox","/support","/reviews","/profile","/admin","/assistant",
+    "/category/boxers","/category/shoes","/category/slides","/category/shirts",
+    "/category/caps","/category/jewelry","/category/jackets","/category/glasses",
+    "/category/Belts","/category/watches","/category/sneakers","/category/socks",
+    "/category/hoodies","/category/sweatshirts","/category/bags",
+    ...AUTH_PATHS,
+  ];
+  const is404 = !KNOWN_PATHS.some((p) => location.pathname === p || location.pathname.startsWith(p + "/"));
+
+  const showShell       = !isAdminPath && !isAssistantPath && !isAuthPath && !is404;
   const showFloat       = useFloatVisible();
 
   return (

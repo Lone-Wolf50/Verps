@@ -16,10 +16,10 @@ const Cart = () => {
 					Your Bag is Empty
 				</h2>
 				<Link
-					to="/"
+					to="/categories"
 					className="bg-[#ec5b13] text-black font-black px-10 py-4 rounded-full uppercase tracking-widest text-xs mt-8"
 				>
-					Return to Collection
+					Return To Collections
 				</Link>
 			</div>
 		);
