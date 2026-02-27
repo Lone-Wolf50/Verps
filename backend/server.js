@@ -1,5 +1,5 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const SALT_ROUNDS = 12;
@@ -10,8 +10,7 @@ const { createClient } = require("@supabase/supabase-js");
 console.log("🔍 [STARTUP] Checking environment variables...");
 console.log("  SUPABASE_URL        :", process.env.SUPABASE_URL ? "✅ set" : "❌ MISSING");
 console.log("  SUPABASE_SERVICE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "✅ set" : "❌ MISSING");
-console.log("  GMAIL_USER          :", process.env.GMAIL_USER  ? "✅ set" : "❌ MISSING");
-console.log("  GMAIL_PASS          :", process.env.GMAIL_PASS  ? "✅ set" : "❌ MISSING");
+console.log("  RESEND_API_KEY      :", process.env.RESEND_API_KEY ? "✅ set" : "❌ MISSING");
 console.log("  ADMIN_EMAIL         :", process.env.ADMIN_EMAIL ? "✅ set" : "❌ MISSING");
 console.log("  ADMIN_PASS          :", process.env.ADMIN_PASS  ? "✅ set" : "❌ MISSING");
 console.log("  PAYSTACK_SECRET_KEY :", process.env.PAYSTACK_SECRET_KEY ? "✅ set" : "❌ MISSING");
@@ -20,6 +19,9 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const app = express();
 app.use(express.json());
 
@@ -51,23 +53,19 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// ── Transporter ───────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
+// ── Helper: send email via Resend ────────────────────────────
+const sendEmail = async ({ to, subject, html, from }) => {
+  const result = await resend.emails.send({
+    from: from || "VERP System <onboarding@resend.dev>",
+    to,
+    subject,
+    html,
+  });
+  if (result.error) throw new Error(result.error.message);
+  return result;
+};
 
-transporter.verify((err) => {
-  if (err) console.error("❌ [SMTP] Email transporter error:", err.message);
-  else console.log("✅ [SMTP] Email transporter ready —", process.env.GMAIL_USER);
-});
-
-// ── HTML Email Wrapper ─────────────────────────────────────────
+// ── HTML Email Wrapper ────────────────────────────────────────
 const wrap = (title, body, ctaUrl, ctaLabel) => `
 <!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#000;font-family:sans-serif;">
@@ -94,7 +92,7 @@ const row = (label, value, color) =>
     <span style="font-size:11px;font-weight:600;color:${color || "#fff"};">${value || "—"}</span>
   </div>`;
 
-// ── 1. Staff Login ──────────────────────────────────────────
+// ── 1. Staff Login ────────────────────────────────────────────
 app.post("/api/staff-login", (req, res) => {
   const { email, password } = req.body;
   console.log("[staff-login] called — email:", email);
@@ -159,9 +157,9 @@ app.post("/api/send-otp", async (req, res) => {
     }
     console.log("[send-otp] ✅ OTP saved to DB");
 
-    console.log("[send-otp] Sending email to:", email);
-    await transporter.sendMail({
-      from: `"VERP Security" <${process.env.GMAIL_USER}>`,
+    console.log("[send-otp] Sending email via Resend to:", email);
+    await sendEmail({
+      from: "VERP Security <onboarding@resend.dev>",
       to: email,
       subject: `[${otp}] Your Vault Access Code`,
       html: wrap(
@@ -188,7 +186,6 @@ app.post("/api/send-otp", async (req, res) => {
 app.post("/api/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
   console.log("[verify-otp] called — email:", email, "| otp:", otp);
-  console.log("[verify-otp] SUPABASE_URL set?", !!process.env.SUPABASE_URL);
 
   if (!email || !otp) return res.status(400).json({ message: "Email and code required." });
 
@@ -346,8 +343,8 @@ app.post("/api/alert-staff", async (req, res) => {
   const { type, clientId, note, orderNumber, orderValue, orderStatus, subject, recipientCount } = req.body;
   console.log("[alert-staff] called — type:", type, "| clientId:", clientId);
 
-  const ADMIN_EMAIL     = process.env.ADMIN_EMAIL     || process.env.GMAIL_USER;
-  const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.GMAIL_USER;
+  const ADMIN_EMAIL     = process.env.ADMIN_EMAIL;
+  const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.ADMIN_EMAIL;
   const DASH = "https://verps-chi.vercel.app/admin";
   const TERM = "https://verps-chi.vercel.app/assistant";
 
@@ -358,105 +355,88 @@ app.post("/api/alert-staff", async (req, res) => {
     case "NEW_CHAT":
       to = ASSISTANT_EMAIL;
       emailSubject = "🔔 New Client Support Request";
-      html = wrap(
-        "A Client Needs Help",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A client is waiting for live support. Please attend to them promptly.</p>
+      html = wrap("A Client Needs Help",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A client is waiting for live support.</p>
          ${row("Client", clientId, "#ec5b13")}${note ? row("Message", note, "#fff") : ""}`,
-        TERM, "OPEN TERMINAL",
-      );
+        TERM, "OPEN TERMINAL");
       break;
 
     case "ESCALATION":
     case "PARTIAL_PUSH":
       to = ADMIN_EMAIL;
       emailSubject = "⚠️ Chat Escalation — Advice Needed";
-      html = wrap(
-        "Partial Escalation Alert",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has escalated a session and needs your guidance privately. Check the Assistant Inbox and reply. The client is being kept informed.</p>
+      html = wrap("Partial Escalation Alert",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant needs your guidance.</p>
          ${row("Client", clientId, "#ec5b13")}${row("Reason", note, "#f59e0b")}`,
-        DASH, "OPEN ASSISTANT INBOX",
-      );
+        DASH, "OPEN ASSISTANT INBOX");
       break;
 
     case "ADMIN_TAKEOVER":
     case "FULL_PUSH":
       to = ADMIN_EMAIL;
       emailSubject = "🚨 URGENT — Full Admin Takeover Needed";
-      html = wrap(
-        "Full Takeover Required",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has handed over a session. The client is waiting — please continue the conversation seamlessly.</p>
+      html = wrap("Full Takeover Required",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has handed over a session.</p>
          ${row("Client", clientId, "#ec5b13")}${row("Reason", note, "#ef4444")}`,
-        DASH + "#messages", "TAKE OVER CHAT",
-      );
+        DASH + "#messages", "TAKE OVER CHAT");
       break;
 
     case "NEW_ORDER":
       to = ADMIN_EMAIL;
       emailSubject = `🛒 New Order Placed — ${orderNumber || clientId}`;
-      html = wrap(
-        "New Order Received",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A new order has been placed in the Vault.</p>
+      html = wrap("New Order Received",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A new order has been placed.</p>
          ${row("Client", clientId, "#ec5b13")}
          ${row("Order ID", orderNumber, "#38bdf8")}
          ${row("Value", orderValue ? `GH₵ ${Number(orderValue).toLocaleString()}` : "—", "#ec5b13")}
          ${row("Status", orderStatus || "ordered", "#a78bfa")}`,
-        DASH + "#requests", "VIEW ORDERS",
-      );
+        DASH + "#requests", "VIEW ORDERS");
       break;
 
     case "PUSH_BACK":
       to = ASSISTANT_EMAIL;
       emailSubject = "↩️ Session Returned — Resume with Client";
-      html = wrap(
-        "Admin Has Pushed Back",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The admin is done advising. The session has been returned to you — please resume with the client.</p>
+      html = wrap("Admin Has Pushed Back",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Session returned to you.</p>
          ${row("Client", clientId, "#ec5b13")}${note ? row("Admin Note", note, "#38bdf8") : ""}`,
-        TERM, "OPEN TERMINAL",
-      );
+        TERM, "OPEN TERMINAL");
       break;
 
     case "PRIVATE_MESSAGE":
       to = ADMIN_EMAIL;
       emailSubject = "💬 New Private Message from Assistant";
-      html = wrap(
-        "Assistant Sent a Private Message",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">The assistant has sent you a private message.</p>
-         ${clientId ? row("Re: Client", clientId, "#ec5b13") : ""}
+      html = wrap("Assistant Sent a Private Message",
+        `${clientId ? row("Re: Client", clientId, "#ec5b13") : ""}
          <div style="margin-top:14px;padding:14px;background:#111;border-radius:10px;border-left:3px solid #ec5b13;">
            <p style="margin:0;color:rgba(255,255,255,0.7);font-size:13px;line-height:1.7;">${note || ""}</p>
          </div>`,
-        DASH + "#channel", "OPEN ASSISTANT INBOX",
-      );
+        DASH + "#channel", "OPEN ASSISTANT INBOX");
       break;
 
     case "BROADCAST":
       to = ADMIN_EMAIL;
       emailSubject = `📢 Broadcast Confirmed — "${(subject || "").slice(0, 40)}"`;
-      html = wrap(
-        "Broadcast Delivered",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Your broadcast has been sent to all client inboxes.</p>
-         ${row("Subject", subject || "(no subject)", "#38bdf8")}
-         ${row("Recipients", recipientCount ? `${recipientCount} clients` : "All clients", "#22c55e")}
-         ${note ? `<div style="margin-top:12px;padding:12px;background:#111;border-radius:8px;"><p style="margin:0;color:rgba(255,255,255,0.55);font-size:12px;line-height:1.6;">${note}</p></div>` : ""}`,
-        null, null,
-      );
+      html = wrap("Broadcast Delivered",
+        `${row("Subject", subject || "(no subject)", "#38bdf8")}
+         ${row("Recipients", recipientCount ? `${recipientCount} clients` : "All clients", "#22c55e")}`,
+        null, null);
       break;
 
     default:
       to = ADMIN_EMAIL;
       emailSubject = `[VAULT] ${type}`;
-      html = wrap(
-        `Alert: ${type}`,
+      html = wrap(`Alert: ${type}`,
         `${clientId ? row("Client", clientId, "#ec5b13") : ""}${note ? `<p style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:12px;">${note}</p>` : ""}`,
-        DASH, "OPEN DASHBOARD",
-      );
+        DASH, "OPEN DASHBOARD");
   }
 
   try {
     console.log("[alert-staff] Sending email — type:", type, "→ to:", to);
-    await transporter.sendMail({
-      from: `"VERP System" <${process.env.GMAIL_USER}>`,
-      to, subject: emailSubject, html,
+    await sendEmail({
+      from: "VERP System <onboarding@resend.dev>",
+      to,
+      subject: emailSubject,
+      html,
     });
     console.log(`[alert-staff] ✅ [${type}] → ${to}`);
     res.status(200).json({ success: true, type, to });

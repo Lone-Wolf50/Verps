@@ -66,6 +66,7 @@
     "qs": "^6.15.0",
     "range-parser": "^1.2.1",
     "raw-body": "^3.0.2",
+    "resend": "^6.9.3",
     "rollup": "^4.57.1",
     "router": "^2.2.0",
     "safer-buffer": "^2.1.2",
