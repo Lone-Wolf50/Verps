@@ -566,7 +566,7 @@ const Navbar = () => {
                 fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase",
                 color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.1)",
                 fontFamily: "'JetBrains Mono',monospace",
-              }}>SIGN IN</Link>
+              }}>LOGIN</Link>
               <Link to="/signup" style={{
                 display: "flex", alignItems: "center", height: 36,
                 padding: "0 14px", borderRadius: 10, textDecoration: "none",
