@@ -153,19 +153,6 @@ const BroadcastPanel = () => {
 	const [subject, setSubject] = useState("");
 	const [body, setBody] = useState("");
 	const [sending, setSending] = useState(false);
-	const [recentSent, setRecentSent] = useState([]);
-
-	useEffect(() => {
-		supabase
-			.from("verp_inbox_messages")
-			.select("*")
-			.eq("from_role", "admin")
-			.order("created_at", { ascending: false })
-			.limit(5)
-			.then(({ data }) => {
-				if (data) setRecentSent(data);
-			});
-	}, []);
 
 	const sendBroadcast = async () => {
 		if (!subject.trim() || !body.trim()) return;
@@ -201,10 +188,6 @@ const BroadcastPanel = () => {
 				}),
 			});
 		} catch (_) {}
-		setRecentSent((prev) => [
-			{ id: Date.now(), subject, body, created_at: new Date().toISOString() },
-			...prev,
-		]);
 		setSubject("");
 		setBody("");
 		setSending(false);
@@ -268,32 +251,7 @@ const BroadcastPanel = () => {
 					</button>
 				</div>
 			</div>
-			{/* Recent broadcasts */}
-			{recentSent.length > 0 && (
-				<div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent p-4 space-y-3">
-					<p className="text-[8px] font-bold uppercase tracking-[0.28em] text-white/20">
-						RECENT BROADCASTS
-					</p>
-					{recentSent.slice(0, 4).map((m, i) => (
-						<div
-							key={i}
-							className="flex items-start gap-3 pb-3 border-b border-white/5 last:border-0 last:pb-0"
-						>
-							<span className="material-symbols-outlined text-[#ec5b13]/60 text-base mt-0.5">
-								mark_email_read
-							</span>
-							<div className="min-w-0">
-								<p className="text-xs font-medium text-white/70 truncate">
-									{m.subject}
-								</p>
-								<p className="text-[9px] text-white/30 mt-0.5">
-									{new Date(m.created_at).toLocaleDateString()}
-								</p>
-							</div>
-						</div>
-					))}
-				</div>
-			)}
+
 		</div>
 	);
 };
@@ -479,26 +437,84 @@ const buildSessionChart = (sessions, period) => {
 	return [];
 };
 
+/* ─── DATA HELPER: USER SIGNUPS ──────────────────────────────── */
+const buildSignupChart = (users, period) => {
+	const now = new Date();
+	if (period === "day") {
+		return Array.from({ length: 24 }, (_, h) => ({
+			label: `${h}h`,
+			value: users.filter((u) => {
+				const d = new Date(u.created_at);
+				return d.toDateString() === now.toDateString() && d.getHours() === h;
+			}).length,
+			isActive: h === now.getHours(),
+		}));
+	}
+	if (period === "week") {
+		const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+		return Array.from({ length: 7 }, (_, i) => {
+			const d = new Date(now);
+			d.setDate(now.getDate() - now.getDay() + i);
+			return {
+				label: days[i],
+				value: users.filter((u) => new Date(u.created_at).toDateString() === d.toDateString()).length,
+				isActive: i === now.getDay(),
+			};
+		});
+	}
+	if (period === "month") {
+		const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+		return Array.from({ length: daysInMonth }, (_, i) => {
+			const day = i + 1;
+			return {
+				label: `${day}`,
+				value: users.filter((u) => {
+					const d = new Date(u.created_at);
+					return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === day;
+				}).length,
+				isActive: day === now.getDate(),
+			};
+		});
+	}
+	if (period === "year") {
+		const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+		return months.map((m, i) => ({
+			label: m,
+			value: users.filter((u) => {
+				const d = new Date(u.created_at);
+				return d.getFullYear() === now.getFullYear() && d.getMonth() === i;
+			}).length,
+			isActive: i === now.getMonth(),
+		}));
+	}
+	return [];
+};
+
 /* ─── MAIN ANALYTICS ─────────────────────────────────────────── */
 const Analytics = () => {
 	const [sessions, setSessions] = useState([]);
 	const [orders, setOrders] = useState([]);
+	const [users, setUsers] = useState([]);
+	const [userCount, setUserCount] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [revenuePeriod, setRevenuePeriod] = useState("month");
 	const [sessionPeriod, setSessionPeriod] = useState("week");
+	const [signupPeriod, setSignupPeriod] = useState("month");
 
 	useEffect(() => {
-		const fetch = async () => {
-			const [{ data: s }, { data: o }] = await Promise.all([
+		const fetchAll = async () => {
+			const [{ data: s }, { data: o }, { data: u }] = await Promise.all([
 				supabase.from("verp_support_sessions").select("*"),
 				supabase.from("verp_orders").select("*"),
+				supabase.from("verp_users").select("id, created_at"),
 			]);
 			if (s) setSessions(s);
 			if (o) setOrders(o);
+			if (u) { setUsers(u); setUserCount(u.length); }
 			setLoading(false);
 		};
-		fetch();
-		const i = setInterval(fetch, 30000);
+		fetchAll();
+		const i = setInterval(fetchAll, 30000);
 		return () => clearInterval(i);
 	}, []);
 
@@ -517,6 +533,7 @@ const Analytics = () => {
 
 	const revenueData = buildRevenueChart(orders, revenuePeriod);
 	const sessionData = buildSessionChart(sessions, sessionPeriod);
+	const signupData  = buildSignupChart(users, signupPeriod);
 
 	// Order status distribution (all time)
 	const statusDist = [
@@ -544,6 +561,13 @@ const Analytics = () => {
 		<div className="space-y-6 px-4 md:px-0 pb-16 overflow-y-auto">
 			{/* KPI grid */}
 			<div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+				<StatCard
+					label="Total Users"
+					value={userCount === null ? "..." : userCount}
+					accent="#a78bfa"
+					subColor="#a78bfa"
+					sub="registered members"
+				/>
 				<StatCard
 					label="Total Revenue"
 					value={fmt(totalRevenue)}
@@ -606,6 +630,12 @@ const Analytics = () => {
 						title="ORDER STATUS — ALL TIME"
 						period="all"
 						onPeriodChange={() => {}}
+					/>
+					<PeriodBarChart
+						data={signupData}
+						title="USER SIGNUPS — FROM VERP_USERS"
+						period={signupPeriod}
+						onPeriodChange={setSignupPeriod}
 					/>
 				</div>
 

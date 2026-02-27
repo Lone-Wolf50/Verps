@@ -17,6 +17,13 @@ const AdminChannel = () => {
 	const [input, setInput] = useState("");
 	const [sending, setSending] = useState(false);
 	const scrollRef = useRef(null);
+	const isNearBottomRef = useRef(true);
+
+	const handleScroll = () => {
+		const el = scrollRef.current;
+		if (!el) return;
+		isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+	};
 
 	const sync = useCallback(async () => {
 		const { data, error } = await supabase
@@ -56,9 +63,9 @@ const AdminChannel = () => {
 			});
 	}, [messages.length]);
 
-	/* ── Scroll to bottom ── */
+	/* ── Scroll to bottom only when near bottom or first load ── */
 	useEffect(() => {
-		if (scrollRef.current)
+		if (scrollRef.current && isNearBottomRef.current)
 			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
 	}, [messages]);
 
@@ -219,12 +226,14 @@ const AdminChannel = () => {
 				{/* MESSAGES */}
 				<div
 					ref={scrollRef}
+					onScroll={handleScroll}
 					style={{
 						flex: 1,
 						overflowY: "auto",
 						padding: "18px 22px",
 						display: "flex",
 						flexDirection: "column",
+						justifyContent: "flex-end",
 						gap: 14,
 						scrollbarWidth: "thin",
 						scrollbarColor: "rgba(56,189,248,0.3) transparent",
@@ -233,13 +242,13 @@ const AdminChannel = () => {
 					{messages.length === 0 && (
 						<div
 							style={{
-								flex: 1,
 								display: "flex",
 								flexDirection: "column",
 								alignItems: "center",
 								justifyContent: "center",
 								gap: 14,
 								opacity: 0.12,
+								padding: "60px 0",
 							}}
 						>
 							<span

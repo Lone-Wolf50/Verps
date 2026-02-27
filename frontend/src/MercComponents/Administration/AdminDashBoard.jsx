@@ -8,6 +8,7 @@ import AdminInbox from "./AdminInbox";
 import Analytics from "./Analytics";
 import ClientMessages from "./ClientMessages";
 import AdminChannel from "./AdminChannel";
+import Broadcasts from "./Broadcasts";
 import Swal from "sweetalert2";
 
 /* ─── HELPERS ────────────────────────────────────────────────── */
@@ -117,6 +118,7 @@ const AdminDashBoard = () => {
 		messages: "Client Messages",
 		channel: "Admin Channel",
 		inbox: "Supervisor Inbox",
+		broadcasts: "Broadcasts",
 		analytics: "Analytics & Broadcast",
 	};
 
@@ -157,6 +159,8 @@ const AdminDashBoard = () => {
 				return <AdminInbox />;
 			case "analytics":
 				return <Analytics />;
+			case "broadcasts":
+				return <Broadcasts />;
 			default:
 				return <Inventory products={products} />;
 		}
@@ -186,14 +190,14 @@ const AdminDashBoard = () => {
 			<main
 				style={{
 					flex: 1,
-					marginLeft: 0,
+					minWidth: 0,
 					paddingTop: 60 /* mobile top-bar offset */,
 					display: isFullscreen ? "flex" : "block",
 					flexDirection: "column",
 					height: isFullscreen ? "100vh" : undefined,
 					overflow: isFullscreen ? "hidden" : undefined,
 				}}
-				className="lg:ml-[252px] lg:pt-0"
+				className="lg:ml-16 lg:pt-0"
 			>
 				{/* Page header (non-fullscreen only) */}
 				{!isFullscreen && (

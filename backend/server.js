@@ -1,6 +1,8 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
+const SALT_ROUNDS = 12;
 require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
 
@@ -20,6 +22,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5000",
   "https://verps-chi.vercel.app",
+  "http://192.168.0.3:5173",
 ];
 
 const corsOptions = {
@@ -114,13 +117,27 @@ app.post("/api/verify-staff", (req, res) => {
 });
 
 // ── 2. OTP Delivery ───────────────────────────────────────────
+// ── 2. OTP Delivery ───────────────────────────────────────────
 app.post("/api/send-otp", async (req, res) => {
   const { email, type } = req.body;
   if (!email) return res.status(400).json({ success: false, error: "Email required" });
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min from now
 
   try {
+    // ── 1. Save OTP to DB BEFORE sending email ──────────────────
+    const { error: dbErr } = await supabase
+      .from("verp_users")
+      .update({ otp_code: otp, otp_expiry: expiry })
+      .eq("email", email.toLowerCase().trim());
+
+    if (dbErr) {
+      console.error("Failed to save OTP to DB:", dbErr.message);
+      return res.status(500).json({ error: "Failed to prepare OTP", detail: dbErr.message });
+    }
+
+    // ── 2. Now send the email ───────────────────────────────────
     await transporter.sendMail({
       from: `"VERP Security" <${process.env.GMAIL_USER}>`,
       to: email,
@@ -136,10 +153,122 @@ app.post("/api/send-otp", async (req, res) => {
       ),
     });
 
-    res.status(200).json({ success: true, otp });
+    res.status(200).json({ success: true });
+    //                                 ^ don't return otp to client in production
   } catch (err) {
     console.error("OTP error:", err.message);
     res.status(500).json({ error: "Failed to deliver OTP", detail: err.message });
+  }
+});
+
+// ── 3. OTP Verification ───────────────────────────────────────
+// Validates the code but does NOT clear it yet — clearing happens
+// atomically inside /api/reset-password after the password is saved.
+app.post("/api/verify-otp", async (req, res) => {
+  const { email, otp } = req.body;
+  console.log("[verify-otp] called — email:", email, "| otp:", otp);
+  console.log("[verify-otp] SUPABASE_URL set?", !!process.env.SUPABASE_URL);
+
+  if (!email || !otp) return res.status(400).json({ message: "Email and code required." });
+
+  try {
+    const { data, error } = await supabase
+      .from("verp_users")
+      .select("id, otp_code, otp_expiry")
+      .eq("email", email.toLowerCase().trim())
+      .maybeSingle();
+
+    console.log("[verify-otp] DB row :", data);
+    console.log("[verify-otp] DB err :", error?.message ?? "none");
+
+    if (error) {
+      console.error("[verify-otp] ❌ Supabase error:", error.message, error);
+      return res.status(500).json({ message: "DB error.", detail: error.message });
+    }
+    if (!data)  return res.status(404).json({ message: "No account found for this email." });
+
+    if (!data.otp_code) {
+      console.error("[verify-otp] ❌ otp_code is NULL for", email,
+        "— send-otp saved it, but something cleared it between then and now.");
+      return res.status(400).json({ message: "No active code — please request a new one." });
+    }
+
+    console.log("[verify-otp] DB code  :", JSON.stringify(String(data.otp_code).trim()));
+    console.log("[verify-otp] Provided :", JSON.stringify(String(otp).trim()));
+
+    if (String(data.otp_code).trim() !== String(otp).trim())
+      return res.status(400).json({ message: "Incorrect code — please check and try again." });
+
+    if (data.otp_expiry && new Date() > new Date(data.otp_expiry)) {
+      console.error("[verify-otp] ❌ OTP expired at", data.otp_expiry);
+      return res.status(400).json({ message: "Code expired — please request a new one." });
+    }
+
+    // ✅ Valid — do NOT clear here, reset-password clears it atomically
+    console.log("[verify-otp] ✅ OTP valid for", email);
+    res.status(200).json({ success: true });
+
+  } catch (e) {
+    // Catches TypeError: fetch failed and any other network/runtime errors
+    console.error("[verify-otp] ❌ CAUGHT EXCEPTION:", e.message, e);
+    res.status(500).json({ message: "Server error during OTP check.", detail: e.message });
+  }
+});
+
+// ── 4. Reset Password ─────────────────────────────────────────
+// Hashes new password with bcrypt → saves to password_hash → clears OTP
+
+app.post("/api/reset-password", async (req, res) => {
+  const { email, password } = req.body;
+  console.log("[reset-password] called — email:", email);
+
+  if (!email || !password)
+    return res.status(400).json({ message: "Email and new password required." });
+  if (password.length < 8)
+    return res.status(400).json({ message: "Password must be at least 8 characters." });
+
+  try {
+    const { data: user, error: fetchErr } = await supabase
+      .from("verp_users")
+      .select("id, otp_code, otp_expiry")
+      .eq("email", email.toLowerCase().trim())
+      .maybeSingle();
+
+    console.log("[reset-password] DB user:", user);
+    console.log("[reset-password] DB err :", fetchErr?.message ?? "none");
+
+    if (fetchErr) return res.status(500).json({ message: "DB error.", detail: fetchErr.message });
+    if (!user)    return res.status(404).json({ message: "No account found for this email." });
+
+    if (!user.otp_code) {
+      console.error("[reset-password] ❌ otp_code is NULL — OTP was cleared before password was saved.",
+        "Flow must be: send-otp → verify-otp (no clear) → reset-password (clears here).");
+      return res.status(400).json({ message: "Session expired — please start over." });
+    }
+
+    if (user.otp_expiry && new Date() > new Date(user.otp_expiry))
+      return res.status(400).json({ message: "Session expired — please request a new code." });
+
+    // Hash and save, clear OTP atomically in same update
+    const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+    console.log("[reset-password] ✅ password hashed");
+
+    const { error: updateErr } = await supabase
+      .from("verp_users")
+      .update({ password_hash, otp_code: null, otp_expiry: null })
+      .eq("id", user.id);
+
+    if (updateErr) {
+      console.error("[reset-password] ❌ update failed:", updateErr.message);
+      return res.status(500).json({ message: "Failed to save new password.", detail: updateErr.message });
+    }
+
+    console.log("[reset-password] ✅ password_hash saved and OTP cleared for", email);
+    res.status(200).json({ success: true });
+
+  } catch (e) {
+    console.error("[reset-password] ❌ CAUGHT EXCEPTION:", e.message, e);
+    res.status(500).json({ message: "Server error during password reset.", detail: e.message });
   }
 });
 
@@ -162,17 +291,7 @@ app.post("/api/verify-payment", async (req, res) => {
   }
 });
 
-// ── NEW: Paystack Charge Calculator ──────────────────────────
-// POST { amountGHS: 200 }  →  { chargeGHS, chargePesewas, feeGHS }
-//
-// Paystack Ghana fees (local cards):
-//   1.95% of transaction + GH₵0.25 flat fee
-//   Fee is capped at GH₵1,000
-//
-// We reverse-engineer so YOU receive exactly amountGHS after fees.
-// Formula: charge = (amountYouWant + 0.25) / (1 - 0.0195)
-// Update this route in your server.js
-// server.js - Update only the /api/paystack-charge route
+
 app.post("/api/paystack-charge", (req, res) => {
   const { amountGHS } = req.body;
   const amount = parseFloat(amountGHS);

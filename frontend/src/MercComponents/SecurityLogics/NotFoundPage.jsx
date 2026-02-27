@@ -150,7 +150,7 @@ const NotFoundPage = () => {
 							lineHeight: 1.65,
 						}}
 					>
-						This route doesn't exist in the Vault. You may have entered an
+						This route doesn't exist in this page. You may have entered an
 						unauthorized path.
 					</p>
 
@@ -188,7 +188,7 @@ const NotFoundPage = () => {
 						>
 							home
 						</span>
-						RETURN TO VAULT
+						RETURN TO HOME.
 					</Link>
 				</div>
 			</div>

@@ -446,4 +446,6 @@ body {
 .custom-status-scroll {
   scrollbar-width: thin;
   scrollbar-color: var(--status-color) transparent;
+}html, body {
+  overflow-x: hidden;
 }

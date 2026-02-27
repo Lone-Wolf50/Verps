@@ -575,12 +575,15 @@ const AddProduct = ({ editData, onSuccess }) => {
 									</label>
 									<input
 										type="number"
+										step="0.01"
+										min="0"
 										className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
 										placeholder="0.00"
 										value={productData.price}
 										onChange={(e) =>
 											setProductData({ ...productData, price: e.target.value })
 										}
+										onWheel={(e) => e.currentTarget.blur()}
 									/>
 								</div>
 								<div className="space-y-3">

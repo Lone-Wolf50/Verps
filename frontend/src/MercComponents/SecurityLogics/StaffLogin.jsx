@@ -50,7 +50,7 @@ const StaffLogin = () => {
 				return;
 			}
 			Swal.fire({
-				title: "Access denied",
+				title: "Access Denied",
 				text: data.error || "Invalid email or password.",
 				icon: "error",
 				background: T.obsidian,

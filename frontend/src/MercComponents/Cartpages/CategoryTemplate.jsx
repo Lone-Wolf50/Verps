@@ -323,7 +323,7 @@ const CategoryTemplate = ({
 			{/* Toast portal */}
 			<ToastStack toasts={toasts} onDismiss={dismiss} />
 
-			<main className="max-w-7xl mx-auto px-4 sm:px-6 pt-[88px] sm:pt-[104px] md:pt-[112px] pb-20">
+			<main className="max-w-7xl mx-auto px-4 sm:px-6 pt-14 sm:pt-16 md:pt-20 pb-20">
 				{/* ── HEADER ROW ── */}
 				<div className="flex flex-col gap-4 mb-10 sm:mb-12">
 					<div className="flex items-center gap-3 sm:gap-5">

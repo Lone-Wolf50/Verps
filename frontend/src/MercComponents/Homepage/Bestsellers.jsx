@@ -96,9 +96,9 @@ const Bestsellers = () => {
         const a    = pickRandom(shuffled, SLOT_SIZE);
         const aIds = new Set(a.map(x => x.id));
         const b    = pickRandom(shuffled, SLOT_SIZE, aIds);
-        const ma   = pickRandom(shuffled, 8);
+        const ma   = pickRandom(shuffled, 6);
         const maIds = new Set(ma.map(x => x.id));
-        const mb   = pickRandom(shuffled, 8, maIds);
+        const mb   = pickRandom(shuffled, 6, maIds);
 
         // Write refs BEFORE setLoading(false) so the timer effects
         // that fire on loading change already have data
@@ -538,7 +538,7 @@ const Bestsellers = () => {
             {/* Height anchor: invisible clone of whichever slot is active */}
             <div aria-hidden style={{ visibility: "hidden", pointerEvents: "none" }}>
               <div className="bs-mobile-grid">
-                {Array.from({ length: 8 }).map((_, i) => (
+                {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} style={{ aspectRatio: "3/4", borderRadius: 20 }} />
                 ))}
               </div>

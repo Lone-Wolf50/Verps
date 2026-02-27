@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import LiveAssistantChat from "../Messages/LiveAssistantChat";
+import OrderMessagesTab from "./OrderMessagesTab";
 import Swal from "sweetalert2";
 
 /* ─── DESIGN TOKENS ──────────────────────────────────────────── */
@@ -49,12 +50,13 @@ const ORDER_COLOR = {
 	cancelled: T.cancelled,
 };
 const NAV = [
-	{ id: "inbox", icon: "chat_bubble", label: "Live Inbox" },
-	{ id: "queue", icon: "group_add", label: "Queue" },
-	{ id: "orders", icon: "inventory_2", label: "Orders" },
-	{ id: "analytics", icon: "bar_chart", label: "Analytics" },
-	{ id: "admin", icon: "admin_panel_settings", label: "Admin Channel" },
-	{ id: "history", icon: "history", label: "Chat History" },
+	{ id: "inbox",          icon: "chat_bubble",         label: "Live Inbox"     },
+	{ id: "queue",          icon: "group_add",           label: "Queue"          },
+	{ id: "orders",         icon: "inventory_2",         label: "Orders"         },
+	{ id: "order-messages", icon: "mark_email_read",     label: "Order Messages" },
+	{ id: "analytics",      icon: "bar_chart",           label: "Analytics"      },
+	{ id: "admin",          icon: "admin_panel_settings",label: "Admin Channel"  },
+	{ id: "history",        icon: "history",             label: "Chat History"   },
 ];
 
 /* ─── MINI COMPONENTS ────────────────────────────────────────── */
@@ -1053,6 +1055,7 @@ const AdminChannel = () => {
 							<div
 								style={{
 									maxWidth: "74%",
+									minWidth: 0,
 									display: "flex",
 									flexDirection: "column",
 									alignItems: isMe ? "flex-end" : "flex-start",
@@ -1084,6 +1087,9 @@ const AdminChannel = () => {
 										fontSize: 13,
 										color: isMe ? "#000" : "rgba(255,255,255,0.8)",
 										lineHeight: 1.6,
+										wordBreak: "break-word",
+										overflowWrap: "break-word",
+										whiteSpace: "pre-wrap",
 									}}
 								>
 									{msg.content}
@@ -1527,11 +1533,11 @@ const ChatHistoryTab = () => {
 								const isAssistant = msg.sender_role === "assistant" || msg.sender_role === "admin";
 								return (
 									<div key={msg.id || idx} style={{ display: "flex", justifyContent: isAssistant ? "flex-end" : "flex-start" }}>
-										<div style={{ maxWidth: "74%", display: "flex", flexDirection: "column", alignItems: isAssistant ? "flex-end" : "flex-start", gap: 4 }}>
+										<div style={{ maxWidth: "74%", minWidth: 0, display: "flex", flexDirection: "column", alignItems: isAssistant ? "flex-end" : "flex-start", gap: 4 }}>
 											<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.2em", textTransform: "uppercase", color: isAssistant ? "rgba(236,91,19,0.5)" : "rgba(255,255,255,0.2)" }}>
 												{isAssistant ? (msg.sender_role === "admin" ? "ADMIN" : "ASSISTANT") : "CLIENT"} · {new Date(msg.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
 											</p>
-											<div style={{ padding: "11px 15px", background: isAssistant ? "#ec5b13" : "#1a1a1a", border: isAssistant ? "none" : T.border, borderRadius: isAssistant ? "15px 4px 15px 15px" : "4px 15px 15px 15px", fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: isAssistant ? "#000" : "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
+											<div style={{ padding: "11px 15px", background: isAssistant ? "#ec5b13" : "#1a1a1a", border: isAssistant ? "none" : T.border, borderRadius: isAssistant ? "15px 4px 15px 15px" : "4px 15px 15px 15px", fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: isAssistant ? "#000" : "rgba(255,255,255,0.8)", lineHeight: 1.6, wordBreak: "break-word", overflowWrap: "break-word", whiteSpace: "pre-wrap" }}>
 												{msg.content}
 											</div>
 										</div>
@@ -2441,6 +2447,7 @@ const AssistantTerminal = () => {
 					)}
 
 					{tab === "orders" && <OrdersTab />}
+					{tab === "order-messages" && <OrderMessagesTab />}
 					{tab === "analytics" && <AnalyticsTab />}
 					{tab === "admin" && <AdminChannel />}
 					{tab === "history" && <ChatHistoryTab />}

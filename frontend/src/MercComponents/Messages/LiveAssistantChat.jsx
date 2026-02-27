@@ -7,11 +7,11 @@ const ChatBubble = ({ msg, viewerRole, isNew }) => {
   const isMe = msg.sender_role === viewerRole;
   return (
     <div style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", animation: isNew ? (isMe ? "msgUser 0.25s cubic-bezier(0.16,1,0.3,1) both" : "msgBot 0.25s cubic-bezier(0.16,1,0.3,1) both") : "none" }}>
-      <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", gap: 4 }}>
+      <div style={{ maxWidth: "75%", minWidth: 0, display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", gap: 4 }}>
         <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.25em", textTransform: "uppercase", color: isMe ? "rgba(236,91,19,0.55)" : "rgba(255,255,255,0.22)", paddingLeft: isMe ? 0 : 2, paddingRight: isMe ? 2 : 0 }}>
-          {isMe ? "YOU" : msg.sender_role === "assistant" ? "VAULT SUPPORT" : msg.sender_role === "admin" ? "ASSISTANT" : "CLIENT"}
+          {isMe ? "YOU" : msg.sender_role === "client" ? "CLIENT" : viewerRole === "admin" ? (msg.sender_role === "assistant" ? "ASSISTANT" : "VAULT SUPPORT") : "VAULT SUPPORT"}
         </p>
-        <div style={{ padding: "12px 16px", background: isMe ? "#ec5b13" : "linear-gradient(135deg,#1a1a1a,#141414)", border: isMe ? "none" : "1px solid rgba(255,255,255,0.07)", borderRadius: isMe ? "16px 4px 16px 16px" : "4px 16px 16px 16px", fontFamily: "'DM Sans',sans-serif", fontSize: 13, lineHeight: 1.65, color: isMe ? "#000" : "rgba(255,255,255,0.8)", fontWeight: isMe ? 500 : 400 }}>
+        <div style={{ padding: "12px 16px", background: isMe ? "#ec5b13" : "linear-gradient(135deg,#1a1a1a,#141414)", border: isMe ? "none" : "1px solid rgba(255,255,255,0.07)", borderRadius: isMe ? "16px 4px 16px 16px" : "4px 16px 16px 16px", fontFamily: "'DM Sans',sans-serif", fontSize: 13, lineHeight: 1.65, color: isMe ? "#000" : "rgba(255,255,255,0.8)", fontWeight: isMe ? 500 : 400, wordBreak: "break-word", overflowWrap: "break-word", whiteSpace: "pre-wrap" }}>
           {msg.content}
         </div>
       </div>
@@ -60,8 +60,10 @@ const LiveAssistantChat = ({
   const [resolved, setResolved] = useState(false);
   const [sessionStatus, setSessionStatus] = useState("live");
   const [latestIdx, setLatestIdx] = useState(-1);
+  const [remoteTyping, setRemoteTyping] = useState(false);
   const scrollRef = useRef(null);
   const pollRef = useRef(null);
+  const typingTimerRef = useRef(null);
 
   /* ── Fetch + poll ─────────────────────────────────────────── */
   const sync = async () => {
@@ -80,7 +82,7 @@ const LiveAssistantChat = ({
 
     const { data: sess } = await supabase
       .from("verp_support_sessions")
-      .select("status")
+      .select("status, typing_role, typing_at")
       .eq("id", chatId)
       .maybeSingle();
 
@@ -90,21 +92,53 @@ const LiveAssistantChat = ({
         setResolved(true);
         if (onSessionEnded) onSessionEnded();
       }
+      // Show typing animation if the OTHER side wrote a typing_at within last 4s
+      const isOtherTyping =
+        sess.typing_role &&
+        sess.typing_role !== role &&
+        sess.typing_at &&
+        Date.now() - new Date(sess.typing_at).getTime() < 4000;
+      setRemoteTyping(!!isOtherTyping);
     }
   };
+
+  /* ── Typing indicator helpers ────────────────────────────── */
+  const broadcastTyping = async (isTyping) => {
+    if (!chatId) return;
+    await supabase
+      .from("verp_support_sessions")
+      .update({
+        typing_role: isTyping ? role : null,
+        typing_at:   isTyping ? new Date().toISOString() : null,
+      })
+      .eq("id", chatId);
+  };
+
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    broadcastTyping(true);
+    clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => broadcastTyping(false), 3000);
+  };
+
+  // Typing state is read inside sync() which already polls every 5s
 
   useEffect(() => {
     if (!chatId || resolved) return;
     sync();
     pollRef.current = setInterval(sync, 5000);
-    return () => clearInterval(pollRef.current);
+    return () => {
+      clearInterval(pollRef.current);
+      clearTimeout(typingTimerRef.current);
+      broadcastTyping(false);
+    };
     // eslint-disable-next-line
   }, [chatId, resolved]);
 
   /* ── Auto-scroll ──────────────────────────────────────────── */
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages]);
+  }, [messages, remoteTyping]);
 
   /* ── Send ─────────────────────────────────────────────────── */
   const sendMessage = async (e) => {
@@ -114,6 +148,8 @@ const LiveAssistantChat = ({
     if (role === "client" && sessionStatus === "escalated") return;
     const content = input.trim();
     setInput("");
+    clearTimeout(typingTimerRef.current);
+    broadcastTyping(false);
     await supabase.from("verp_chat_messages").insert([{ chat_id: chatId, sender_role: role, content }]);
     setMessages(prev => {
       setLatestIdx(prev.length);
@@ -190,6 +226,22 @@ const LiveAssistantChat = ({
         </div>
       )}
 
+      {/* TYPING INDICATOR */}
+      {remoteTyping && !resolved && (
+        <div style={{ padding: "6px 16px 2px", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", gap: 3, alignItems: "center", padding: "8px 14px", background: "linear-gradient(135deg,#1a1a1a,#141414)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "4px 16px 16px 16px", width: "fit-content" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.4)", animation: "typingDot 1.4s ease-in-out infinite", animationDelay: "0ms" }} />
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.4)", animation: "typingDot 1.4s ease-in-out infinite", animationDelay: "200ms" }} />
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.4)", animation: "typingDot 1.4s ease-in-out infinite", animationDelay: "400ms" }} />
+            </div>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.2em", color: "rgba(255,255,255,0.2)", textTransform: "uppercase" }}>
+              {role === "client" ? "AGENT TYPING" : "CLIENT TYPING"}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* INPUT */}
       {!readOnly && (
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", background: "#0d0d0d", padding: "13px 16px", flexShrink: 0 }}>
@@ -199,7 +251,7 @@ const LiveAssistantChat = ({
             <div style={{ textAlign: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(245,158,11,0.4)", letterSpacing: "0.2em", textTransform: "uppercase", padding: "10px 0", animation: "holdPulse 2s ease-in-out infinite" }}>AGENT REVIEWING — REPLY PAUSED</div>
           ) : (
             <form onSubmit={sendMessage} style={{ display: "flex", gap: 8 }}>
-              <input value={input} onChange={e => setInput(e.target.value)} placeholder="TYPE MESSAGE..."
+              <input value={input} onChange={handleInputChange} placeholder="TYPE MESSAGE..."
                 style={{ flex: 1, background: "#111", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 11, padding: "10px 14px", fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.8)", outline: "none" }} />
               <button type="submit"
                 style={{ background: "#ec5b13", border: "none", borderRadius: 11, padding: "10px 18px", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#000", transition: "filter 200ms" }}
@@ -218,6 +270,7 @@ const LiveAssistantChat = ({
         @keyframes msgUser{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
         @keyframes holdSpin{to{transform:rotate(360deg)}}
         @keyframes holdPulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes typingDot{0%,60%,100%{opacity:0.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
       `}</style>
     </div>
   );

@@ -1,447 +1,409 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-	Search,
-	X,
-	ArrowUpRight,
-	Tag,
-	ShoppingCart,
-	ShieldCheck,
-	ChevronDown,
-	ChevronUp,
-} from "lucide-react";
+import { Search, X, ArrowUpRight, Tag, ShoppingCart, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "../supabaseClient";
 import { useCart } from "../Cartoptions/CartContext";
 
-/* ─────────────────────────────────────────────
-   SEARCH OVERLAY
-───────────────────────────────────────────── */
+/* ── inject styles once ── */
+if (typeof document !== "undefined" && !document.getElementById("_search_overlay_kf")) {
+  const s = document.createElement("style");
+  s.id = "_search_overlay_kf";
+  s.textContent = `
+    @keyframes overlayIn  { from{opacity:0} to{opacity:1} }
+    @keyframes panelDown  { from{opacity:0;transform:translateY(-12px) scale(0.99)} to{opacity:1;transform:translateY(0) scale(1)} }
+    @keyframes qvIn       { from{opacity:0;transform:scale(0.97) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    @keyframes resultFade { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+    ._so-panel   { animation: panelDown  0.32s cubic-bezier(0.16,1,0.3,1) both; }
+    ._so-bd      { animation: overlayIn  0.25s ease both; }
+    ._so-qv      { animation: qvIn       0.3s  cubic-bezier(0.16,1,0.3,1) both; }
+    ._so-result  { animation: resultFade 0.28s cubic-bezier(0.16,1,0.3,1) both; }
+    ._so-scroll::-webkit-scrollbar { width: 3px; }
+    ._so-scroll::-webkit-scrollbar-track { background: transparent; }
+    ._so-scroll::-webkit-scrollbar-thumb { background: rgba(236,91,19,0.25); border-radius: 2px; }
+    ._so-input:-webkit-autofill,
+    ._so-input:-webkit-autofill:hover,
+    ._so-input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0 1000px transparent inset !important; -webkit-text-fill-color: rgba(255,255,255,0.88) !important; transition: background-color 9999s ease-in-out 0s; }
+  `;
+  document.head.appendChild(s);
+}
+
 const SearchOverlay = ({ isOpen, onClose }) => {
-	const [query, setQuery] = useState("");
-	const [results, setResults] = useState({ products: [], categories: [] });
-	const [isSearching, setIsSearching] = useState(false);
-	const [quickViewProduct, setQuickViewProduct] = useState(null);
-	const [isDescExpanded, setIsDescExpanded] = useState(false);
-	const navigate = useNavigate();
-	const inputRef = useRef(null);
-	const { addToCart } = useCart();
+  const [query, setQuery]               = useState("");
+  const [results, setResults]           = useState({ products: [], categories: [] });
+  const [isSearching, setIsSearching]   = useState(false);
+  const [quickViewProduct, setQV]       = useState(null);
+  const [isDescExpanded, setDescExp]    = useState(false);
+  const navigate  = useNavigate();
+  const inputRef  = useRef(null);
+  const { addToCart } = useCart();
 
-	useEffect(() => {
-		if (isOpen) {
-			setTimeout(() => inputRef.current?.focus(), 100);
-			document.body.style.overflow = "hidden";
-		} else {
-			setQuery("");
-			setResults({ products: [], categories: [] });
-			setQuickViewProduct(null);
-			document.body.style.overflow = "";
-		}
-		return () => {
-			document.body.style.overflow = "";
-		};
-	}, [isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => inputRef.current?.focus(), 80);
+      document.body.style.overflow = "hidden";
+    } else {
+      setQuery("");
+      setResults({ products: [], categories: [] });
+      setQV(null);
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
 
-	useEffect(() => {
-		if (!query.trim()) {
-			setResults({ products: [], categories: [] });
-			return;
-		}
-		const t = setTimeout(() => performSearch(), 300);
-		return () => clearTimeout(t);
-	}, [query]);
+  useEffect(() => {
+    if (!query.trim()) { setResults({ products: [], categories: [] }); return; }
+    const t = setTimeout(performSearch, 300);
+    return () => clearTimeout(t);
+  }, [query]);
 
-	const performSearch = async () => {
-		setIsSearching(true);
-		try {
-			const [prodRes, catRes] = await Promise.all([
-				supabase
-					.from("verp_products")
-					.select("*")
-					.or(`name.ilike.%${query}%,category.ilike.%${query}%`)
-					.limit(6),
-				supabase
-					.from("verp_categories")
-					.select("*")
-					.ilike("name", `%${query}%`)
-					.limit(6),
-			]);
-			setResults({
-				products: prodRes.data || [],
-				categories: catRes.data || [],
-			});
-		} catch (e) {
-			console.error(e);
-		} finally {
-			setIsSearching(false);
-		}
-	};
+  const performSearch = async () => {
+    setIsSearching(true);
+    try {
+      const [prodRes, catRes] = await Promise.all([
+        supabase.from("verp_products").select("*").or(`name.ilike.%${query}%,category.ilike.%${query}%`).limit(6),
+        supabase.from("verp_categories").select("*").ilike("name", `%${query}%`).limit(6),
+      ]);
+      setResults({ products: prodRes.data || [], categories: catRes.data || [] });
+    } catch (e) { console.error(e); }
+    finally { setIsSearching(false); }
+  };
 
-	const openQuickView = (product) => {
-		setQuickViewProduct(product);
-		setIsDescExpanded(false);
-	};
+  const openQV    = (p) => { setQV(p); setDescExp(false); };
+  const closeQV   = () => { setQV(null); setDescExp(false); };
+  const relatedItems = results.products.filter(p => p.id !== quickViewProduct?.id).slice(0, 4);
 
-	// Close quickview only — search panel stays open
-	const closeQuickView = () => {
-		setQuickViewProduct(null);
-		setIsDescExpanded(false);
-	};
+  if (!isOpen) return null;
 
-	// Related items excludes current product
-	const relatedItems = results.products
-		.filter((p) => p.id !== quickViewProduct?.id)
-		.slice(0, 4);
+  return (
+    <>
+      {/* ══ SEARCH PANEL ══ */}
+      <div className="fixed inset-0 z-[300] flex items-start justify-center">
+        {/* Backdrop */}
+        <div
+          className="_so-bd absolute inset-0"
+          style={{ background: "rgba(4,4,4,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
+          onClick={onClose}
+        />
 
-	if (!isOpen) return null;
+        {/* Panel */}
+        <div
+          className="_so-panel relative z-10 flex flex-col w-full h-full sm:h-auto sm:max-h-[80vh] sm:max-w-xl sm:mt-20 sm:mx-4 sm:rounded-2xl overflow-hidden"
+          style={{
+            background: "linear-gradient(160deg, #121212 0%, #0c0c0c 100%)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            boxShadow: "0 40px 100px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.03)",
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* ── Search bar ── */}
+          <div
+            className="flex-shrink-0 flex items-center gap-3 px-4"
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", paddingTop: 14, paddingBottom: 14 }}
+          >
+            {/* Glassmorphism pill input */}
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 11,
+                background: "rgba(255,255,255,0.06)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                border: "1px solid rgba(255,255,255,0.11)",
+                borderRadius: 999,
+                padding: "10px 18px",
+                transition: "border-color 200ms, background 200ms, box-shadow 200ms",
+              }}
+              onFocusCapture={e => {
+                e.currentTarget.style.borderColor = "rgba(236,91,19,0.45)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236,91,19,0.06), inset 0 1px 0 rgba(255,255,255,0.08)";
+              }}
+              onBlurCapture={e => {
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.11)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              {/* Icon or spinner */}
+              <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {isSearching
+                  ? <div style={{ width: 14, height: 14, border: "1.5px solid rgba(236,91,19,0.3)", borderTopColor: "#ec5b13", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                  : <Search style={{ width: 14, height: 14, color: "#ec5b13", opacity: 0.8 }} />
+                }
+              </div>
 
-	return (
-		<>
-			{/* ── SEARCH PANEL ── */}
-			<div className="fixed inset-0 z-[300] flex items-start justify-center">
-				{/* Backdrop — desktop click to close */}
-				<div
-					className="absolute inset-0 bg-black/60 backdrop-blur-md hidden sm:block"
-					onClick={onClose}
-				/>
-				{/* Mobile backdrop */}
-				<div className="absolute inset-0 bg-black/70 sm:hidden" />
+              {/* Input */}
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Search collections, products…"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                style={{
+                  flex: 1,
+                  background: "transparent",
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: 14,
+                  fontWeight: 400,
+                  fontFamily: "'DM Sans',sans-serif",
+                  letterSpacing: "0.01em",
+                  outline: "none",
+                  border: "none",
+                  minWidth: 0,
+                  WebkitBoxShadow: "0 0 0 1000px transparent inset",
+                  WebkitTextFillColor: "rgba(255,255,255,0.9)",
+                  caretColor: "#ec5b13",
+                }}
+              />
 
-				<div
-					className="
-						relative z-10 flex flex-col
-						w-full h-full
-						sm:h-auto sm:max-h-[85vh] sm:w-full sm:max-w-2xl
-						sm:mt-16 sm:rounded-2xl sm:mx-4
-						bg-[#0d0d0d]/95 sm:bg-[#111]/95
-						border-0 sm:border sm:border-white/10
-						overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.8)]
-					"
-					onClick={(e) => e.stopPropagation()}
-				>
-					{/* ── Header with clear button INSIDE input ── */}
-					<div className="flex-shrink-0 flex items-center gap-3 px-4 sm:px-6 pt-safe pt-4 pb-3 border-b border-white/8">
-						<Search className="w-4 h-4 text-[#ec5b13] flex-shrink-0" />
+              {/* ⌘K hint — only when empty */}
+              {!query && (
+                <span style={{ flexShrink: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.2em", color: "rgba(255,255,255,0.18)", textTransform: "uppercase", pointerEvents: "none" }}>
+                  ⌘K
+                </span>
+              )}
+            </div>
 
-						{/* Input wrapper — clear X lives inside here */}
-						<div className="relative flex-1">
-							<input
-								ref={inputRef}
-								type="text"
-								placeholder="Search products..."
-								value={query}
-								onChange={(e) => setQuery(e.target.value)}
-								className="w-full bg-transparent text-base text-white/90 font-light focus:outline-none placeholder-white/30 tracking-wide pr-7"
-							/>
-							{/* Clear button — inside the input, right edge */}
-							{query && !isSearching && (
-								<button
-									onClick={() => {
-										setQuery("");
-										inputRef.current?.focus();
-									}}
-									className="absolute right-0 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors"
-								>
-									<X className="w-3.5 h-3.5" />
-								</button>
-							)}
-						</div>
+            {/* Close overlay button — only X here, no X inside input */}
+            <button
+              onClick={onClose}
+              style={{ flexShrink: 0, width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.05)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.4)", transition: "all 200ms" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.22)"; e.currentTarget.style.color = "white"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
+            >
+              <X style={{ width: 13, height: 13 }} />
+            </button>
+          </div>
 
-						{/* Spinner */}
-						{isSearching && (
-							<span className="w-4 h-4 border border-[#ec5b13]/60 border-t-[#ec5b13] rounded-full animate-spin flex-shrink-0" />
-						)}
+          {/* ── Results body ── */}
+          <div className="_so-scroll flex-1 overflow-y-auto overscroll-contain px-5 py-5 space-y-6">
+            {query.trim() === "" ? (
+              <StaticMenu navigate={navigate} onClose={onClose} />
+            ) : (
+              <>
+                {results.categories.length > 0 && (
+                  <section className="space-y-3">
+                    <SectionLabel text="Categories" />
+                    <div className="flex flex-wrap gap-2">
+                      {results.categories.map(cat => (
+                        <CategoryPill key={cat.id} name={cat.name} onClick={() => { navigate(`/shop?category=${cat.name}`); onClose(); }} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {results.products.length > 0 && (
+                  <section className="space-y-3">
+                    <SectionLabel text="Products" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {results.products.map((p, i) => (
+                        <ProductCard key={p.id} product={p} index={i} onClick={() => openQV(p)} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {!isSearching && results.products.length === 0 && results.categories.length === 0 && (
+                  <div className="py-16 text-center">
+                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>
+                      No results for "{query}"
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
-						{/* Mobile-only close X */}
-						<button
-							onClick={onClose}
-							className="sm:hidden ml-1 flex items-center justify-center w-8 h-8 rounded-full bg-white/8 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition-all active:scale-95"
-						>
-							<X className="w-4 h-4" />
-						</button>
-					</div>
+      {/* ══ QUICK VIEW ══ */}
+      {quickViewProduct && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 md:p-8">
+          <div
+            className="absolute inset-0"
+            style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
+            onClick={closeQV}
+          />
+          <div
+            className="_so-qv relative w-full max-w-2xl max-h-[88vh] flex flex-col md:flex-row overflow-hidden rounded-2xl"
+            style={{ background: "linear-gradient(160deg,#131313 0%,#0a0a0a 100%)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 60px 120px rgba(0,0,0,0.95)" }}
+          >
+            {/* Close */}
+            <button onClick={closeQV}
+              style={{ position: "absolute", top: 14, right: 14, zIndex: 50, width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.4)", transition: "all 200ms" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#ec5b13"; e.currentTarget.style.color = "#ec5b13"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; }}
+            >
+              <X style={{ width: 13, height: 13 }} />
+            </button>
 
-					{/* ── Body ── */}
-					<div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 space-y-7">
-						{query.trim() === "" ? (
-							<StaticMenu navigate={navigate} onClose={onClose} />
-						) : (
-							<>
-								{results.categories.length > 0 && (
-									<section className="space-y-3">
-										<SectionHeader label="Categories" />
-										<div className="flex flex-wrap gap-2">
-											{results.categories.map((cat) => (
-												<CategoryPill
-													key={cat.id}
-													name={cat.name}
-													onClick={() => {
-														navigate(`/shop?category=${cat.name}`);
-														onClose();
-													}}
-												/>
-											))}
-										</div>
-									</section>
-								)}
-								{results.products.length > 0 && (
-									<section className="space-y-3">
-										<SectionHeader label="Products" />
-										<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-											{results.products.map((product) => (
-												<ProductCard
-													key={product.id}
-													product={product}
-													onClick={() => openQuickView(product)}
-												/>
-											))}
-										</div>
-									</section>
-								)}
-								{!isSearching &&
-									results.products.length === 0 &&
-									results.categories.length === 0 && (
-										<div className="py-12 text-center text-white/30 text-sm tracking-widest uppercase">
-											No results for "{query}"
-										</div>
-									)}
-							</>
-						)}
-					</div>
-				</div>
-			</div>
+            {/* Image */}
+            <div className="w-full md:w-[44%] flex-shrink-0 relative overflow-hidden" style={{ height: "36vh", minHeight: 200 }}>
+              <img src={quickViewProduct.image_url} alt={quickViewProduct.name} className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)" }} />
+              {/* Price badge on image */}
+              <div style={{ position: "absolute", bottom: 14, left: 14, fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 22, color: "white", textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
+                ${Number(quickViewProduct.price).toLocaleString()}
+              </div>
+            </div>
 
-			{/* ── QUICK VIEW MODAL (above search panel, search stays mounted) ── */}
-			{quickViewProduct && (
-				<div className="fixed inset-0 z-[400] flex items-center justify-center p-4 md:p-6">
-					{/* Backdrop closes quickview only, NOT the search */}
-					<div
-						className="absolute inset-0 bg-black/80 backdrop-blur-xl"
-						onClick={closeQuickView}
-					/>
+            {/* Content */}
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Header */}
+              <div className="flex-shrink-0 px-6 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div className="flex items-center gap-2 mb-2.5">
+                  <div style={{ width: 18, height: 1, background: "#ec5b13" }} />
+                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", color: "rgba(236,91,19,0.7)", textTransform: "uppercase", fontWeight: 700 }}>
+                    Limited Release
+                  </span>
+                </div>
+                <h2 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 18, fontWeight: 800, textTransform: "uppercase", letterSpacing: "-0.02em", color: "white", lineHeight: 1.1, marginBottom: 10 }}>
+                  {quickViewProduct.name}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <span style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", textTransform: "uppercase", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 6, padding: "4px 9px" }}>
+                    <ShieldCheck style={{ width: 10, height: 10, color: "#ec5b13" }} />
+                    Verified
+                  </span>
+                  {quickViewProduct.category && (
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.2)", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                      {quickViewProduct.category}
+                    </span>
+                  )}
+                </div>
+              </div>
 
-					<div className="relative w-full max-w-3xl max-h-[88vh] bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
-						{/* Close button */}
-						<button
-							onClick={closeQuickView}
-							className="absolute top-3 right-3 z-50 p-2 rounded-full bg-black/80 border border-white/10 text-white/50 hover:text-[#ec5b13] hover:border-[#ec5b13]/50 transition-all"
-						>
-							<X className="w-4 h-4" />
-						</button>
+              {/* Scrollable body */}
+              <div className="_so-scroll flex-1 overflow-y-auto px-6 py-4 space-y-5">
+                {/* Description */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>Description</span>
+                    <button onClick={() => setDescExp(!isDescExpanded)} style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.15em", textTransform: "uppercase", color: "#ec5b13", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                      {isDescExpanded ? <ChevronUp style={{ width: 11, height: 11 }} /> : <ChevronDown style={{ width: 11, height: 11 }} />}
+                      {isDescExpanded ? "Less" : "More"}
+                    </button>
+                  </div>
+                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, lineHeight: 1.75, color: "rgba(255,255,255,0.5)", display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: isDescExpanded ? "unset" : 3, overflow: "hidden" }}>
+                    {quickViewProduct.description || "Archived premium selection. Handcrafted for the modern explorer with focus on durability and refined aesthetics."}
+                  </p>
+                </div>
 
-						{/* Image */}
-						<div className="w-full md:w-[42%] h-[38vh] md:h-auto flex-shrink-0 bg-[#0d0d0d] relative overflow-hidden">
-							<img
-								src={quickViewProduct.image_url}
-								alt={quickViewProduct.name}
-								className="w-full h-full object-cover"
-							/>
-							<div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent md:hidden" />
-						</div>
+                {/* Related */}
+                {relatedItems.length > 0 && (
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 16 }}>
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", display: "block", marginBottom: 10 }}>From your search</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {relatedItems.map(item => (
+                        <button key={item.id} onClick={() => { setQV(item); setDescExp(false); }}
+                          className="group flex items-center gap-2.5 text-left rounded-xl p-2.5 transition-all duration-200"
+                          style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.3)"; e.currentTarget.style.background = "rgba(236,91,19,0.03)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}>
+                          <div style={{ width: 36, height: 36, borderRadius: 8, overflow: "hidden", flexShrink: 0 }}>
+                            <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</p>
+                            <p style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 12, color: "#ec5b13" }}>${Number(item.price).toLocaleString()}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-						{/* Content */}
-						<div className="flex-1 flex flex-col min-h-0">
-							{/* Header */}
-							<div className="p-5 md:p-6 pb-3 border-b border-white/5 flex-shrink-0">
-								<div className="flex items-center gap-2 mb-2">
-									<span className="text-[8px] font-black text-[#ec5b13] uppercase tracking-[0.3em]">
-										Limited Release
-									</span>
-									<div className="h-px flex-1 bg-white/10" />
-								</div>
-								<h2 className="text-lg md:text-xl font-light uppercase tracking-tight mb-2 pr-8 line-clamp-2">
-									{quickViewProduct.name}
-								</h2>
-								<div className="flex items-center gap-3">
-									<p className="text-lg text-[#ec5b13] font-mono tabular-nums">
-										${Number(quickViewProduct.price).toLocaleString()}
-									</p>
-									<span className="flex items-center gap-1 px-2 py-0.5 rounded border border-white/5 bg-white/5 text-[7px] text-white/40 uppercase tracking-wider font-bold">
-										<ShieldCheck className="w-2.5 h-2.5 text-[#ec5b13]" />{" "}
-										Verified
-									</span>
-								</div>
-							</div>
+              {/* Add to cart */}
+              <div className="flex-shrink-0 px-6 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                <button
+                  onClick={() => { addToCart({ ...quickViewProduct, image: quickViewProduct.image_url }); closeQV(); }}
+                  className="w-full flex items-center justify-center gap-2.5 font-black uppercase transition-all duration-200 active:scale-[0.98]"
+                  style={{ background: "#ec5b13", color: "#000", padding: "14px 0", borderRadius: 14, fontFamily: "'DM Sans',sans-serif", fontSize: 10, letterSpacing: "0.2em", border: "none", cursor: "pointer", boxShadow: "0 8px 28px rgba(236,91,19,0.3)" }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = "0 12px 40px rgba(236,91,19,0.55)"}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = "0 8px 28px rgba(236,91,19,0.3)"}
+                >
+                  <ShoppingCart style={{ width: 14, height: 14 }} />
+                  Add to Cart
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-							{/* Scrollable middle */}
-							<div className="flex-1 overflow-y-auto px-5 md:px-6 py-4 space-y-5 custom-scrollbar">
-								{/* Description */}
-								<div>
-									<div className="flex items-center justify-between mb-2">
-										<h4 className="text-[8px] font-bold uppercase tracking-[0.25em] text-white/40">
-											Description
-										</h4>
-										<button
-											onClick={() => setIsDescExpanded(!isDescExpanded)}
-											className="flex items-center gap-1 text-[8px] font-black uppercase text-[#ec5b13] hover:text-white transition-colors"
-										>
-											{isDescExpanded ? (
-												<ChevronUp className="w-3 h-3" />
-											) : (
-												<ChevronDown className="w-3 h-3" />
-											)}
-											{isDescExpanded ? "Less" : "More"}
-										</button>
-									</div>
-									<p
-										className={`text-[11px] md:text-[12px] text-white/55 leading-relaxed tracking-wide transition-all duration-300 ${isDescExpanded ? "" : "line-clamp-3"}`}
-									>
-										{quickViewProduct.description ||
-											"Archived premium selection. Handcrafted for the modern explorer with focus on durability and refined aesthetics. Each piece represents timeless design merged with contemporary functionality."}
-									</p>
-								</div>
-
-								{/* Related from search results */}
-								{relatedItems.length > 0 && (
-									<div className="border-t border-white/5 pt-4">
-										<h4 className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30 mb-3">
-											From your search
-										</h4>
-										<div className="grid grid-cols-2 gap-2">
-											{relatedItems.map((item) => (
-												<button
-													key={item.id}
-													onClick={() => {
-														setQuickViewProduct(item);
-														setIsDescExpanded(false);
-													}}
-													className="group flex items-center gap-2.5 p-2 rounded-lg bg-white/[0.02] border border-white/5 hover:border-[#ec5b13]/30 transition-all text-left"
-												>
-													<div className="w-10 h-10 flex-shrink-0 rounded overflow-hidden bg-[#121212]">
-														<img
-															src={item.image_url}
-															alt={item.name}
-															className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
-														/>
-													</div>
-													<div className="min-w-0">
-														<p className="text-[9px] uppercase font-bold text-white/55 truncate group-hover:text-white/80 transition-colors">
-															{item.name}
-														</p>
-														<p className="text-[9px] text-[#ec5b13] font-mono">
-															${Number(item.price).toLocaleString()}
-														</p>
-													</div>
-												</button>
-											))}
-										</div>
-									</div>
-								)}
-							</div>
-
-							{/* Add to cart */}
-							<div className="p-5 md:p-6 pt-3 border-t border-white/5 flex-shrink-0">
-								<button
-									onClick={() => {
-										addToCart({
-											...quickViewProduct,
-											image: quickViewProduct.image_url,
-										});
-										closeQuickView();
-									}}
-									className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-white font-bold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2.5 text-[9px] md:text-[10px] uppercase tracking-[0.25em] active:scale-[0.98]"
-								>
-									<ShoppingCart className="w-3.5 h-3.5" />
-									Add to Cart
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
-
-			<style jsx>{`
-				.custom-scrollbar::-webkit-scrollbar {
-					width: 4px;
-				}
-				.custom-scrollbar::-webkit-scrollbar-track {
-					background: rgba(255, 255, 255, 0.02);
-				}
-				.custom-scrollbar::-webkit-scrollbar-thumb {
-					background: rgba(236, 91, 19, 0.3);
-					border-radius: 2px;
-				}
-				.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-					background: rgba(236, 91, 19, 0.5);
-				}
-			`}</style>
-		</>
-	);
+      <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
+    </>
+  );
 };
 
-/* ── SUB-COMPONENTS ── */
-const SectionHeader = ({ label }) => (
-	<div className="flex items-center gap-3">
-		<span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
-			{label}
-		</span>
-		<div className="h-px flex-1 bg-white/8" />
-	</div>
+/* ── Sub-components ── */
+const SectionLabel = ({ text }) => (
+  <div className="flex items-center gap-3">
+    <div style={{ width: 16, height: 1, background: "#ec5b13", opacity: 0.5 }} />
+    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>{text}</span>
+    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.05)" }} />
+  </div>
 );
 
 const CategoryPill = ({ name, onClick }) => (
-	<button
-		onClick={onClick}
-		className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-white/60 hover:text-[#ec5b13] hover:border-[#ec5b13]/30 transition-all active:scale-95"
-	>
-		<Tag className="w-3 h-3" />
-		{name}
-	</button>
+  <button
+    onClick={onClick}
+    className="flex items-center gap-1.5 transition-all duration-200 active:scale-95"
+    style={{ padding: "6px 14px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.4)"; e.currentTarget.style.color = "#ec5b13"; e.currentTarget.style.background = "rgba(236,91,19,0.06)"; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+  >
+    <Tag style={{ width: 10, height: 10 }} />
+    {name}
+  </button>
 );
 
-const ProductCard = ({ product, onClick }) => (
-	<button
-		onClick={onClick}
-		className="group relative flex items-center gap-4 p-3 rounded-xl text-left bg-white/[0.03] border border-white/8 hover:bg-white/[0.07] hover:border-[#ec5b13]/25 transition-all duration-200 active:scale-[0.98] overflow-hidden w-full"
-	>
-		<div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[#ec5b13]/5 to-transparent rounded-xl" />
-		<div className="relative flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-white/5 border border-white/8">
-			{product.image_url ? (
-				<img
-					src={product.image_url}
-					alt={product.name}
-					className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-				/>
-			) : (
-				<div className="w-full h-full flex items-center justify-center text-xl">
-					📦
-				</div>
-			)}
-		</div>
-		<div className="flex-1 min-w-0">
-			<p className="text-sm font-semibold text-white/90 truncate uppercase tracking-wide leading-tight">
-				{product.name}
-			</p>
-			<p className="text-[11px] text-white/35 mt-0.5 truncate">
-				{product.category}
-			</p>
-			<p className="text-sm text-[#ec5b13] font-mono mt-1.5 tabular-nums">
-				${product.price}
-			</p>
-		</div>
-		<ArrowUpRight className="flex-shrink-0 w-4 h-4 text-white/15 group-hover:text-[#ec5b13]/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
-	</button>
+const ProductCard = ({ product, onClick, index }) => (
+  <button
+    onClick={onClick}
+    className="_so-result group relative flex items-center gap-3.5 text-left w-full overflow-hidden rounded-xl transition-all duration-200 active:scale-[0.98]"
+    style={{ animationDelay: `${index * 0.04}s`, padding: "10px 12px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.28)"; e.currentTarget.style.background = "rgba(236,91,19,0.04)"; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.background = "rgba(255,255,255,0.025)"; }}
+  >
+    {/* Thumbnail */}
+    <div style={{ width: 52, height: 52, borderRadius: 10, overflow: "hidden", flexShrink: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      {product.image_url
+        ? <img src={product.image_url} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.08)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"} />
+        : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📦</div>
+      }
+    </div>
+    {/* Info */}
+    <div className="flex-1 min-w-0">
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</p>
+      {product.category && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", marginTop: 3 }}>{product.category}</p>}
+      <p style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 15, color: "#ec5b13", marginTop: 4 }}>${product.price}</p>
+    </div>
+    {/* Arrow */}
+    <ArrowUpRight style={{ width: 14, height: 14, color: "rgba(255,255,255,0.1)", flexShrink: 0, transition: "all 200ms" }}
+      className="group-hover:text-[#ec5b13] group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+    />
+  </button>
 );
 
 const StaticMenu = ({ navigate, onClose }) => (
-	<div className="space-y-6">
-		<section className="space-y-3">
-			<SectionHeader label="Trending" />
-			<div className="flex flex-wrap gap-2">
-				{["Outerwear", "Vault", "Essentials"].map((term) => (
-					<button
-						key={term}
-						onClick={() => {
-							navigate(`/shop?search=${term}`);
-							onClose();
-						}}
-						className="px-4 py-2 rounded-full text-sm bg-white/5 border border-white/10 text-white/50 hover:text-[#ec5b13] hover:border-[#ec5b13]/25 transition-all active:scale-95"
-					>
-						{term}
-					</button>
-				))}
-			</div>
-		</section>
-	</div>
+  <div className="space-y-5">
+    <div>
+      <SectionLabel text="Trending Searches" />
+      <div className="flex flex-wrap gap-2 mt-3">
+        {["Outerwear", "Vault", "Essentials"].map(term => (
+          <button key={term} onClick={() => { navigate(`/shop?search=${term}`); onClose(); }}
+            className="transition-all duration-200 active:scale-95"
+            style={{ padding: "8px 18px", borderRadius: 999, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.01em" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.35)"; e.currentTarget.style.color = "#ec5b13"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}>
+            {term}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
 );
 
 export default SearchOverlay;
