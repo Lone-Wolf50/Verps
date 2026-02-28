@@ -312,7 +312,10 @@ const Navbar = () => {
   const location        = useLocation();
   const navigate        = useNavigate();
   const handleTerminate = useTerminateAccount();
-  const itemCount       = isLoggedIn ? cart.reduce((t, i) => t + i.quantity, 0) : 0;
+  const guestCart   = (() => { try { return JSON.parse(localStorage.getItem("guest_cart") || "[]"); } catch { return []; } })();
+  const itemCount   = isLoggedIn
+    ? cart.reduce((t, i) => t + i.quantity, 0)
+    : guestCart.reduce((t, i) => t + i.quantity, 0);
 
   /* ── Sync auth state ── */
   useEffect(() => {
@@ -396,6 +399,11 @@ const Navbar = () => {
         .from("verp_sessions").select("device_fingerprint")
         .eq("user_id", userId).maybeSingle();
       if (data && data.device_fingerprint !== fp) {
+        // Save cart before forced logout
+        if (cart && cart.length > 0) {
+          console.log("[session-guard] 🛒 Saving cart before forced logout due to session mismatch");
+          localStorage.setItem("guest_cart", JSON.stringify(cart));
+        }
         ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
         setIsLoggedIn(false);
         navigate("/login", { replace: true });
@@ -442,9 +450,32 @@ const Navbar = () => {
 
   /* ── Session lifetime guard ── */
   useEffect(() => {
-    if (!sessionStorage.getItem("vrp_alive")) {
-      ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
-      setIsLoggedIn(false);
+    const vrpAlive   = sessionStorage.getItem("vrp_alive");
+    const staffRoleLS = localStorage.getItem("staffRole");
+    const staffRoleSS = sessionStorage.getItem("staffRole");
+
+    console.log("[session-lifetime] 🔍 Running on mount");
+    console.log("[session-lifetime] sessionStorage.vrp_alive =", vrpAlive ?? "(null — fresh load/refresh)");
+    console.log("[session-lifetime] localStorage.staffRole   =", staffRoleLS ?? "(null)");
+    console.log("[session-lifetime] sessionStorage.staffRole =", staffRoleSS ?? "(null)");
+
+    if (!vrpAlive) {
+      const isStaffSession = staffRoleLS || staffRoleSS;
+      if (isStaffSession) {
+        console.log("[session-lifetime] 🛡️ Staff session detected — skipping user session wipe. staffRole =", isStaffSession);
+      } else {
+        console.log("[session-lifetime] ⚠️ No vrp_alive and no staff session — wiping user session keys");
+        const savedCart = localStorage.getItem("luxury_cart");
+        if (savedCart) {
+          console.log("[session-lifetime] 🛒 Preserving cart to guest_cart before session wipe");
+          localStorage.setItem("guest_cart", savedCart);
+        }
+        ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
+        setIsLoggedIn(false);
+        console.log("[session-lifetime] 🗑️ User session keys cleared");
+      }
+    } else {
+      console.log("[session-lifetime] ✅ vrp_alive present — no wipe needed");
     }
     sessionStorage.setItem("vrp_alive", "1");
     const onPageHide = (e) => {
@@ -467,7 +498,15 @@ const Navbar = () => {
   }, [isLoggedIn]);
 
   const handleLogout = () => {
-    resetCart(); // wipe cart state before clearing auth keys
+    // Save cart to guest key BEFORE wiping — so items survive logout
+    const currentCart = cart;
+    if (currentCart && currentCart.length > 0) {
+      console.log("[logout] 🛒 Saving", currentCart.length, "cart item(s) to guest_cart before logout");
+      localStorage.setItem("guest_cart", JSON.stringify(currentCart));
+    } else {
+      console.log("[logout] 🛒 Cart is empty — nothing to save");
+    }
+    resetCart();
     ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
     setIsLoggedIn(false);
     navigate("/");

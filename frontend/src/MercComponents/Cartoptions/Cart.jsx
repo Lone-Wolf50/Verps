@@ -35,7 +35,7 @@ const Cart = () => {
 					<div className="lg:col-span-2 space-y-6">
 						{cart.map((item) => (
 							<div
-								key={item.id}
+								key={`${item.id}-${item.size || ""}-${item.color || ""}`}
 								className="p-6 rounded-3xl border border-white/5 bg-white/5 flex gap-6 items-center"
 							>
 								<img

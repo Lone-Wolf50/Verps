@@ -36,6 +36,140 @@ const STATUS_COLOR = {
 	cancelled: "#ef4444",
 };
 
+/* ─── CUSTOMER PROFILE CARD ──────────────────────────────────── */
+/* Fetches rich profile from verp_users_details, falls back to order row */
+const CustomerProfileCard = ({ order }) => {
+	const email = order?.customer_email || order?.client_email || order?.email;
+	const deliveryName = order?.delivery_name || order?.customer_name || null;
+	const [profile, setProfile] = useState(null);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		if (!email) { setLoading(false); return; }
+		(async () => {
+			setLoading(true);
+			try {
+				const { data: userRow } = await supabase
+					.from("verp_users")
+					.select("id")
+					.eq("email", email)
+					.maybeSingle();
+				if (userRow?.id) {
+					const { data: details } = await supabase
+						.from("verp_users_details")
+						.select("*")
+						.eq("user_id", userRow.id)
+						.maybeSingle();
+					setProfile(details || null);
+				}
+			} catch (_) {}
+			setLoading(false);
+		})();
+	}, [email]);
+
+	const phone    = profile?.phone   || order?.customer_phone || null;
+	const address  = profile?.address || order?.address        || null;
+	const bio      = profile?.bio                              || null;
+	const location = order?.location                           || null;
+	const avatarUrl = profile?.avtar_url                       || null;
+	const displayName = deliveryName || email || "?";
+	const initial  = displayName.charAt(0).toUpperCase();
+
+	const InfoRow = ({ icon, label, value, color = T.ember }) => {
+		if (!value) return null;
+		return (
+			<div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+				<div style={{
+					width: 30, height: 30, borderRadius: 9, flexShrink: 0, marginTop: 1,
+					background: `${color}14`, border: `1px solid ${color}30`,
+					display: "flex", alignItems: "center", justifyContent: "center",
+				}}>
+					<span className="material-symbols-outlined" style={{ fontSize: 14, color }}>{icon}</span>
+				</div>
+				<div style={{ minWidth: 0 }}>
+					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 2 }}>{label}</p>
+					<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.45, wordBreak: "break-word" }}>{value}</p>
+				</div>
+			</div>
+		);
+	};
+
+	return (
+		<div style={{
+			background: "linear-gradient(135deg, rgba(236,91,19,0.05) 0%, rgba(236,91,19,0.01) 100%)",
+			border: "1px solid rgba(236,91,19,0.18)",
+			borderRadius: 18, padding: "16px 16px",
+			display: "flex", flexDirection: "column", gap: 14,
+		}}>
+			{/* Header */}
+			<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+				<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.28em", textTransform: "uppercase", color: T.ember }}>
+					CLIENT PROFILE
+				</p>
+				{loading && (
+					<div style={{
+						width: 14, height: 14, borderRadius: "50%",
+						border: "1.5px solid rgba(236,91,19,0.2)",
+						borderTopColor: T.ember,
+						animation: "crSpin 0.8s linear infinite",
+					}} />
+				)}
+			</div>
+
+			{/* Avatar + identity */}
+			<div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+				<div style={{
+					width: 46, height: 46, borderRadius: "50%", flexShrink: 0,
+					background: avatarUrl ? "transparent" : "linear-gradient(135deg, rgba(236,91,19,0.3), rgba(236,91,19,0.1))",
+					border: `2px solid ${avatarUrl ? "rgba(236,91,19,0.45)" : "rgba(236,91,19,0.3)"}`,
+					display: "flex", alignItems: "center", justifyContent: "center",
+					overflow: "hidden",
+					boxShadow: "0 0 18px rgba(236,91,19,0.14)",
+				}}>
+					{avatarUrl ? (
+						<img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { e.currentTarget.style.display = "none"; }} />
+					) : (
+						<span style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, fontStyle: "italic", color: T.ember }}>{initial}</span>
+					)}
+				</div>
+				<div style={{ minWidth: 0, flex: 1 }}>
+					{deliveryName && (
+						<p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontStyle: "italic", color: "white", lineHeight: 1.25, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+							{deliveryName}
+						</p>
+					)}
+					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.32)", letterSpacing: "0.08em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+						{email || "—"}
+					</p>
+					{bio && (
+						<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: "rgba(255,255,255,0.35)", fontStyle: "italic", marginTop: 4, lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+							{bio}
+						</p>
+					)}
+				</div>
+			</div>
+
+			{/* Divider */}
+			<div style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
+
+			{/* Detail rows */}
+			<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+				<InfoRow icon="call"        label="Phone"            value={phone}    color={T.live} />
+				<InfoRow icon="location_on" label="Location"         value={location} color={T.shipped} />
+				<InfoRow icon="home"        label="Delivery Address" value={address}  color="rgba(167,139,250,1)" />
+			</div>
+
+			{!loading && !profile && !phone && !address && (
+				<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.15)", letterSpacing: "0.18em", textAlign: "center" }}>
+					NO EXTENDED PROFILE ON FILE
+				</p>
+			)}
+
+			<style>{`@keyframes crSpin { to { transform: rotate(360deg); } }`}</style>
+		</div>
+	);
+};
+
 /* ─── STATUS BADGE ───────────────────────────────────────────── */
 const Badge = ({ status = "" }) => {
 	const c = STATUS_COLOR[status.toLowerCase()] || "rgba(255,255,255,0.3)";
@@ -215,7 +349,10 @@ const ClientRequests = () => {
 								>
 									<td className="p-5">
 										<p className="font-medium text-sm text-white">
-											{order.client_email || order.email || "—"}
+											{order.delivery_name || order.customer_name || order.client_email || order.email || "—"}
+										</p>
+										<p className="text-[10px] text-white/30 font-mono mt-0.5" style={{ letterSpacing: "0.05em" }}>
+											{order.client_email || order.email || ""}
 										</p>
 										<p className="text-[10px] text-white/30 uppercase tracking-wider mt-1">
 											{new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} · {new Date(order.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
@@ -306,8 +443,13 @@ const ClientRequests = () => {
 						<div className="flex justify-between items-start">
 							<div>
 								<h3 className="font-medium text-sm text-white">
-									{order.client_email || order.email || "—"}
+									{order.delivery_name || order.customer_name || order.client_email || order.email || "—"}
 								</h3>
+								{(order.delivery_name || order.customer_name) && (
+									<p className="text-[10px] text-white/30 font-mono mt-0.5" style={{ letterSpacing: "0.05em" }}>
+										{order.client_email || order.email || ""}
+									</p>
+								)}
 								<p className="text-[10px] text-white/30 uppercase tracking-wider mt-1">
 									{new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} · {new Date(order.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
 								</p>
@@ -404,11 +546,19 @@ const ClientRequests = () => {
 								</span>
 							</h3>
 							<p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
-								{selectedOrder.client_email || selectedOrder.email}
+								{selectedOrder.delivery_name || selectedOrder.customer_name || selectedOrder.client_email || selectedOrder.email}
 							</p>
+							{(selectedOrder.delivery_name || selectedOrder.customer_name) && (
+								<p className="text-[9px] font-mono text-white/25 mt-1" style={{ letterSpacing: "0.06em" }}>
+									{selectedOrder.client_email || selectedOrder.email}
+								</p>
+							)}
 						</div>
 
 						<div className="space-y-6">
+							{/* ── Customer profile ── */}
+							<CustomerProfileCard order={selectedOrder} />
+
 							{/* Summary */}
 							<div className="p-4 rounded-2xl border border-white/5 bg-white/[0.02]">
 								<div className="flex items-center justify-between">

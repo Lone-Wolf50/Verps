@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+// @refresh reset
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabaseClient";
 
@@ -21,6 +22,7 @@ export const CartProvider = ({ children }) => {
   // ── On mount: pull cart from DB (cross-device restore) ───────
   const syncFromDB = useCallback(async () => {
     const email = localStorage.getItem("userEmail");
+
     if (!email) {
       // No user — ensure cart is empty (guards against stale localStorage)
       setCart([]);
@@ -28,13 +30,28 @@ export const CartProvider = ({ children }) => {
       setSynced(true);
       return;
     }
+
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("verp_cart_items")
         .select("*")
         .eq("user_email", email);
+
+
+      // Recover any items saved as guest_cart before logout/before login
+      let guestItems = [];
+      try {
+        const raw = localStorage.getItem("guest_cart");
+        if (raw) {
+          guestItems = JSON.parse(raw);
+          localStorage.removeItem("guest_cart");
+        } else {
+        }
+      } catch (_) {}
+
+      let baseCart = [];
       if (data && data.length > 0) {
-        const dbCart = data.map((row) => ({
+        baseCart = data.map((row) => ({
           id: row.product_id,
           name: row.product_name,
           price: Number(row.price),
@@ -43,10 +60,27 @@ export const CartProvider = ({ children }) => {
           size: row.size || null,
           color: row.color || null,
         }));
-        setCart(dbCart);
-        localStorage.setItem("luxury_cart", JSON.stringify(dbCart));
       }
-    } catch (_) { /* non-critical — fallback to localStorage */ }
+
+      // Merge guest items into the DB cart (guest items take lower precedence — just add qty if already in DB cart)
+      const merged = [...baseCart];
+      for (const gi of guestItems) {
+        const existing = merged.find((x) => x.id === gi.id);
+        if (existing) {
+          existing.quantity += gi.quantity;
+        } else {
+          merged.push(gi);
+        }
+      }
+
+
+      if (merged.length > 0) {
+        setCart(merged);
+        localStorage.setItem("luxury_cart", JSON.stringify(merged));
+      } else {
+      }
+    } catch (err) {
+    }
     setSynced(true);
   }, []);
 
@@ -57,7 +91,9 @@ export const CartProvider = ({ children }) => {
     if (!synced) return; // don't overwrite DB before we've loaded from it
     localStorage.setItem("luxury_cart", JSON.stringify(cart));
     const email = localStorage.getItem("userEmail");
-    if (!email) return;
+    if (!email) {
+      return;
+    }
     const push = async () => {
       try {
         await supabase.from("verp_cart_items").delete().eq("user_email", email);
@@ -74,8 +110,9 @@ export const CartProvider = ({ children }) => {
               color: item.color || null,
             })),
           );
+        } else {
         }
-      } catch (_) { /* non-critical */ }
+      } catch (err) { /* non-critical */ }
     };
     push();
   }, [cart, synced]);

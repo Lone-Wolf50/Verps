@@ -53,6 +53,7 @@ const Checkout = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     name: localStorage.getItem("userName") || "",
+    deliveryName: "",
     email: localStorage.getItem("userEmail") || "",
     phone: "",
     location: "",
@@ -131,6 +132,7 @@ const Checkout = () => {
   const validate = () => {
     const e = {};
     if (!formData.name.trim()) e.name = "Name required";
+    if (!formData.deliveryName.trim()) e.deliveryName = "Delivery name required";
     if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Valid email required";
     if (formData.phone.replace(/\D/g, "").length < 10) e.phone = "Must be 10 digits";
     if (!formData.location.trim()) e.location = "Location required — e.g. Accra";
@@ -168,6 +170,7 @@ const Checkout = () => {
         metadata: {
           custom_fields: [
             { display_name: "Customer", variable_name: "customer_name", value: formData.name },
+            { display_name: "Delivery Name", variable_name: "delivery_name", value: formData.deliveryName },
             { display_name: "Phone", variable_name: "customer_phone", value: formData.phone },
             { display_name: "Location", variable_name: "location", value: formData.location },
             { display_name: "Base Total", variable_name: "base_total", value: cartTotal },
@@ -181,6 +184,7 @@ const Checkout = () => {
               .from("verp_orders")
               .insert([{
                 customer_name: formData.name,
+                delivery_name: formData.deliveryName,
                 customer_email: formData.email,
                 customer_phone: formData.phone,
                 location: formData.location,
@@ -271,8 +275,28 @@ const Checkout = () => {
                     <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>CLIENT INFORMATION</p>
                   </div>
                   <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
-                    <Field label="Full Name" icon="👤" error={fieldErrors.name}>
-                      <input style={inputSx} value={formData.name} onChange={(e) => set("name", e.target.value)} placeholder="Your full name" />
+                    {/* Account name — read only display */}
+                    <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                      <label style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.3em" }}>ACCOUNT NAME</label>
+                      <div style={{ width:"100%", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.05)", borderRadius:14, padding:"14px 18px", fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.3)", boxSizing:"border-box", display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontSize:14 }}>👤</span>
+                        <span>{formData.name || "—"}</span>
+                        <span style={{ marginLeft:"auto", fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.18)", letterSpacing:"0.15em" }}>NOT EDITABLE</span>
+                      </div>
+                    </div>
+
+                    {/* Delivery name — required fresh entry */}
+                    <Field label="Delivery Name" icon="📋" error={fieldErrors.deliveryName}>
+                      <input
+                        style={inputSx}
+                        value={formData.deliveryName}
+                        onChange={(e) => set("deliveryName", e.target.value)}
+                        placeholder="Full name to use for delivery & calls"
+                        autoComplete="off"
+                      />
+                      <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.2)", letterSpacing:"0.12em", marginTop:6, lineHeight:1.6 }}>
+                        YOUR ACCOUNT NAME IS NOT USED FOR ORDERS — ENTER THE NAME OUR TEAM SHOULD ASK FOR WHEN THEY CONTACT YOU.
+                      </p>
                     </Field>
                     <Field label="Email" icon="✉" error={fieldErrors.email}>
                       <input style={inputSx} type="email" value={formData.email} onChange={(e) => set("email", e.target.value)} placeholder="your@email.com" />

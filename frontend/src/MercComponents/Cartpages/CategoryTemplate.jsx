@@ -566,7 +566,7 @@ const CategoryTemplate = ({
 				</div>
 			)}
 
-			<style jsx>{`
+			<style>{`
 				.custom-scrollbar::-webkit-scrollbar {
 					width: 4px;
 				}

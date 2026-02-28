@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,Link } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
@@ -26,7 +26,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 	const handleStaffLogout = () => {
 		localStorage.removeItem("staffRole");
 		localStorage.removeItem("staffEmail");
-		navigate("/staff-login?from=admin", { replace: true });
+		navigate("/sys/console/login", { replace: true });
 	};
 
 	useEffect(() => {
@@ -200,7 +200,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 
 			{/* ── Footer / sign-out ── */}
 			<div style={{ padding: "12px 8px 14px", borderTop: "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
-				<button
+			 <button
 					onClick={handleStaffLogout}
 					title={!showLabels ? "Sign out" : undefined}
 					style={{
