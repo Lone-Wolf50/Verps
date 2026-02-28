@@ -468,10 +468,10 @@ const PasswordCard = ({ email: userEmail }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, type: "RESET" }),
       }, 25000);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Failed to send code");
-
-      // Store OTP + metadata exactly as AuthPage does
+      const text = await res.text();
+      let data = {};
+      try { data = JSON.parse(text); } catch { throw new Error(text || `Server error ${res.status}`); }
+      if (!res.ok || !data.success) throw new Error(data.error || data.message || "Failed to send code");
       const otp = String(data.otp).trim();
       const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       await supabase.from("verp_users").update({ otp_code: otp, otp_expiry: expiry }).eq("email", userEmail);
@@ -499,12 +499,13 @@ const PasswordCard = ({ email: userEmail }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, type: "RESET" }),
       }, 25000);
-      const data = await res.json();
+      const text2 = await res.text();
+      let data = {};
+      try { data = JSON.parse(text2); } catch { throw new Error(text2 || "Failed to resend"); }
       if (data.success) {
         if (data.otp) localStorage.setItem("pendingOtp", String(data.otp).trim());
         setCooldown(180);
         setOtpDigits(["", "", "", "", "", ""]);
-        otpRefs.current[0]?.focus();
         Swal.fire({ title: "Code Resent!", text: "Check your inbox for the new code.", icon: "success", timer: 2200, showConfirmButton: false, background: "#0a0a0a", color: "#fff" });
       } else {
         throw new Error(data.error || "Failed to resend");
