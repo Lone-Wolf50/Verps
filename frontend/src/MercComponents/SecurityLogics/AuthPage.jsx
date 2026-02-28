@@ -268,7 +268,6 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
 
       // Save OTP + pending user data to DB now (upsert so re-signup works)
       const otp = String(data.otp).trim();
-      console.log("[SIGNUP] Server returned OTP:", otp, "| length:", otp.length);
       const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       await supabase.from("verp_users").upsert(
         {
@@ -460,46 +459,25 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
     if (entered.length !== 6) return;
     setLoading(true);
 
-    console.group("🔐 OTP VERIFY DEBUG");
-    console.log("📧 Email:", email);
-    console.log("🎯 Purpose:", purpose);
-    console.log("✏️  Entered OTP:", entered, "| length:", entered.length, "| type:", typeof entered);
-
-    const rawStored = localStorage.getItem("pendingOtp");
-    const stored = String(rawStored || "").trim();
-    console.log("💾 localStorage raw value:", rawStored, "| type:", typeof rawStored);
-    console.log("💾 localStorage trimmed:", stored, "| length:", stored.length);
-    console.log("🔁 localStorage match?", entered === stored);
+    const stored = String(localStorage.getItem("pendingOtp") || "").trim();
     let valid = stored.length === 6 && entered === stored;
-    console.log("✅ Valid after localStorage check:", valid);
 
     if (!valid) {
-      console.log("📡 localStorage check failed — querying DB...");
-      const { data: dbUser, error: dbErr } = await supabase
+      const { data: dbUser } = await supabase
         .from("verp_users")
         .select("otp_code, otp_expiry")
         .eq("email", email)
         .maybeSingle();
-      console.log("🗃️  DB query error:", dbErr);
-      console.log("🗃️  DB raw otp_code:", dbUser?.otp_code, "| type:", typeof dbUser?.otp_code);
-      console.log("🗃️  DB otp_expiry:", dbUser?.otp_expiry);
       if (dbUser?.otp_code) {
         const dbOtp = String(dbUser.otp_code).trim();
-        console.log("🗃️  DB trimmed OTP:", dbOtp, "| length:", dbOtp.length);
-        console.log("🔁 DB match?", dbOtp === entered);
         if (purpose === "RESET") {
-          const notExpired = new Date(dbUser.otp_expiry) > new Date();
-          console.log("⏱️  Expiry check (RESET):", dbUser.otp_expiry, "| not expired?", notExpired);
-          valid = dbOtp === entered && notExpired;
+          valid = dbOtp === entered && new Date(dbUser.otp_expiry) > new Date();
         } else {
           valid = dbOtp === entered;
         }
       } else {
-        console.warn("⚠️  No otp_code found in DB for this email!");
       }
-      console.log("✅ Valid after DB check:", valid);
     }
-    console.groupEnd();
 
     if (!valid) {
       Swal.fire({

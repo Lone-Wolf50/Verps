@@ -467,6 +467,12 @@ const PasswordCard = ({ email: userEmail }) => {
     return window.location.origin;
   })();
 
+  const fetchWithTimeout = (url, options = {}, ms = 30000) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(t));
+  };
+
   /* ── STEP 1: send OTP ── */
   const sendOtp = async () => {
     setErr("");
@@ -477,11 +483,11 @@ const PasswordCard = ({ email: userEmail }) => {
     }
     setLoading(true);
     try {
-      const res  = await fetch(`${apiBase}/api/send-otp`, {
+      const res  = await fetchWithTimeout(`${apiBase}/api/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: trimmed, type: "password_reset" }),
-      });
+      }, 30000);
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.message || json.error || `Server error ${res.status}`);
       setStep("otp");
@@ -498,11 +504,11 @@ const PasswordCard = ({ email: userEmail }) => {
     if (enteredCode.length < 6) { setErr("Enter the 6-digit code."); return; }
     setLoading(true);
     try {
-      const res  = await fetch(`${apiBase}/api/verify-otp`, {
+      const res  = await fetchWithTimeout(`${apiBase}/api/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: lookupEmail, otp: enteredCode }),
-      });
+      }, 30000);
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.message || json.error || `Server error ${res.status}`);
       setStep("password");
@@ -521,7 +527,7 @@ const PasswordCard = ({ email: userEmail }) => {
     if (next !== conf)    { setErr("Passwords don't match."); return; }
     setLoading(true);
     try {
-      const res  = await fetch(`${apiBase}/api/reset-password`, {
+      const res  = await fetchWithTimeout(`${apiBase}/api/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password: next }),
