@@ -418,24 +418,46 @@ const BioCard = ({ userId }) => {
 
 /* ═══════════════════════════════════════════════════════════════
    4. CHANGE PASSWORD
-   Mirrors AuthPage logic exactly:
-   • Send OTP  → POST /api/send-otp  (type "RESET"), store in localStorage + DB
-   • Verify OTP → check localStorage first, fall back to DB (same as AuthPage_OtpForm)
-   • Reset pw   → bcryptjs hash client-side → direct Supabase update (same as AuthPage_ResetForm)
+   Uses your custom /api/send-otp + /api/reset-password endpoints,
+   NOT supabase.auth.* — because your project uses custom auth
+   (verp_users table) and Supabase email provider is disabled.
+   Console logs explain every step for debugging.
 ═══════════════════════════════════════════════════════════════ */
 const PasswordCard = ({ email: userEmail }) => {
   // step: "email" → "otp" → "password" → "done"
-  const [step,     setStep]   = useState("email");
-  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
-  const [cooldown, setCooldown] = useState(0);
-  const [resending, setResending] = useState(false);
-  const [next,     setNext]   = useState("");
-  const [conf,     setConf]   = useState("");
-  const [showN,    setShowN]  = useState(false);
-  const [showCo,   setShowCo] = useState(false);
-  const [loading,  setLoading] = useState(false);
-  const [err,      setErr]    = useState("");
-  const otpRefs = useRef([]);
+  const [step,      setStep]    = useState("email");
+  const [email,     setEmail]   = useState(userEmail || "");
+  const [otp,       setOtp]     = useState("");
+  const [next,      setNext]    = useState("");
+  const [conf,      setConf]    = useState("");
+  const [showN,     setShowN]   = useState(false);
+  const [showCo,    setShowCo]  = useState(false);
+  const [loading,   setLoading] = useState(false);
+  const [err,       setErr]     = useState("");
+  const [otpTimer,  setOtpTimer] = useState(0);
+  const timerRef = useRef(null);
+
+  // 10-min countdown — starts when OTP step begins
+  useEffect(() => {
+    if (step === "otp") {
+      setOtpTimer(10 * 60);
+      timerRef.current = setInterval(() => {
+        setOtpTimer(t => {
+          if (t <= 1) { clearInterval(timerRef.current); return 0; }
+          return t - 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [step]);
+
+  const timerMins  = String(Math.floor(otpTimer / 60)).padStart(2, "0");
+  const timerSecs  = String(otpTimer % 60).padStart(2, "0");
+  const timerExpired = step === "otp" && otpTimer === 0;
+  const timerPct   = (otpTimer / 600) * 100;
+  const timerColor = otpTimer > 300 ? "#22c55e" : otpTimer > 120 ? "#f59e0b" : "#ef4444";
 
   const strength = getStrength(next);
 
@@ -445,160 +467,74 @@ const PasswordCard = ({ email: userEmail }) => {
     return window.location.origin;
   })();
 
-  const fetchWithTimeout = (url, options = {}, ms = 25000) => {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), ms);
-    return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(t));
-  };
-
-  // Cooldown ticker — purely informational, not a gate (mirrors AuthPage)
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const t = setTimeout(() => setCooldown(c => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [cooldown]);
-
-  /* ── STEP 1: send OTP (mirrors AuthPage_ForgotForm) ── */
+  /* ── STEP 1: send OTP ── */
   const sendOtp = async () => {
     setErr("");
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) { setErr("Enter your email address."); return; }
+    if (userEmail && trimmed !== userEmail.toLowerCase()) {
+      setErr("That email doesn't match your account."); return;
+    }
     setLoading(true);
     try {
-      const res = await fetchWithTimeout(`${apiBase}/api/send-otp`, {
+      const res  = await fetch(`${apiBase}/api/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, type: "RESET" }),
-      }, 25000);
-      const text = await res.text();
-      let data = {};
-      try { data = JSON.parse(text); } catch { throw new Error(text || `Server error ${res.status}`); }
-      if (!res.ok || !data.success) throw new Error(data.error || data.message || "Failed to send code");
-      const otp = String(data.otp).trim();
-      const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-      await supabase.from("verp_users").update({ otp_code: otp, otp_expiry: expiry }).eq("email", userEmail);
-      localStorage.setItem("pendingOtp", otp);
-      localStorage.setItem("pendingEmail", userEmail);
-      localStorage.setItem("otpPurpose", "RESET");
-
-      setOtpDigits(["", "", "", "", "", ""]);
-      setCooldown(180);
+        body: JSON.stringify({ email: trimmed, type: "password_reset" }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || json.error || `Server error ${res.status}`);
       setStep("otp");
-      setTimeout(() => otpRefs.current[0]?.focus(), 50);
     } catch (e) {
-      const msg = e.name === "AbortError" ? "Request timed out. Check your connection." : (e.message || "Failed to send code.");
-      setErr(msg);
+      setErr(e.message || "Failed to send code. Check your server is running.");
     } finally { setLoading(false); }
   };
 
-  /* ── Resend OTP (mirrors AuthPage_OtpForm handleResend) ── */
-  const handleResend = async () => {
-    if (resending) return;
-    setResending(true);
+  /* ── STEP 2: verify OTP via server (server keeps OTP alive until password is saved) ── */
+  const verifyOtp = async () => {
+    setErr("");
+    const enteredCode = otp.trim();
+    const lookupEmail = email.trim().toLowerCase();
+    if (enteredCode.length < 6) { setErr("Enter the 6-digit code."); return; }
+    setLoading(true);
     try {
-      const res = await fetchWithTimeout(`${apiBase}/api/send-otp`, {
+      const res  = await fetch(`${apiBase}/api/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, type: "RESET" }),
-      }, 25000);
-      const text2 = await res.text();
-      let data = {};
-      try { data = JSON.parse(text2); } catch { throw new Error(text2 || "Failed to resend"); }
-      if (data.success) {
-        if (data.otp) localStorage.setItem("pendingOtp", String(data.otp).trim());
-        setCooldown(180);
-        setOtpDigits(["", "", "", "", "", ""]);
-        Swal.fire({ title: "Code Resent!", text: "Check your inbox for the new code.", icon: "success", timer: 2200, showConfirmButton: false, background: "#0a0a0a", color: "#fff" });
-      } else {
-        throw new Error(data.error || "Failed to resend");
-      }
+        body: JSON.stringify({ email: lookupEmail, otp: enteredCode }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || json.error || `Server error ${res.status}`);
+      setStep("password");
     } catch (e) {
-      const msg = e.name === "AbortError" ? "Request timed out." : (e.message || "Something went wrong.");
-      setErr(msg);
-    } finally { setResending(false); }
-  };
-
-  /* ── OTP digit handlers (mirrors AuthPage_OtpForm) ── */
-  const handleOtpChange = (idx, val) => {
-    if (!/^\d?$/.test(val)) return;
-    const next = [...otpDigits]; next[idx] = val; setOtpDigits(next);
-    if (val && idx < 5) otpRefs.current[idx + 1]?.focus();
-  };
-  const handleOtpKeyDown = (idx, e) => {
-    if (e.key === "Backspace" && !otpDigits[idx] && idx > 0) otpRefs.current[idx - 1]?.focus();
-  };
-  const handleOtpPaste = (e) => {
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (pasted.length === 6) { setOtpDigits(pasted.split("")); otpRefs.current[5]?.focus(); }
-  };
-
-  /* ── STEP 2: verify OTP (mirrors AuthPage_OtpForm verify) ── */
-  const verifyOtp = async () => {
-    const entered = otpDigits.join("").trim();
-    if (entered.length !== 6) return;
-    setErr("");
-    setLoading(true);
-
-    // Check localStorage first, then fall back to DB — exactly as AuthPage does
-    const stored = String(localStorage.getItem("pendingOtp") || "").trim();
-    let valid = stored.length === 6 && entered === stored;
-
-    if (!valid) {
-      const { data: dbUser } = await supabase
-        .from("verp_users")
-        .select("otp_code, otp_expiry")
-        .eq("email", userEmail)
-        .maybeSingle();
-      if (dbUser?.otp_code) {
-        const dbOtp = String(dbUser.otp_code).trim();
-        valid = dbOtp === entered && new Date(dbUser.otp_expiry) > new Date();
-      }
-    }
-
-    if (!valid) {
-      Swal.fire({ title: "WRONG CODE", text: "Double-check the digits in your email. Use RESEND if the code is old.", icon: "error", background: "#0a0a0a", color: "#fff" });
+      setErr(e.message || "Verification failed. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Valid — clear pendingOtp just like AuthPage does for RESET purpose
-    localStorage.removeItem("pendingOtp");
-    setLoading(false);
-    setStep("password");
   };
 
-  /* ── STEP 3: save new password (mirrors AuthPage_ResetForm submit) ── */
+  /* ── STEP 3: set new password ── */
   const changePassword = async () => {
     setErr("");
-    if (!next || !conf)  { setErr("Fill in both password fields."); return; }
-    if (next.length < 8) { setErr("Min 8 characters."); return; }
-    if (next !== conf)   { setErr("Passwords don't match."); return; }
+    if (!next || !conf)   { setErr("Fill in both password fields."); return; }
+    if (next.length < 8)  { setErr("Password must be at least 8 characters."); return; }
+    if (next !== conf)    { setErr("Passwords don't match."); return; }
     setLoading(true);
     try {
-      const bcrypt = await import("bcryptjs");
-      const hash = await bcrypt.hash(next, 10);
-      await supabase.from("verp_users")
-        .update({ password_hash: hash, otp_code: null, otp_expiry: null })
-        .eq("email", userEmail);
-      localStorage.removeItem("pendingEmail");
-      localStorage.removeItem("pendingOtp");
-      localStorage.removeItem("otpPurpose");
+      const res  = await fetch(`${apiBase}/api/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password: next }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || json.error || `Server error ${res.status}`);
       setStep("done");
     } catch (e) {
-      Swal.fire({ title: "Error", text: e.message, icon: "error", background: "#0a0a0a", color: "#fff" });
+      setErr(e.message || "Failed to update password.");
     } finally { setLoading(false); }
   };
 
-  const reset = () => {
-    setStep("email");
-    setOtpDigits(["", "", "", "", "", ""]);
-    setNext(""); setConf(""); setErr("");
-    localStorage.removeItem("pendingOtp");
-    localStorage.removeItem("pendingEmail");
-    localStorage.removeItem("otpPurpose");
-  };
-
-  const maskedEmail = userEmail
-    ? userEmail.replace(/(.{2})(.*)(@.*)/, (_, a, b, c) => a + "*".repeat(Math.min(b.length, 5)) + c)
-    : "your email";
+  const reset = () => { setStep("email"); setOtp(""); setNext(""); setConf(""); setErr(""); };
 
   return (
     <Card>
@@ -617,112 +553,101 @@ const PasswordCard = ({ email: userEmail }) => {
           </div>
         )}
 
-        {/* ── EMAIL step ── */}
+        {/* ── EMAIL ── */}
+        {step !== "done" && (
+          <Field label="Account Email" icon="mail"
+            value={email} onChange={e => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            disabled={step !== "email"}
+            hint={step !== "email" ? "EMAIL CONFIRMED ✓" : undefined}
+          />
+        )}
         {step === "email" && (
-          <>
-            <Field label="Account Email" icon="mail" value={userEmail} disabled hint="YOUR REGISTERED EMAIL" />
-            <button onClick={sendOtp} disabled={loading} style={{
-              display: "flex", alignItems: "center", gap: 7, padding: "11px 18px", borderRadius: 10, alignSelf: "flex-start",
-              background: loading ? "rgba(236,91,19,0.25)" : "linear-gradient(135deg,#ec5b13,#d94e0f)",
-              border: "none", cursor: loading ? "not-allowed" : "pointer",
-              fontFamily: T.mono, fontSize: 8, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700,
-              boxShadow: loading ? "none" : "0 4px 16px rgba(236,91,19,0.28)",
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 14, animation: loading ? "spin 1s linear infinite" : "none" }}>{loading ? "autorenew" : "send"}</span>
-              {loading ? "SENDING..." : "SEND CODE"}
-            </button>
-          </>
+          <button onClick={sendOtp} disabled={loading || !email.trim()} style={{
+            display: "flex", alignItems: "center", gap: 7, padding: "11px 18px", borderRadius: 10, alignSelf: "flex-start",
+            background: loading || !email.trim() ? "rgba(236,91,19,0.25)" : "linear-gradient(135deg,#ec5b13,#d94e0f)",
+            border: "none", cursor: loading || !email.trim() ? "not-allowed" : "pointer",
+            fontFamily: T.mono, fontSize: 8, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700,
+            boxShadow: loading || !email.trim() ? "none" : "0 4px 16px rgba(236,91,19,0.28)",
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 14, animation: loading ? "spin 1s linear infinite" : "none" }}>{loading ? "autorenew" : "send"}</span>
+            {loading ? "SENDING..." : "SEND CODE"}
+          </button>
         )}
 
-        {/* ── OTP step (mirrors AuthPage_OtpForm UI exactly) ── */}
-        {step === "otp" && (
+        {/* ── OTP ── */}
+        {(step === "otp" || step === "password") && (
           <>
-            <div style={{ background: "rgba(236,91,19,0.06)", border: "1px solid rgba(236,91,19,0.18)", borderRadius: 14, padding: "14px 18px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(236,91,19,0.12)", border: "1px solid rgba(236,91,19,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: T.ember }}>mark_email_unread</span>
-                </div>
-                <div>
-                  <p style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.22em", textTransform: "uppercase", color: T.textGhost, margin: "0 0 3px" }}>CODE SENT TO</p>
-                  <p style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.text, margin: 0 }}>{maskedEmail}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 6-box digit input — mirrors AuthPage exactly */}
-            <div style={{ display: "flex", gap: 8, justifyContent: "center" }} onPaste={handleOtpPaste}>
-              {otpDigits.map((d, i) => (
-                <input key={i} ref={el => otpRefs.current[i] = el}
-                  value={d}
-                  onChange={e => handleOtpChange(i, e.target.value)}
-                  onKeyDown={e => handleOtpKeyDown(i, e)}
-                  maxLength={1} inputMode="numeric"
-                  style={{
-                    width: "clamp(38px,10vw,50px)", height: "clamp(46px,12vw,58px)",
-                    textAlign: "center",
-                    background: d ? "rgba(236,91,19,0.08)" : "rgba(255,255,255,0.04)",
-                    border: d ? "1.5px solid rgba(236,91,19,0.55)" : `1px solid ${T.bdr}`,
-                    borderRadius: 12,
-                    fontFamily: T.mono, fontSize: "clamp(18px,4vw,22px)", fontWeight: 700, color: "#fff",
-                    outline: "none", transition: "all 200ms",
-                    boxShadow: d ? "0 0 14px rgba(236,91,19,0.15)" : "none",
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Cooldown — informational only, not a gate */}
-            <div style={{ textAlign: "center", minHeight: 16 }}>
-              {cooldown > 0
-                ? <p style={{ fontFamily: T.mono, fontSize: 8, color: T.textGhost, letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>
-                    SENT <span style={{ color: T.ember, fontWeight: 700 }}>{Math.floor((180 - cooldown) / 60)}:{String((180 - cooldown) % 60).padStart(2, "0")}</span> AGO
+            {/* Email confirmation + countdown timer */}
+            <div style={{ borderRadius: 12, overflow: "hidden", border: timerExpired ? "1px solid rgba(239,68,68,0.25)" : "1px solid rgba(34,197,94,0.18)", background: timerExpired ? "rgba(239,68,68,0.04)" : "rgba(34,197,94,0.04)" }}>
+              {/* Top row */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px" }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 15, color: timerExpired ? "#ef4444" : "#22c55e" }}>
+                  {timerExpired ? "timer_off" : "mark_email_read"}
+                </span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.14em", textTransform: "uppercase", color: timerExpired ? "#ef4444" : "#22c55e", margin: 0, fontWeight: 700 }}>
+                    {timerExpired ? "Code expired — request a new one" : `Code sent to ${email.toLowerCase()}`}
                   </p>
-                : <p style={{ fontFamily: T.mono, fontSize: 8, color: T.textGhost, letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>DIDN'T GET IT? RESEND BELOW</p>
-              }
+                  {!timerExpired && step === "otp" && (
+                    <p style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.1em", color: "rgba(34,197,94,0.55)", margin: "2px 0 0", textTransform: "uppercase" }}>
+                      Check your inbox
+                    </p>
+                  )}
+                </div>
+                {/* Live clock */}
+                {step === "otp" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, background: timerExpired ? "rgba(239,68,68,0.1)" : `${timerColor}12`, border: `1px solid ${timerExpired ? "rgba(239,68,68,0.2)" : timerColor + "30"}` }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 12, color: timerExpired ? "#ef4444" : timerColor }}>timer</span>
+                    <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: timerExpired ? "#ef4444" : timerColor, letterSpacing: "0.08em" }}>
+                      {timerMins}:{timerSecs}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {/* Progress bar */}
+              {step === "otp" && (
+                <div style={{ height: 2, background: "rgba(255,255,255,0.05)" }}>
+                  <div style={{ height: "100%", width: `${timerPct}%`, background: timerColor, transition: "width 1s linear, background 1s" }} />
+                </div>
+              )}
             </div>
 
-            <button onClick={verifyOtp} disabled={loading || otpDigits.join("").length !== 6} style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "13px 0", borderRadius: 10, width: "100%",
-              background: loading || otpDigits.join("").length !== 6 ? "rgba(236,91,19,0.25)" : "linear-gradient(135deg,#ec5b13,#d94e0f)",
-              border: "none", cursor: loading || otpDigits.join("").length !== 6 ? "not-allowed" : "pointer",
-              fontFamily: T.mono, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "#fff", fontWeight: 700,
-              boxShadow: loading || otpDigits.join("").length !== 6 ? "none" : "0 4px 16px rgba(236,91,19,0.28)",
-            }}>
-              {loading
-                ? <><div style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", animation: "spin 0.8s linear infinite" }} />VERIFYING...</>
-                : "VERIFY & CONTINUE"
-              }
-            </button>
-
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-              <button onClick={reset} style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "none", cursor: "pointer", fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", textTransform: "uppercase", color: T.textGhost, padding: "8px 0", transition: "color 180ms" }}
-                onMouseEnter={e => e.currentTarget.style.color = T.textDim}
-                onMouseLeave={e => e.currentTarget.style.color = T.textGhost}>
-                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>arrow_back</span>
-                START OVER
-              </button>
-              <button onClick={handleResend} disabled={resending} style={{
-                display: "flex", alignItems: "center", gap: 6,
-                background: "rgba(236,91,19,0.08)", border: "1px solid rgba(236,91,19,0.3)",
-                borderRadius: 9, padding: "9px 14px", cursor: resending ? "not-allowed" : "pointer",
-                fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", textTransform: "uppercase",
-                color: T.ember, opacity: resending ? 0.55 : 1, transition: "all 200ms",
-              }}
-                onMouseEnter={e => { if (!resending) { e.currentTarget.style.background = "rgba(236,91,19,0.16)"; e.currentTarget.style.borderColor = "rgba(236,91,19,0.5)"; } }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(236,91,19,0.08)"; e.currentTarget.style.borderColor = "rgba(236,91,19,0.3)"; }}>
-                {resending
-                  ? <div style={{ width: 11, height: 11, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.2)", borderTopColor: T.ember, animation: "spin 0.8s linear infinite" }} />
-                  : <span className="material-symbols-outlined" style={{ fontSize: 13 }}>refresh</span>
-                }
-                {resending ? "SENDING..." : "RESEND CODE"}
-              </button>
-            </div>
+            <Field label="6-Digit Code" icon="pin"
+              value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="000000" disabled={step === "password" || timerExpired}
+              hint={step === "password" ? "CODE VERIFIED ✓" : undefined}
+            />
+            {step === "otp" && (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button onClick={verifyOtp} disabled={loading || otp.length < 6 || timerExpired} style={{
+                  display: "flex", alignItems: "center", gap: 7, padding: "11px 18px", borderRadius: 10,
+                  background: loading || otp.length < 6 || timerExpired ? "rgba(236,91,19,0.25)" : "linear-gradient(135deg,#ec5b13,#d94e0f)",
+                  border: "none", cursor: loading || otp.length < 6 || timerExpired ? "not-allowed" : "pointer",
+                  fontFamily: T.mono, fontSize: 8, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700,
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, animation: loading ? "spin 1s linear infinite" : "none" }}>{loading ? "autorenew" : "verified"}</span>
+                  {loading ? "VERIFYING..." : "VERIFY CODE"}
+                </button>
+                {timerExpired && (
+                  <button onClick={sendOtp} style={{
+                    display: "flex", alignItems: "center", gap: 7, padding: "11px 18px", borderRadius: 10,
+                    background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)",
+                    cursor: "pointer", fontFamily: T.mono, fontSize: 8, letterSpacing: "0.18em",
+                    textTransform: "uppercase", color: "#ef4444", fontWeight: 700,
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>refresh</span>
+                    RESEND CODE
+                  </button>
+                )}
+              </div>
+            )}
           </>
         )}
 
-        {/* ── PASSWORD step (mirrors AuthPage_ResetForm UI) ── */}
-        {step === "password" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* ── PASSWORD ACCORDION — max-height transition ── */}
+        <div style={{ overflow: "hidden", maxHeight: step === "password" ? 420 : 0, transition: "max-height 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingTop: 4 }}>
             <Field label="New Password" icon="lock_reset"
               value={next} onChange={e => setNext(e.target.value)}
               placeholder="8+ chars, upper, number, symbol"
@@ -745,20 +670,28 @@ const PasswordCard = ({ email: userEmail }) => {
               <EyeBtn visible={showCo} onToggle={() => setShowCo(o => !o)} />
             </Field>
             <SaveBtn loading={loading} onClick={changePassword} disabled={!next || !conf || next !== conf} />
-            <button onClick={reset} style={{
-              display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.04)", border: `1px solid ${T.bdr}`,
-              borderRadius: 10, padding: "10px 16px", cursor: "pointer", alignSelf: "flex-start",
-              fontFamily: T.mono, fontSize: 8, letterSpacing: "0.18em", textTransform: "uppercase", color: T.textDim, transition: "all 180ms",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = T.text; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = T.textDim; }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>arrow_back</span>
-              START OVER
-            </button>
           </div>
-        )}
+        </div>
 
         {err && <Toast show message={err} type="error" />}
+        {step !== "email" && step !== "done" && (
+          <button onClick={reset} style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 12, padding: "11px 18px",
+            cursor: "pointer", marginTop: 4, alignSelf: "flex-start",
+            fontFamily: T.mono, fontSize: 10, letterSpacing: "0.2em",
+            textTransform: "uppercase", color: T.textDim, fontWeight: 700,
+            transition: "all 180ms",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = T.text; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = T.textDim; }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>arrow_back</span>
+            Start Over
+          </button>
+        )}
       </div>
     </Card>
   );
@@ -771,23 +704,11 @@ const OverviewCard = ({ userId, email, joinedAt }) => {
   const [orderCount, setOrderCount] = useState(null);
 
   useEffect(() => {
-    if (!email) {
-      setOrderCount(0);
-      return;
-    }
-    supabase
-      .from("verp_orders")
-      .select("*", { count: "exact", head: true })
-      .eq("customer_email", email)
-      .then(({ count, error }) => {
-        if (error) {
-          console.error("[OverviewCard] ❌ Order count error:", error.message);
-          setOrderCount(0);
-        } else {
-          setOrderCount(count ?? 0);
-        }
-      });
-  }, [email]);
+    if (!userId) return;
+    supabase.from("verp_orders").select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .then(({ count }) => setOrderCount(count ?? 0));
+  }, [userId]);
 
   // member since: prop → localStorage fallback → "—"
   const memberSince = (() => {
