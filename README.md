@@ -1,536 +1,265 @@
-## Verp
+# Verp — The Vault
 
-Verp is a React-based project located in the `Verp` folder of this repository.
-
-### Overview
-
-- **Purpose**: Describe briefly what this project does and who it is for.
-- **Status**: Draft – update this section as the project evolves.
-
-### Getting Started
-
-1. **Navigate into the folder**:
-   ```bash
-   cd "My React/Verp"
-   ```
-2. **Install dependencies** (adjust to your setup):
-   ```bash
-   npm install
-   ```
-3. **Run the development server**:
-   ```bash
-   npm run dev
-   ```
-
-### Project Structure
-
-Common entries you might see here:
-
-- **`src/`**: React components, hooks, and other front-end logic.
-- **`public/`**: Static assets such as images and icons.
-- **`package.json`**: Project metadata, scripts, and dependencies.
-
-Update this section to reflect the actual folders and files in `Verp` as the project grows.
-
-### Available Scripts
-
-Typical scripts you might have in `package.json`:
-
-- **`npm run dev`**: Starts the development server.
-- **`npm run build`**: Builds the app for production.
-- **`npm run preview`** or **`npm start`**: Serves the production build locally.
-- **`npm test`**: Runs tests, if configured.
-
-Confirm these commands against your `package.json` and adjust as needed.
-
-### Technologies
-
-Fill this out with the exact stack you are using. For example:
-
-- **React** for building the UI.
-- **TypeScript** or **JavaScript** for application logic.
-- **Vite**, **Create React App**, or another bundler/tooling setup.
-
-### Customization Notes
-
-- Replace the placeholder text in each section with project-specific information.
-- Add screenshots or GIFs to demonstrate key features.
-- Document any environment variables or configuration files required to run the app.
-
-### License
-
-Add licensing information here (for example, MIT) or state that the project is private.
-# VERP - E-Commerce Platform
-
-A full-stack **VERP** e-commerce platform built with **React**, **Vite**, **Node.js/Express**, **Supabase**, and **TailwindCSS**. Features admin dashboard, order tracking, chat support, and product management.
+A full-stack e-commerce and client-support platform (“Verp”) with OTP-based authentication, Paystack payments, live assistant/admin chat, and staff dashboards. Built with React (Vite) and Node.js (Express), backed by Supabase.
 
 ---
 
-## 📁 Project Structure
+## Table of Contents
+
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Environment Variables](#environment-variables)
+- [Installation & Setup](#installation--setup)
+- [Running Locally](#running-locally)
+- [Backend API](#backend-api)
+- [Frontend Routes & Features](#frontend-routes--features)
+- [Database (Supabase)](#database-supabase)
+- [Security](#security)
+- [Deployment](#deployment)
+- [Scripts Reference](#scripts-reference)
+
+---
+
+## Overview
+
+**Verp** is a modern e-commerce and support system that includes:
+
+- **Customer-facing store**: Product categories (shirts, shoes, hoodies, jewelry, etc.), cart, checkout, and order tracking.
+- **OTP-based auth**: Email one-time codes for login, signup, and password reset (no traditional passwords for verification step).
+- **Paystack integration**: Payments in GHS with server-side verification and charge calculation.
+- **Live support**: Client chat with optional escalation to assistant and admin.
+- **Staff roles**: **Admin** (full dashboard, return requests, broadcasts, assistant inbox) and **Assistant** (terminal for live chat, queue, orders).
+- **Email notifications**: OTP delivery and staff alerts (new chat, escalation, new order, broadcast confirmation) via Gmail SMTP with branded “Vault” HTML templates.
+
+The backend exposes a single Express app with rate limiting, CORS, and internal/admin guards; the frontend is a React SPA with route guards and optional Vite proxy to the API.
+
+---
+
+## Tech Stack
+
+| Layer      | Technologies |
+|-----------|--------------|
+| **Frontend** | React 19, Vite 6, React Router 7, TanStack Query & Router, Tailwind CSS, Lucide React, SweetAlert2, Embla Carousel |
+| **Backend**  | Node.js, Express 5, Supabase (PostgreSQL + JS client), Nodemailer (Gmail SMTP), bcrypt, express-rate-limit |
+| **Payments** | Paystack (GHS) |
+| **Auth**     | Custom OTP flow + bcrypt password hashes, staff login via env credentials |
+| **Deploy**   | Vercel (backend + frontend) |
+
+---
+
+## Project Structure
 
 ```
 Verp/
-├── backend/                          # Node.js/Express API Server
-│   ├── server.js                     # Main Express server with email & admin endpoints
-│   ├── package.json                  # Backend dependencies
-│   ├── vercel.json                   # Vercel deployment config for backend
-│   ├── .env                          # Environment variables (GMAIL_USER, GMAIL_PASS, admin/assistant passwords)
-│   └── node_modules/                 # Installed backend dependencies
-│
-├── frontend/                         # React + Vite frontend application
+├── backend/
+│   ├── server.js          # Express app: auth, OTP, Paystack, alerts, admin API
+│   ├── package.json
+│   ├── .env                # Not committed; see Environment Variables
+│   ├── .gitignore
+│   └── vercel.json        # Vercel serverless config for API
+├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                   # Main app component
-│   │   ├── main.jsx                  # React entry point
-│   │   ├── App.css                   # Global app styles
-│   │   ├── index.css                 # Global index styles
-│   │   │
-│   │   ├── MercComponents/           # Core application components
-│   │   │   ├── Paths.jsx             # Main routing configuration (React Router)
-│   │   │   ├── supabaseClient.js     # Supabase database client
-│   │   │   │
-│   │   │   ├── Homepage/             # Landing page & main store pages
-│   │   │   │   ├── Homepage.jsx      # Main homepage component
-│   │   │   │   ├── Hero.jsx          # Hero section with marketing visuals
-│   │   │   │   ├── Navbar.jsx        # Navigation bar with cart & user menu
-│   │   │   │   ├── Footer.jsx        # Footer with links & info
-│   │   │   │   ├── AllCategoriesPage.jsx # Browse all product categories
-│   │   │   │   ├── CategoriesGrid.jsx    # Category grid display
-│   │   │   │   ├── Bestsellers.jsx   # Best-selling products section
-│   │   │   │   ├── BrandNarrative.jsx   # Brand story/info
-│   │   │   │   ├── Newsletter.jsx    # Email newsletter signup
-│   │   │   │   └── SearchOverlay.jsx # Search functionality overlay
-│   │   │   │
-│   │   │   ├── Cartpages/            # Product detail & shopping cart pages
-│   │   │   │   ├── Checkout.jsx      # Checkout/payment page
-│   │   │   │   ├── CategoryTemplate.jsx # Template for category pages
-│   │   │   │   ├── BoxerPage.jsx     # Boxer shorts category
-│   │   │   │   ├── ShirtPage.jsx     # T-shirt category
-│   │   │   │   ├── ShoePages.jsx     # Shoes category
-│   │   │   │   ├── SlidesPage.jsx    # Slides category
-│   │   │   │   ├── CapPage.jsx       # Caps category
-│   │   │   │   ├── HoodiePage.jsx    # Hoodies category
-│   │   │   │   ├── SweatshirtPage.jsx # Sweatshirts category
-│   │   │   │   └── BagPage.jsx       # Bags category
-│   │   │   │
-│   │   │   ├── Cartoptions/          # Shopping cart logic & context
-│   │   │   │   ├── Cart.jsx          # Cart display component
-│   │   │   │   └── CartContext.jsx   # Cart state management (React Context)
-│   │   │   │
-│   │   │   ├── Administration/       # Admin dashboard & management
-│   │   │   │   ├── AdminDashBoard.jsx # Main admin dashboard
-│   │   │   │   ├── AdminLayout.jsx   # Admin layout wrapper
-│   │   │   │   ├── AdminSidebar.jsx  # Admin navigation sidebar
-│   │   │   │   ├── AddProduct.jsx    # Add new products to inventory
-│   │   │   │   ├── Inventory.jsx     # Manage product inventory
-│   │   │   │   ├── Analytics.jsx     # Sales & traffic analytics
-│   │   │   │   ├── AdminChannel.jsx  # Admin messaging channel
-│   │   │   │   ├── AdminInbox.jsx    # Message inbox for admins
-│   │   │   │   ├── InboxPage.jsx     # Inbox page component
-│   │   │   │   ├── ClientMessages.jsx    # View client messages
-│   │   │   │   ├── ClientRequests.jsx    # View client requests
-│   │   │   │   ├── AssistantChannelWriter.jsx # Assistant message interface
-│   │   │   │   └── (service staff tools)
-│   │   │   │
-│   │   │   ├── Navoptions/           # User account & info pages
-│   │   │   │   ├── OrderPage.jsx     # User orders history
-│   │   │   │   ├── StatusTracker.jsx # Order status tracking
-│   │   │   │   ├── About.jsx         # About page
-│   │   │   │   ├── Reviews.jsx       # Product reviews & ratings
-│   │   │   │   └── Support.jsx       # Support page
-│   │   │   │
-│   │   │   ├── Messages/             # Customer support messaging
-│   │   │   │   ├── SupportPage.jsx   # Support/help page
-│   │   │   │   ├── ChatBot.jsx       # Automated chatbot
-│   │   │   │   └── LiveAssistantChat.jsx # Live chat with support staff
-│   │   │   │
-│   │   │   ├── Assistant/            # Staff assistant interface
-│   │   │   │   ├── AssistantTerminal.jsx # Terminal for staff assistance
-│   │   │   │   └── Assistantinbox.jsx    # Assistant inbox
-│   │   │   │
-│   │   │   └── SecurityLogics/       # Authentication & security
-│   │   │       ├── AuthPage.jsx      # Login/signup page
-│   │   │       ├── NotFoundPage.jsx  # 404 page
-│   │   │       └── PremiumLoader.jsx # Loading animation component
-│   │   │
-│   │   ├── assets/                   # Static images & media files
-│   │   └── public/                   # Public static files
-│   │
-│   ├── package.json                  # Frontend dependencies & scripts
-│   ├── vite.config.js                # Vite bundler configuration
-│   ├── tailwind.config.js            # TailwindCSS theme & styling config
-│   ├── postcss.config.js             # PostCSS configuration for Tailwind
-│   ├── eslint.config.js              # ESLint rules for code quality
-│   ├── vercel.json                   # Vercel deployment config for frontend
-│   ├── index.html                    # HTML entry point
-│   ├── README.md                     # Frontend-specific documentation
-│   ├── node_modules/                 # Installed frontend dependencies
-│   └── public/                       # Static files directory
-│
-└── .git/                             # Git repository & version control
-
+│   │   ├── main.jsx
+│   │   ├── App.jsx
+│   │   ├── config.js       # API base URL (VITE_SERVER_URL)
+│   │   ├── MercComponents/
+│   │   │   ├── Paths.jsx           # Route definitions and guards
+│   │   │   ├── supabaseClient.js
+│   │   │   ├── Homepage/           # Hero, Navbar, Footer, Categories, etc.
+│   │   │   ├── Cartoptions/        # Cart context and cart UI
+│   │   │   ├── Cartpages/          # Category pages, Checkout, Bag
+│   │   │   ├── Navoptions/         # About, Orders, Status, Reviews, Support
+│   │   │   ├── Messages/           # Support page, LiveAssistantChat, ChatBot
+│   │   │   ├── SecurityLogics/     # AuthPage, StaffLogin, Profile, NotFound, PremiumLoader
+│   │   │   ├── Administration/    # Admin dashboard, inbox, channel, broadcasts, etc.
+│   │   │   └── Assistant/         # Assistant terminal, queue, orders, push modal
+│   │   └── index.css / App.css
+│   ├── index.html
+│   ├── vite.config.js      # React plugin, /api proxy to backend
+│   ├── tailwind.config.js
+│   ├── package.json
+│   └── vercel.json         # Rewrites: /api → backend; SPA fallback
+└── README.md               # This file
 ```
 
 ---
 
-## 🛠 Tech Stack
+## Prerequisites
 
-### **Backend**
-- **Express.js** - REST API framework
-- **Node.js** - JavaScript runtime
-- **Nodemailer** - Email delivery (Gmail SMTP)
-- **CORS** - Cross-origin resource sharing
-- **Dotenv** - Environment variable management
-
-### **Frontend**
-- **React 19** - UI framework
-- **Vite** - Modern build tool & dev server
-- **TailwindCSS** - Utility-first CSS framework
-- **React Router DOM** - Client-side routing
-- **Supabase** - Backend-as-a-Service (database & auth)
-- **React Query** - Data fetching & caching
-- **React Query DevTools** - Debug data queries
-- **Bcryptjs** - Password hashing
-- **SweetAlert2** - Beautiful alerts
-- **Lucide React** - Icon library
+- **Node.js** 18+ (LTS recommended)
+- **npm** (or yarn/pnpm)
+- **Supabase** project ([supabase.com](https://supabase.com))
+- **Gmail** account (for SMTP; App Password recommended)
+- **Paystack** account (for GHS payments)
+- **Vercel** account (optional; for deployment)
 
 ---
 
-## 📂 File Descriptions
+## Environment Variables
 
-### **Backend Files**
+### Backend (`backend/.env`)
 
-#### `backend/server.js` (252 lines)
-Main Express server handling:
-- **Endpoints:**
-  - `POST /api/verify-staff` - Verify admin/assistant credentials
-  - `POST /api/send-otp` - Send one-time password via email
-  - Other email-based authentication flows
-- **Email Service:** Nodemailer integration with Gmail SMTP
-- **CORS:** Allows requests from localhost and production URLs
-- **Styled Emails:** HTML email templates for "The Vault" brand
+Create `backend/.env` with:
 
-#### `backend/package.json`
-Lists all backend dependencies:
-- Express, Nodemailer, CORS, Dotenv, Body-parser, etc.
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server-only; never expose to frontend) |
+| `GMAIL_USER` | Gmail address used as sender (e.g. `your-app@gmail.com`) |
+| `GMAIL_PASS` | Gmail App Password (not main account password) |
+| `ADMIN_EMAIL` | Admin staff login email |
+| `ADMIN_PASS` | Admin staff login password |
+| `ASSISTANT_EMAIL` | (Optional) Assistant staff email |
+| `ASSISTANT_PASS` | (Optional) Assistant staff password |
+| `PAYSTACK_SECRET_KEY` | Paystack secret key for server-side verification |
+| `INTERNAL_SECRET` | Shared secret for `/api/alert-staff` (e.g. `verpvault2026secretkey`) |
+| `PORT` | Server port (default `5000`) |
 
-#### `backend/vercel.json`
-Defines Vercel deployment configuration:
-- Uses Node.js runtime
-- Routes all requests to `server.js`
+Startup logs print which of these are set (values are not printed).
 
-#### `backend/.env`
-Environment variables (NOT in repo for security):
-- `GMAIL_USER` - Gmail account for emails
-- `GMAIL_PASS` - Gmail app password
-- `ADMIN_PASS` - Admin login password
-- `ASSISTANT_PASS` - Staff password
+### Frontend (`frontend/.env`)
 
----
-
-### **Frontend Files**
-
-#### `src/App.jsx`
-Main application component - imports and renders Routes
-
-#### `src/main.jsx`
-React entry point - mounts App to DOM with React Query provider
-
-#### `src/MercComponents/Paths.jsx` (190 lines)
-**Core routing configuration:**
-- All route definitions using React Router
-- Protected routes (require login for admin)
-- Guest routes (redirect if already logged in)
-- Route guards for auth paths
-- Scroll-to-top handler on navigation
-
-**Routes Include:**
-- `/` - Homepage
-- `/boxers`, `/shirts`, `/shoes`, `/slides`, etc. - Product categories
-- `/cart` - Shopping cart
-- `/checkout` - Payment processing
-- `/orders` - User order history  
-- `/track-order` - Order tracking
-- `/admin/*` - Admin dashboard (protected)
-- `/assistant/*` - Staff assistant terminal (protected)
-- `/login`, `/signup`, `/verify-otp` - Authentication
-- `/support` - Customer support
-- `/about`, `/reviews` - Info pages
-
-#### `src/MercComponents/supabaseClient.js`
-Supabase client initialization for:
-- Database operations
-- User authentication
-- Real-time data sync
-
-#### **Homepage Components** (`Homepage/`)
-- `Homepage.jsx` - Main landing page layout
-- `Navbar.jsx` - Top navigation with cart button & user menu
-- `Footer.jsx` - Footer with links & company info
-- `Hero.jsx` - Hero banner section
-- `AllCategoriesPage.jsx` - Browse all product types
-- `CategoriesGrid.jsx` - Grid display of categories
-- `Bestsellers.jsx` - Top-selling products showcase
-- `BrandNarrative.jsx` - Company story & brand info
-- `Newsletter.jsx` - Email signup form
-- `SearchOverlay.jsx` - Search product overlay
-
-#### **Product Pages** (`Cartpages/`)
-Category-specific product listings:
-- `BoxerPage.jsx`, `ShirtPage.jsx`, `ShoePages.jsx`
-- `SlidesPage.jsx`, `CapPage.jsx`, `HoodiePage.jsx`
-- `SweatshirtPage.jsx`, `BagPage.jsx`
-- `CategoryTemplate.jsx` - Reusable template for category pages
-- `Checkout.jsx` - Checkout & payment form
-
-#### **Cart & Commerce** (`Cartoptions/`)
-- `Cart.jsx` - Shopping cart display & management
-- `CartContext.jsx` - Global cart state using React Context
-
-#### **Admin Dashboard** (`Administration/`)
-- `AdminDashBoard.jsx` - Main admin overview
-- `AdminLayout.jsx` - Admin page layout wrapper
-- `AdminSidebar.jsx` - Left navigation for admin
-- `Inventory.jsx` - Product inventory management
-- `AddProduct.jsx` - Add new products to catalog
-- `Analytics.jsx` - Sales & traffic reports
-- `AdminChannel.jsx` - Communication center
-- `AdminInbox.jsx` - Message management
-- `InboxPage.jsx` - Inbox display
-- `ClientMessages.jsx` - View all client messages
-- `ClientRequests.jsx` - Support requests queue
-- `AssistantChannelWriter.jsx` - Compose messages
-
-#### **User Pages** (`Navoptions/`)
-- `OrderPage.jsx` - User's order history
-- `StatusTracker.jsx` - Live order tracking
-- `About.jsx` - Company information
-- `Reviews.jsx` - Product reviews & rating system
-- `Support.jsx` - Support information
-
-#### **Messaging System** (`Messages/`)
-- `SupportPage.jsx` - Support interface
-- `ChatBot.jsx` - AI-powered chatbot responses
-- `LiveAssistantChat.jsx` - Real-time support chat
-
-#### **Staff Features** (`Assistant/`)
-- `AssistantTerminal.jsx` - Staff command interface
-- `Assistantinbox.jsx` - Inbox for staff messages
-
-#### **Security & Auth** (`SecurityLogics/`)
-- `AuthPage.jsx` - Login/signup form
-- `NotFoundPage.jsx` - 404 error page
-- `PremiumLoader.jsx` - Loading animation
+| Variable | Description |
+|----------|-------------|
+| `VITE_SERVER_URL` | Backend base URL (e.g. `http://localhost:5000` for dev, or `https://verps-sever.vercel.app` for prod) |
+| `VITE_INTERNAL_SECRET` | Same value as backend `INTERNAL_SECRET` (used in `x-internal-secret` for alert-staff calls) |
+| `VITE_SUPABASE_URL` | Supabase project URL (if used from frontend) |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon key (if used from frontend) |
 
 ---
 
-### **Configuration Files**
+## Installation & Setup
 
-#### `frontend/package.json`
-Frontend dependencies & scripts:
-- `npm run dev` - Start dev server (port 5173)
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+1. **Clone and enter the project**
+   ```bash
+   cd Verp
+   ```
 
-#### `frontend/vite.config.js`
-Vite configuration:
-- React plugin enabled
-- **Dev proxy:** `/api` → `http://localhost:5000` (backend)
-- This enables API calls from `http://localhost:5173/api/...`
+2. **Backend**
+   ```bash
+   cd backend
+   npm install
+   cp .env.example .env   # if you have one; otherwise create .env from the table above
+   # Edit .env with your Supabase, Gmail, Paystack, and admin/assistant credentials
+   ```
 
-#### `frontend/tailwind.config.js`
-TailwindCSS theming:
-- Dark mode enabled with `class` strategy
-- Custom colors: `primary`, `background-dark`, `neutral-dark`
-- Custom font: Manrope for display text
-- Border radius customization
+3. **Frontend**
+   ```bash
+   cd ../frontend
+   npm install
+   # Create .env with VITE_SERVER_URL (and optionally VITE_INTERNAL_SECRET, Supabase vars)
+   ```
 
-#### `frontend/postcss.config.js`
-PostCSS pipeline for Tailwind (typically contains autoprefixer + tailwindcss)
-
-#### `frontend/eslint.config.js`
-Code quality rules for JavaScript/JSX
-
-#### `frontend/index.html`
-HTML entry point - mounts React app to `#root` div
-
-#### `frontend/vercel.json`
-Vercel deployment config:
-- Rewrites all routes to `index.html` (SPA routing)
+4. **Supabase**
+   - Create tables and RLS policies as required by the app (e.g. `verp_users`, `verp_return_requests`).
+   - For OTP rate limiting, ensure these columns exist on `verp_users`:
+     ```sql
+     ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_attempts    integer     DEFAULT 0;
+     ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_last_sent   timestamptz;
+     ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_send_count  integer     DEFAULT 0;
+     ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_locked_until timestamptz;
+     ```
 
 ---
 
-## 🚀 Getting Started
+## Running Locally
 
-### **Prerequisites**
-- Node.js 16+ installed
-- npm or yarn package manager
-- Supabase project created
-- Gmail account with app password
+1. **Start the backend**
+   ```bash
+   cd backend
+   npm start
+   ```
+   Server runs at `http://localhost:5000` (or your `PORT`). Root `GET /` returns a health JSON.
 
-### **Backend Setup**
+2. **Start the frontend**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+   App runs at `http://localhost:5173`. Vite proxies `/api/*` to `http://localhost:5000`, so set `VITE_SERVER_URL` to `http://localhost:5000` or leave unset to use the proxy.
 
-1. Navigate to backend folder:
-```bash
-cd backend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create `.env` file:
-```env
-GMAIL_USER=your-email@gmail.com
-GMAIL_PASS=your-app-password
-ADMIN_PASS=admin-password-here
-ASSISTANT_PASS=assistant-password
-```
-
-4. Start server:
-```bash
-npm start
-# or
-node server.js
-```
-Server runs on `http://localhost:5000`
-
-### **Frontend Setup**
-
-1. Navigate to frontend folder:
-```bash
-cd frontend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create `.env` file:
-```env
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-supabase-key
-```
-
-4. Start dev server:
-```bash
-npm run dev
-```
-Frontend runs on `http://localhost:5173`
-
-The Vite proxy automatically routes `/api/*` calls to the backend at `http://localhost:5000`
+3. **Staff login**
+   - Admin: `http://localhost:5173/sys/console/login` → use `ADMIN_EMAIL` / `ADMIN_PASS`.
+   - Assistant: same URL with `ASSISTANT_EMAIL` / `ASSISTANT_PASS` (if configured).
 
 ---
 
-## 🔐 Authentication Flow
+## Backend API
 
-1. **Login/Signup** → User submits credentials
-2. **Email Verification** → OTP sent via email endpoint
-3. **Token Storage** → `userEmail` stored in localStorage
-4. **Protected Routes** → Redirect to login if not authenticated
-5. **Guest Routes** → Redirect to home if already logged in
+Base URL: `http://localhost:5000` (dev) or your backend deployment (e.g. `https://verps-sever.vercel.app`).
 
-Admin/Staff credentials verified via `/api/verify-staff` endpoint
+| Method | Endpoint | Protection | Description |
+|--------|----------|------------|-------------|
+| GET | `/` | — | Health check; returns `{ status, server, time }`. |
+| POST | `/api/staff-login` | `staffLoginLimiter` (10/15 min) | Body: `{ email, password }`. Returns `{ success, role, message }` (role: `admin` or `assistant`). |
+| POST | `/api/send-otp` | `otpSendLimiter` (3/10 min) + DB cooldown/lock | Body: `{ email, type? }`. Sends 6-digit OTP email; stores in `verp_users` with expiry and rate-limit fields. |
+| POST | `/api/verify-otp` | `otpVerifyLimiter` (10/10 min) + 5 attempts/user | Body: `{ email, otp }`. Verifies OTP and resets attempt counter. |
+| POST | `/api/reset-password` | `resetLimiter` (5/15 min) | Body: `{ email, password }`. Requires valid recent OTP session; hashes password and clears OTP. |
+| POST | `/api/verify-payment` | — | Body: `{ reference, expectedEmail?, expectedAmount? }`. Verifies with Paystack and optionally checks email/amount. |
+| POST | `/api/paystack-charge` | — | Body: `{ amountGHS }`. Returns `chargeGHS`, `feeGHS`, `chargePesewas` (1.95% fee formula). |
+| POST | `/api/alert-staff` | `requireInternalSecret` | Body: `type`, `clientId`, `note`, etc. Sends staff notification emails (new chat, escalation, new order, broadcast, etc.). Requires header `x-internal-secret`. |
+| GET | `/api/admin/return-requests` | `requireAdminHeader` | Returns list of return requests. Auth: `Authorization: Basic base64(ADMIN_EMAIL:ADMIN_PASS)`. |
 
----
-
-## 🛒 Shopping Flow
-
-1. User browses product categories
-2. Views product details
-3. Adds items to cart (stored in CartContext)
-4. Proceeds to checkout
-5. Submits order
-6. Receives order confirmation email
-7. Can track order status in `/track-order`
+All relevant routes are also behind a **global rate limiter** (120 requests per IP per minute).
 
 ---
 
-## 👨‍💼 Admin Features
+## Frontend Routes & Features
 
-- **Dashboard** - View analytics & overview
-- **Inventory** - Manage products & stock
-- **Analytics** - Sales reports & metrics
-- **Messaging** - Communicate with customers
-- **Requests** - Handle customer inquiries
+- **Public**: `/`, `/about`, `/categories`, `/category/:slug` (e.g. boxers, shoes, shirts), `/reviews`.
+- **Auth (guest only)**: `/login`, `/signup`, `/verify-otp`, `/forgot-password`, `/reset-password`, `/loading` (PremiumLoader).
+- **Staff**: `/sys/console/login`, `/sys/console/admin` (admin only), `/sys/console/terminal` (assistant only).
+- **Protected (logged-in user)**: `/orderpage`, `/cart`, `/checkout`, `/orderStatus`, `/inbox`, `/support`, `/reviews`, `/profile`.
+- **Support**: `/support` — support page with live chat and floating support widget on other pages (when logged in).
 
----
-
-## 💬 Support System
-
-- **ChatBot** - Automated responses
-- **Live Chat** - Connect with support staff
-- **Support Page** - FAQ & help resources
+Route guards: `ProtectedRoute` (redirects to `/login` if no `userEmail` in localStorage), `StaffAdminRoute`, `StaffAssistantRoute`, `GuestRoute` for auth pages.
 
 ---
 
-## 📊 Database (Supabase)
+## Database (Supabase)
 
-Connected via `supabaseClient.js`. Tables likely include:
-- Users (authentication & profile)
-- Products (catalog & inventory)
-- Orders (transactions & history)
-- Messages (customer support)
+The backend expects at least:
 
----
+- **`verp_users`**: User accounts; columns include `email`, `password_hash`, `otp_code`, `otp_expiry`, `otp_attempts`, `otp_last_sent`, `otp_send_count`, `otp_locked_until` (see server comments and migration above).
+- **`verp_return_requests`**: Return requests listed in the admin “return requests” API.
 
-## 🌐 Deployment
-
-### **Frontend (Vercel)**
-```bash
-npm run build
-# Deploy `dist/` folder to Vercel
-```
-
-### **Backend (Vercel)**
-- Uses Node.js runtime (`vercel.json`)
-- Environment variables set in Vercel dashboard
-- Auto-deploys on git push
+Other tables may be used by the frontend (e.g. products, orders, messages) via Supabase client; configure RLS and schema to match the app.
 
 ---
 
-## 📌 Key Features
+## Security
 
-✅ Product browsing & search  
-✅ Shopping cart & checkout  
-✅ Order tracking  
-✅ Admin dashboard  
-✅ Email notifications  
-✅ Customer support (chat + assistant)  
-✅ User authentication  
-✅ Responsive design (TailwindCSS)  
-✅ Real-time updates (Supabase)  
+- **Rate limiting**: Global (120 req/min), OTP send (3/10 min), OTP verify (10/10 min), staff login (10/15 min), password reset (5/15 min).
+- **OTP**: 6-digit code, 10-minute expiry; per-user 60s cooldown, max 3 sends per 10 min, 30-minute lock after exceeding; max 5 failed verify attempts before requiring a new code.
+- **Staff**: Admin endpoints use `Authorization: Basic` (never credentials in URL). Alert-staff uses `x-internal-secret`; keep `INTERNAL_SECRET` and `VITE_INTERNAL_SECRET` in sync and private.
+- **Paystack**: Server-side verification; optional `expectedEmail` and `expectedAmount` to prevent replay or spoofing.
+- **CORS**: Allowed origins are explicit (e.g. localhost:3000, 5173, 5000, and production frontend URL).
 
 ---
 
-## 🐛 Troubleshooting
+## Deployment
 
-### **API calls failing?**
-- Ensure backend is running on port 5000
-- Check CORS settings in `server.js`
-- Verify Vite proxy in `vite.config.js`
-
-### **Email not sending?**
-- Verify Gmail app password (not account password)
-- Check `.env` credentials
-- Ensure "Less secure apps" is enabled or use App Passwords
-
-### **Components not importing?**
-- Verify file paths in `Paths.jsx`
-- Check that all components export `default`
+- **Backend**: Deploy `backend/` to Vercel with `vercel.json` that builds `server.js` via `@vercel/node` and routes `/(.*)` to it. Set all backend env vars in the Vercel project.
+- **Frontend**: Deploy `frontend/` to Vercel with `vercel.json` that rewrites `/api/*` to the backend URL and `/(.*)` to `/index.html` for SPA routing. Set `VITE_SERVER_URL` (and other `VITE_*`) in the frontend project.
+- Production frontend URL is in backend CORS `allowedOrigins` (e.g. `https://verps-chi.vercel.app`); add or change as needed in `server.js`.
 
 ---
 
-## 📝 Notes
+## Scripts Reference
 
-- This is full deployment-ready code
-- Environment variables should never be committed to git
-- Supabase handles database & real-time features
-- TailwindCSS with dark mode support built-in
-- Admin routes require authentication
+**Backend**
+- `npm start` — run `node server.js` (production).
+- For development with auto-restart you can use `nodemon server.js` if installed.
+
+**Frontend**
+- `npm run dev` — Vite dev server (default port 5173).
+- `npm run build` — production build.
+- `npm run preview` — preview production build locally.
 
 ---
 
-**Project Status:** Active Development  
-**Last Updated:** February 2026
+## License
+
+ISC (see `backend/package.json`). Use and modify as needed for your project.
