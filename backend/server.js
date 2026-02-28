@@ -176,7 +176,7 @@ app.post("/api/send-otp", async (req, res) => {
     });
 
     console.log("[send-otp] ✅ Email sent successfully to:", email);
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, otp });
   } catch (err) {
     console.error("[send-otp] ❌ CAUGHT EXCEPTION:", err.message);
     console.error("[send-otp] ❌ Full error:", err);
