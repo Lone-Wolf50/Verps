@@ -297,13 +297,13 @@ const Navbar = () => {
   const [isSearchOpen,    setIsSearchOpen]  = useState(false);
   const [profileTrayOpen, setProfileTray]   = useState(false);
   const [authPrompt,      setAuthPrompt]    = useState({ open: false, path: "" });
-  const [isLoggedIn,      setIsLoggedIn]    = useState(false);
-  const [userName,        setUserName]      = useState("");
+  const [isLoggedIn,      setIsLoggedIn]    = useState(() => !!localStorage.getItem("userEmail"));
+  const [userName,        setUserName]      = useState(() => localStorage.getItem("userName") || "");
   const [avatarUrl,       setAvatarUrl]     = useState(null);
   const [unreadCount,     setUnreadCount]   = useState(0);
   const [isScrolled,      setIsScrolled]    = useState(false);
 
-  const { cart }        = useCart();
+  const { cart, resetCart, syncFromDB } = useCart();
   const location        = useLocation();
   const navigate        = useNavigate();
   const handleTerminate = useTerminateAccount();
@@ -391,7 +391,7 @@ const Navbar = () => {
         .from("verp_sessions").select("device_fingerprint")
         .eq("user_id", userId).maybeSingle();
       if (data && data.device_fingerprint !== fp) {
-        ["userEmail","userId","userName","deviceFingerprint"].forEach((k) => localStorage.removeItem(k));
+        ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
         setIsLoggedIn(false);
         navigate("/login", { replace: true });
       }
@@ -438,7 +438,7 @@ const Navbar = () => {
   /* ── Session lifetime guard ── */
   useEffect(() => {
     if (!sessionStorage.getItem("vrp_alive")) {
-      ["userEmail","userId","userName","deviceFingerprint"].forEach((k) => localStorage.removeItem(k));
+      ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
       setIsLoggedIn(false);
     }
     sessionStorage.setItem("vrp_alive", "1");
@@ -462,7 +462,8 @@ const Navbar = () => {
   }, [isLoggedIn]);
 
   const handleLogout = () => {
-    ["userEmail","userId","userName","deviceFingerprint"].forEach((k) => localStorage.removeItem(k));
+    resetCart(); // wipe cart state before clearing auth keys
+    ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
     setIsLoggedIn(false);
     navigate("/");
   };

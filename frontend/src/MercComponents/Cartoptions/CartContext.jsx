@@ -5,9 +5,11 @@ import { supabase } from "../supabaseClient";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // Initialize from localStorage immediately (fast)
   const [cart, setCart] = useState(() => {
     try {
+      // Only restore from localStorage if there's an active session
+      const email = localStorage.getItem("userEmail");
+      if (!email) return [];
       const saved = localStorage.getItem("luxury_cart");
       return saved ? JSON.parse(saved) : [];
     } catch {
@@ -19,7 +21,13 @@ export const CartProvider = ({ children }) => {
   // ── On mount: pull cart from DB (cross-device restore) ───────
   const syncFromDB = useCallback(async () => {
     const email = localStorage.getItem("userEmail");
-    if (!email) { setSynced(true); return; }
+    if (!email) {
+      // No user — ensure cart is empty (guards against stale localStorage)
+      setCart([]);
+      localStorage.removeItem("luxury_cart");
+      setSynced(true);
+      return;
+    }
     try {
       const { data } = await supabase
         .from("verp_cart_items")
@@ -103,11 +111,19 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // ── resetCart: wipes local state + localStorage only (no DB call)
+  // Use this on logout so the next account starts with an empty cart.
+  const resetCart = () => {
+    setCart([]);
+    setSynced(false);
+    localStorage.removeItem("luxury_cart");
+  };
+
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, cartTotal, clearCart, syncFromDB }}
+      value={{ cart, addToCart, removeFromCart, updateQuantity, cartTotal, clearCart, resetCart, syncFromDB }}
     >
       {children}
     </CartContext.Provider>
