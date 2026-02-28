@@ -56,6 +56,7 @@ const Checkout = () => {
     email: localStorage.getItem("userEmail") || "",
     phone: "",
     location: "",
+    address: "",
     deliveryMethod: "pickup",
   });
 
@@ -97,12 +98,43 @@ const Checkout = () => {
     if (fieldErrors[key]) setFieldErrors((prev) => ({ ...prev, [key]: null }));
   };
 
+  const handleDeliverySelect = (val) => {
+    set("deliveryMethod", val);
+    if (val === "door") {
+      Swal.fire({
+        title: "Door Delivery Selected",
+        html: `
+          <div style="text-align:left;font-family:'DM Sans',sans-serif;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+              <span style="font-size:28px;">🚚</span>
+              <p style="color:rgba(255,255,255,0.85);font-size:14px;font-weight:600;margin:0;">White-Glove Delivery Service</p>
+            </div>
+            <p style="color:rgba(255,255,255,0.55);font-size:13px;line-height:1.7;margin-bottom:14px;">
+              Delivery fees vary based on your location and will be confirmed by our team after your order is placed.
+            </p>
+            <div style="background:rgba(236,91,19,0.08);border:1px solid rgba(236,91,19,0.2);border-radius:12px;padding:14px 16px;">
+              <p style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#ec5b13;margin-bottom:6px;font-weight:700;">WHAT HAPPENS NEXT</p>
+              <p style="color:rgba(255,255,255,0.5);font-size:12px;line-height:1.7;margin:0;">
+                After payment, a member of our team will contact you directly to confirm your delivery address and provide the exact fee for your area.
+              </p>
+            </div>
+          </div>
+        `,
+        background: "#0a0a0a",
+        color: "#fff",
+        confirmButtonColor: "#ec5b13",
+        confirmButtonText: "UNDERSTOOD — PROCEED",
+      });
+    }
+  };
+
   const validate = () => {
     const e = {};
     if (!formData.name.trim()) e.name = "Name required";
     if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Valid email required";
     if (formData.phone.replace(/\D/g, "").length < 10) e.phone = "Must be 10 digits";
-    if (!formData.location.trim()) e.location = "Location required";
+    if (!formData.location.trim()) e.location = "Location required — e.g. Accra";
+    if (!formData.address.trim()) e.address = "Address required — e.g. Madina, Near Total Filling Station";
     if (cart.length === 0) e.cart = "Cart is empty";
     setFieldErrors(e);
     return Object.keys(e).length === 0;
@@ -152,6 +184,7 @@ const Checkout = () => {
                 customer_email: formData.email,
                 customer_phone: formData.phone,
                 location: formData.location,
+                address: formData.address,
                 delivery_method: formData.deliveryMethod,
                 payment_reference: response.reference,
                 payment_status: "paid",
@@ -166,7 +199,7 @@ const Checkout = () => {
             
             fetch(`${import.meta.env.VITE_SERVER_URL}/api/alert-staff`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", "x-internal-secret": import.meta.env.VITE_INTERNAL_SECRET },
               body: JSON.stringify({
                 type: "NEW_ORDER",
                 clientId: formData.email,
@@ -247,8 +280,48 @@ const Checkout = () => {
                     <Field label="Phone" icon="📱" error={fieldErrors.phone}>
                       <input style={inputSx} type="tel" value={formData.phone} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v.length <= 10) set("phone", v); }} placeholder="0XX XXX XXXX" maxLength={10} />
                     </Field>
-                    <Field label="Location / Area" icon="📍" error={fieldErrors.location}>
-                      <input style={inputSx} value={formData.location} onChange={(e) => set("location", e.target.value)} placeholder="Your city or neighbourhood" />
+                    {/* ── Premium Location Notice (Glassmorphism) ── */}
+                    <div style={{
+                      background: "linear-gradient(135deg, rgba(236,91,19,0.07) 0%, rgba(255,255,255,0.03) 100%)",
+                      border: "1px solid rgba(236,91,19,0.25)",
+                      borderRadius: 18,
+                      padding: "18px 20px",
+                      backdropFilter: "blur(12px)",
+                      WebkitBackdropFilter: "blur(12px)",
+                      boxShadow: "0 4px 24px rgba(236,91,19,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}>
+                      {/* shimmer line */}
+                      <div style={{ position:"absolute", top:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,rgba(236,91,19,0.4),transparent)" }} />
+                      <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+                        <div style={{ width:36, height:36, borderRadius:10, background:"rgba(236,91,19,0.15)", border:"1px solid rgba(236,91,19,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
+                          <span style={{ fontSize:16 }}>📍</span>
+                        </div>
+                        <div>
+                          <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:8, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"#ec5b13", marginBottom:6 }}>LOCATION ACCURACY IS CRITICAL</p>
+                          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.7, marginBottom:10 }}>
+                            An incorrect location will directly affect your delivery. Please fill both fields carefully.
+                          </p>
+                          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, padding:"5px 10px" }}>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.35)", letterSpacing:"0.15em" }}>LOCATION — </span>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.6)", letterSpacing:"0.1em" }}>City / Area (e.g. Accra)</span>
+                            </div>
+                            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, padding:"5px 10px" }}>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.35)", letterSpacing:"0.15em" }}>ADDRESS — </span>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.6)", letterSpacing:"0.1em" }}>Specific place (e.g. Madina)</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Field label="Location" icon="🌍" error={fieldErrors.location}>
+                      <input style={inputSx} value={formData.location} onChange={(e) => set("location", e.target.value)} placeholder="Your city or area — e.g. Accra" />
+                    </Field>
+                    <Field label="Address" icon="🏠" error={fieldErrors.address}>
+                      <input style={inputSx} value={formData.address} onChange={(e) => set("address", e.target.value)} placeholder="Specific area — e.g. Madina, Near Total Filling Station" />
                     </Field>
                   </div>
                 </div>
@@ -260,8 +333,8 @@ const Checkout = () => {
                   </div>
                   <div style={{ padding: 24 }}>
                     <div style={{ display: "flex", gap: 12 }}>
-                      <DeliveryCard value="pickup" selected={formData.deliveryMethod === "pickup"} onSelect={(v) => set("deliveryMethod", v)} icon="🏛️" title="Showroom Pickup" desc="Collect from our flagship showroom at no extra charge." />
-                      <DeliveryCard value="door" selected={formData.deliveryMethod === "door"} onSelect={(v) => set("deliveryMethod", v)} icon="🚚" title="Door Delivery" desc="White-glove delivery. Fees confirmed after checkout." />
+                      <DeliveryCard value="pickup" selected={formData.deliveryMethod === "pickup"} onSelect={handleDeliverySelect} icon="🏛️" title="Showroom Pickup" desc="Collect from our flagship showroom at no extra charge." />
+                      <DeliveryCard value="door" selected={formData.deliveryMethod === "door"} onSelect={handleDeliverySelect} icon="🚚" title="Door Delivery" desc="White-glove delivery. Fees confirmed after checkout." />
                     </div>
                   </div>
                 </div>

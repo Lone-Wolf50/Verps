@@ -263,6 +263,18 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
         body: JSON.stringify({ email: form.email, type: "SIGNUP" }),
       }, 25000);
       const data = await res.json();
+      if (res.status === 429) {
+        Swal.fire({
+          title: "Too Many Requests",
+          text: data.error || "Please wait before requesting another code.",
+          icon: "warning",
+          background: "#0a0a0a",
+          color: "#fff",
+          confirmButtonColor: T.ember,
+        });
+        setLoading(false);
+        return;
+      }
       if (!data.success) throw new Error(data.error || "Failed to send verification email");
       if (!data.otp) throw new Error("Server did not return OTP. Check server logs.");
 
@@ -410,8 +422,20 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
         body: JSON.stringify({ email, type: purpose }),
       }, 25000);
       const data = await res.json();
+      if (res.status === 429) {
+        // Rate limit hit — show the server's message directly
+        Swal.fire({
+          title: "Slow Down",
+          text: data.error || "Too many requests. Please wait before trying again.",
+          icon: "warning",
+          background: "#0a0a0a",
+          color: "#fff",
+          confirmButtonColor: T.ember,
+        });
+        setResending(false);
+        return;
+      }
       if (data.success) {
-        // ✅ Always store trimmed string
         if (data.otp) {
           localStorage.setItem("pendingOtp", String(data.otp).trim());
         }
@@ -665,6 +689,18 @@ const AuthPage_ForgotForm = ({ onSuccess }) => {
         body: JSON.stringify({ email, type: "RESET" }),
       }, 25000);
       const data = await res.json();
+      if (res.status === 429) {
+        Swal.fire({
+          title: "Too Many Requests",
+          text: data.error || "Please wait before requesting another code.",
+          icon: "warning",
+          background: "#0a0a0a",
+          color: "#fff",
+          confirmButtonColor: T.ember,
+        });
+        setLoading(false);
+        return;
+      }
       if (!data.success) { setError(data.error || "FAILED TO SEND CODE"); setLoading(false); return; }
 
       // 2. Save the SAME OTP to DB so verify can check it

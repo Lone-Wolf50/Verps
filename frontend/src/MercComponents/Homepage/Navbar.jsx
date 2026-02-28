@@ -89,9 +89,14 @@ const ProfileTray = ({ userName, avatarUrl, onLogout, onTerminate, isOpen, onClo
 
   return (
     <>
-      <div onClick={onClose} className="fixed inset-0 z-[300]" />
+      <div
+        onClick={onClose}
+        onTouchStart={onClose}
+        className="fixed inset-0 z-[300]"
+      />
       <div
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
         style={{
           position: "fixed",
           bottom: "calc(1rem + 72px)",
@@ -198,7 +203,7 @@ const Navbar_UserMenu = ({ userName, avatarUrl, onLogout, onTerminate }) => {
       </button>
       {open && (
         <>
-          <div onClick={() => setOpen(false)} className="fixed inset-0 z-[98]" />
+          <div onClick={() => setOpen(false)} onTouchStart={() => setOpen(false)} className="fixed inset-0 z-[98]" />
           <div className="absolute top-[calc(100%+12px)] right-0 w-56 rounded-2xl p-2 z-[99] border border-white/[0.08]"
             style={{ background: "#0d0d0d", boxShadow: "0 20px 60px rgba(0,0,0,0.7)", fontFamily: "'DM Sans',sans-serif" }}>
             <div className="px-3.5 py-2.5 mb-1 border-b border-white/[0.05] flex items-center gap-2.5">
@@ -307,7 +312,7 @@ const Navbar = () => {
   const location        = useLocation();
   const navigate        = useNavigate();
   const handleTerminate = useTerminateAccount();
-  const itemCount       = cart.reduce((t, i) => t + i.quantity, 0);
+  const itemCount       = isLoggedIn ? cart.reduce((t, i) => t + i.quantity, 0) : 0;
 
   /* ── Sync auth state ── */
   useEffect(() => {
