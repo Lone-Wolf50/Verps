@@ -464,7 +464,8 @@ const PasswordCard = ({ email: userEmail }) => {
   const apiBase = (() => {
     const env = typeof import.meta !== "undefined" && import.meta?.env?.VITE_SERVER_URL;
     if (env && typeof env === "string" && env.trim()) return env.trim().replace(/\/$/, "");
-    return window.location.origin;
+    if (typeof window !== "undefined" && window.location?.origin) return window.location.origin;
+    return "";
   })();
 
   const fetchWithTimeout = (url, options = {}, ms = 30000) => {
@@ -487,7 +488,7 @@ const PasswordCard = ({ email: userEmail }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: trimmed, type: "password_reset" }),
-      }, 30000);
+      });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.message || json.error || `Server error ${res.status}`);
       setStep("otp");
@@ -508,7 +509,7 @@ const PasswordCard = ({ email: userEmail }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: lookupEmail, otp: enteredCode }),
-      }, 30000);
+      });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.message || json.error || `Server error ${res.status}`);
       setStep("password");
