@@ -580,8 +580,8 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
 
   const ADMIN_EMAIL     = process.env.ADMIN_EMAIL     || process.env.GMAIL_USER;
   const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.GMAIL_USER;
-  const DASH = "https://verps-chi.vercel.app/admin";
-  const TERM = "https://verps-chi.vercel.app/assistant";
+  const DASH = "https://verps-chi.vercel.app/sys/console/admin";
+  const TERM = "https://verps-chi.vercel.app/sys/console/terminal";
 
   let to, emailSubject, html;
 

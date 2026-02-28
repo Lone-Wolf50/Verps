@@ -63,12 +63,12 @@ const GuestRoute = ({ children }) => {
 };
 const StaffAdminRoute = ({ children }) => {
   if (localStorage.getItem("staffRole") !== "admin")
-    return <Navigate to="/staff-login?from=admin" replace />;
+    return <Navigate to="/sys/console/login?from=admin" replace />;
   return children;
 };
 const StaffAssistantRoute = ({ children }) => {
   if (localStorage.getItem("staffRole") !== "assistant")
-    return <Navigate to="/staff-login?from=assistant" replace />;
+    return <Navigate to="/sys/console/login?from=assistant" replace />;
   return children;
 };
 
@@ -84,13 +84,12 @@ function useFloatVisible() {
   const AUTH_PATHS = [
     "/login", "/signup", "/verify-otp",
     "/forgot-password", "/reset-password",
-    "/loading", "/staff-login",
+    "/loading", "/sys/console/login",
   ];
   const isHomepage    = location.pathname === "/";
   const isSupportPage = location.pathname === "/support";
   const isAuthPath    = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
-  const isStaffPath   = location.pathname.startsWith("/admin") ||
-                        location.pathname.startsWith("/assistant");
+  const isStaffPath   = location.pathname.startsWith("/sys/console");
 
   const KNOWN_FLOAT_PATHS = [
     "/","/about","/categories","/orderpage","/cart","/checkout","/orderStatus",
@@ -107,15 +106,15 @@ function useFloatVisible() {
 
 function Paths() {
   const location        = useLocation();
-  const isAdminPath     = location.pathname.startsWith("/admin");
-  const isAssistantPath = location.pathname.startsWith("/assistant");
-  const AUTH_PATHS      = ["/login","/signup","/verify-otp","/forgot-password","/reset-password","/loading","/staff-login"];
+  const isAdminPath     = location.pathname.startsWith("/sys/console/admin");
+  const isAssistantPath = location.pathname.startsWith("/sys/console/terminal");
+  const AUTH_PATHS      = ["/login","/signup","/verify-otp","/forgot-password","/reset-password","/loading","/sys/console/login"];
   const isAuthPath      = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
 
   // Check if current path matches any known route — if not, it's a 404
   const KNOWN_PATHS = [
     "/","/about","/categories","/orderpage","/cart","/checkout","/orderStatus",
-    "/inbox","/support","/reviews","/profile","/admin","/assistant",
+    "/inbox","/support","/reviews","/profile","/sys/console/admin","/sys/console/terminal","/sys/console/login",
     "/category/boxers","/category/shoes","/category/slides","/category/shirts",
     "/category/caps","/category/jewelry","/category/jackets","/category/glasses",
     "/category/Belts","/category/watches","/category/sneakers","/category/socks",
@@ -159,11 +158,11 @@ function Paths() {
               <Route path="/forgot-password" element={<AuthPage mode="forgot" />} />
               <Route path="/reset-password"  element={<AuthPage mode="reset"  />} />
               <Route path="/loading"         element={<PremiumLoader />} />
-              <Route path="/staff-login"     element={<StaffLogin />} />
+              <Route path="/sys/console/login" element={<StaffLogin />} />
 
               {/* Staff */}
-              <Route path="/admin"     element={<StaffAdminRoute><AdminDashBoard /></StaffAdminRoute>} />
-              <Route path="/assistant" element={<StaffAssistantRoute><AssistantTerminal /></StaffAssistantRoute>} />
+              <Route path="/sys/console/admin"    element={<StaffAdminRoute><AdminDashBoard /></StaffAdminRoute>} />
+              <Route path="/sys/console/terminal" element={<StaffAssistantRoute><AssistantTerminal /></StaffAssistantRoute>} />
 
               {/* Public */}
               <Route path="/"                     element={<Homepage />} />

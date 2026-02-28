@@ -45,7 +45,7 @@ const StaffLogin = () => {
 					timer: 800,
 					showConfirmButton: false,
 				});
-				const target = from === "assistant" ? "/assistant" : from === "admin" ? "/admin" : data.role === "admin" ? "/admin" : "/assistant";
+				const target = from === "assistant" ? "/sys/console/terminal" : from === "admin" ? "/sys/console/admin" : data.role === "admin" ? "/sys/console/admin" : "/sys/console/terminal";
 				navigate(target, { replace: true });
 				return;
 			}
