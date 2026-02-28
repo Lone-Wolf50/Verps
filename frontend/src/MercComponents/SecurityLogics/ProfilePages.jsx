@@ -22,6 +22,20 @@ const T = {
 
 const BUCKET = "verp-avatars";
 
+/* ─── API BASE — exact copy from AuthPage ────────────────────── */
+const getApiBase = () => {
+  const env = import.meta.env.VITE_SERVER_URL;
+  if (env && typeof env === "string" && env.trim()) return String(env).trim().replace(/\/$/, "");
+  if (typeof window !== "undefined" && window.location?.origin) return window.location.origin;
+  return "";
+};
+
+const fetchWithTimeout = (url, options = {}, ms = 25000) => {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(t));
+};
+
 /* ─── UTILITIES ──────────────────────────────────────────────── */
 const getStrength = (pw) => {
   let s = 0;
@@ -418,60 +432,46 @@ const BioCard = ({ userId }) => {
 
 /* ═══════════════════════════════════════════════════════════════
    4. CHANGE PASSWORD
-   Mirrors AuthPage logic exactly:
-   • Send OTP  → POST /api/send-otp  (type "RESET"), store in localStorage + DB
-   • Verify OTP → check localStorage first, fall back to DB (same as AuthPage_OtpForm)
-   • Reset pw   → bcryptjs hash client-side → direct Supabase update (same as AuthPage_ResetForm)
+   Uses EXACT same code as AuthPage_ForgotForm + AuthPage_OtpForm
+   + AuthPage_ResetForm — no divergence.
 ═══════════════════════════════════════════════════════════════ */
 const PasswordCard = ({ email: userEmail }) => {
   // step: "email" → "otp" → "password" → "done"
-  const [step,     setStep]   = useState("email");
+  const [step,      setStep]     = useState("email");
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
-  const [cooldown, setCooldown] = useState(0);
+  const [cooldown,  setCooldown]  = useState(0);
   const [resending, setResending] = useState(false);
-  const [next,     setNext]   = useState("");
-  const [conf,     setConf]   = useState("");
-  const [showN,    setShowN]  = useState(false);
-  const [showCo,   setShowCo] = useState(false);
-  const [loading,  setLoading] = useState(false);
-  const [err,      setErr]    = useState("");
+  const [next,      setNext]      = useState("");
+  const [conf,      setConf]      = useState("");
+  const [showN,     setShowN]     = useState(false);
+  const [showCo,    setShowCo]    = useState(false);
+  const [loading,   setLoading]   = useState(false);
+  const [err,       setErr]       = useState("");
   const otpRefs = useRef([]);
 
   const strength = getStrength(next);
 
-  const apiBase = (() => {
-    const env = typeof import.meta !== "undefined" && import.meta?.env?.VITE_SERVER_URL;
-    if (env && typeof env === "string" && env.trim()) return env.trim().replace(/\/$/, "");
-    return window.location.origin;
-  })();
-
-  const fetchWithTimeout = (url, options = {}, ms = 25000) => {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), ms);
-    return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(t));
-  };
-
-  // Cooldown ticker — purely informational, not a gate (mirrors AuthPage)
+  // Cooldown ticker — purely informational, not a gate
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setTimeout(() => setCooldown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  /* ── STEP 1: send OTP (mirrors AuthPage_ForgotForm) ── */
+  /* ── STEP 1: send OTP — exact copy of AuthPage_ForgotForm submit ── */
   const sendOtp = async () => {
     setErr("");
     setLoading(true);
     try {
-      const res = await fetchWithTimeout(`${apiBase}/api/send-otp`, {
+      const res = await fetchWithTimeout(`${getApiBase()}/api/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, type: "RESET" }),
       }, 25000);
-      const text = await res.text();
-      let data = {};
-      try { data = JSON.parse(text); } catch { throw new Error(text || `Server error ${res.status}`); }
-      if (!res.ok || !data.success) throw new Error(data.error || data.message || "Failed to send code");
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Failed to send code");
+
+      // exact same lines as AuthPage_ForgotForm
       const otp = String(data.otp).trim();
       const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       await supabase.from("verp_users").update({ otp_code: otp, otp_expiry: expiry }).eq("email", userEmail);
@@ -484,42 +484,48 @@ const PasswordCard = ({ email: userEmail }) => {
       setStep("otp");
       setTimeout(() => otpRefs.current[0]?.focus(), 50);
     } catch (e) {
-      const msg = e.name === "AbortError" ? "Request timed out. Check your connection." : (e.message || "Failed to send code.");
+      const msg = e.name === "AbortError"
+        ? "Request timed out. Check your connection and try again."
+        : (e.message || "Failed to send code.");
       setErr(msg);
     } finally { setLoading(false); }
   };
 
-  /* ── Resend OTP (mirrors AuthPage_OtpForm handleResend) ── */
+  /* ── Resend — exact copy of AuthPage_OtpForm handleResend ── */
   const handleResend = async () => {
     if (resending) return;
     setResending(true);
     try {
-      const res = await fetchWithTimeout(`${apiBase}/api/send-otp`, {
+      const res = await fetchWithTimeout(`${getApiBase()}/api/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, type: "RESET" }),
       }, 25000);
-      const text2 = await res.text();
-      let data = {};
-      try { data = JSON.parse(text2); } catch { throw new Error(text2 || "Failed to resend"); }
+      const data = await res.json();
       if (data.success) {
         if (data.otp) localStorage.setItem("pendingOtp", String(data.otp).trim());
         setCooldown(180);
         setOtpDigits(["", "", "", "", "", ""]);
+        refs_focus0();
         Swal.fire({ title: "Code Resent!", text: "Check your inbox for the new code.", icon: "success", timer: 2200, showConfirmButton: false, background: "#0a0a0a", color: "#fff" });
       } else {
         throw new Error(data.error || "Failed to resend");
       }
-    } catch (e) {
-      const msg = e.name === "AbortError" ? "Request timed out." : (e.message || "Something went wrong.");
+    } catch (err) {
+      const msg = err.name === "AbortError"
+        ? "Request timed out. Check your connection and try again."
+        : (err.message || "Something went wrong.");
       setErr(msg);
-    } finally { setResending(false); }
+    }
+    setResending(false);
   };
 
-  /* ── OTP digit handlers (mirrors AuthPage_OtpForm) ── */
+  const refs_focus0 = () => otpRefs.current[0]?.focus();
+
+  /* ── OTP digit handlers — exact copy of AuthPage_OtpForm ── */
   const handleOtpChange = (idx, val) => {
     if (!/^\d?$/.test(val)) return;
-    const next = [...otpDigits]; next[idx] = val; setOtpDigits(next);
+    const d = [...otpDigits]; d[idx] = val; setOtpDigits(d);
     if (val && idx < 5) otpRefs.current[idx + 1]?.focus();
   };
   const handleOtpKeyDown = (idx, e) => {
@@ -530,14 +536,12 @@ const PasswordCard = ({ email: userEmail }) => {
     if (pasted.length === 6) { setOtpDigits(pasted.split("")); otpRefs.current[5]?.focus(); }
   };
 
-  /* ── STEP 2: verify OTP (mirrors AuthPage_OtpForm verify) ── */
+  /* ── STEP 2: verify OTP — exact copy of AuthPage_OtpForm verify ── */
   const verifyOtp = async () => {
     const entered = otpDigits.join("").trim();
     if (entered.length !== 6) return;
-    setErr("");
     setLoading(true);
 
-    // Check localStorage first, then fall back to DB — exactly as AuthPage does
     const stored = String(localStorage.getItem("pendingOtp") || "").trim();
     let valid = stored.length === 6 && entered === stored;
 
@@ -549,6 +553,7 @@ const PasswordCard = ({ email: userEmail }) => {
         .maybeSingle();
       if (dbUser?.otp_code) {
         const dbOtp = String(dbUser.otp_code).trim();
+        // RESET purpose checks expiry — same as AuthPage
         valid = dbOtp === entered && new Date(dbUser.otp_expiry) > new Date();
       }
     }
@@ -559,13 +564,12 @@ const PasswordCard = ({ email: userEmail }) => {
       return;
     }
 
-    // Valid — clear pendingOtp just like AuthPage does for RESET purpose
     localStorage.removeItem("pendingOtp");
     setLoading(false);
     setStep("password");
   };
 
-  /* ── STEP 3: save new password (mirrors AuthPage_ResetForm submit) ── */
+  /* ── STEP 3: save password — exact copy of AuthPage_ResetForm submit ── */
   const changePassword = async () => {
     setErr("");
     if (!next || !conf)  { setErr("Fill in both password fields."); return; }
@@ -584,7 +588,8 @@ const PasswordCard = ({ email: userEmail }) => {
       setStep("done");
     } catch (e) {
       Swal.fire({ title: "Error", text: e.message, icon: "error", background: "#0a0a0a", color: "#fff" });
-    } finally { setLoading(false); }
+    }
+    setLoading(false);
   };
 
   const reset = () => {
