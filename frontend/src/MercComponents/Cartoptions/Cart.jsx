@@ -26,7 +26,7 @@ const Cart = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-[#0d0d0d] text-white pt-32 pb-20 px-6">
+		<div className="min-h-screen bg-[#0d0d0d] text-white pt-20 pb-20 px-6">
 			<div className="max-w-6xl mx-auto">
 				<h1 className="text-4xl md:text-6xl font-[900] italic uppercase mb-12">
 					Shopping <span className="text-[#ec5b13]">Bag</span>
