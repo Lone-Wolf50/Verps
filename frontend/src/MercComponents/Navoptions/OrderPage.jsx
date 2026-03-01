@@ -64,7 +64,7 @@ const getBurnColor = (ratio) => {
 const NAVBAR_H = 68;
 
 /* ─────────────────────────────────────────────────────────────
-   Return Modal — unchanged logic, new skin
+   Return Modal
 ───────────────────────────────────────────────────────────── */
 const ReturnModal = ({ order, metrics, onClose, onSuccess }) => {
   const [reason, setReason]         = useState("");
@@ -100,10 +100,7 @@ const ReturnModal = ({ order, metrics, onClose, onSuccess }) => {
       style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: isMobile ? "flex-end" : "center", justifyContent: "center", padding: isMobile ? 0 : 24 }}
       onClick={handleClose}
     >
-      {/* Backdrop */}
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", animation: "op-bdIn 0.25s ease both", zIndex: -1 }} />
-
-      {/* Card */}
       <div
         onClick={e => e.stopPropagation()}
         style={{
@@ -120,14 +117,11 @@ const ReturnModal = ({ order, metrics, onClose, onSuccess }) => {
           transition: "transform 0.36s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease",
         }}
       >
-        {/* Drag handle */}
         {isMobile && <div style={{ display: "flex", justifyContent: "center", padding: "14px 0 4px" }}><div style={{ width: 40, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.14)" }} /></div>}
-
-        {/* Header */}
         <div style={{ padding: "26px 28px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <p className="op-mono" style={{ fontSize: 11, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(236,91,19,0.65)", marginBottom: 8 }}>
-              ORDER {order.order_number || order.id?.slice(0, 8)} · {metrics?.timeLeft}
+              ORDER {order.order_number || order.id?.slice(0, 8)}
             </p>
             <h3 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 22, fontWeight: 900, color: "white", letterSpacing: "-0.02em", margin: 0, textTransform: "uppercase" }}>
               Request Return
@@ -140,8 +134,6 @@ const ReturnModal = ({ order, metrics, onClose, onSuccess }) => {
             <X size={14} />
           </button>
         </div>
-
-        {/* Body */}
         {done ? (
           <div style={{ padding: "52px 28px", textAlign: "center" }}>
             <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
@@ -187,7 +179,7 @@ const ReturnModal = ({ order, metrics, onClose, onSuccess }) => {
 };
 
 /* ─────────────────────────────────────────────────────────────
-   Items Modal — all 3 device layouts preserved, new skin
+   Items Modal
 ───────────────────────────────────────────────────────────── */
 const ItemsModal = ({ items, orderNumber, onClose }) => {
   const [visible, setVisible] = useState(false);
@@ -218,8 +210,6 @@ const ItemsModal = ({ items, orderNumber, onClose }) => {
       <div style={wrapperStyle} onClick={e => e.stopPropagation()}>
         <div style={panelStyle}>
           {isMobile && <div style={{ display: "flex", justifyContent: "center", padding: "14px 0 4px" }}><div style={{ width: 40, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.14)" }} /></div>}
-
-          {/* Header */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: isMobile ? "18px 22px 16px" : "26px 28px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", position: "sticky", top: 0, background: "linear-gradient(160deg,#131313 0%,#0a0a0a 100%)", zIndex: 1 }}>
             <div>
               <p className="op-mono" style={{ fontSize: 11, letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(236,91,19,0.6)", marginBottom: 7 }}>
@@ -234,8 +224,6 @@ const ItemsModal = ({ items, orderNumber, onClose }) => {
               <X size={14} />
             </button>
           </div>
-
-          {/* Items */}
           <div style={{ padding: isMobile ? "16px 20px" : "22px 28px" }}>
             <div style={{ display: "grid", gridTemplateColumns: isMobile || isTablet ? "1fr" : "repeat(2,1fr)", gap: 10 }}>
               {items.map((item, i) => (
@@ -259,7 +247,6 @@ const ItemsModal = ({ items, orderNumber, onClose }) => {
                 </div>
               ))}
             </div>
-            {/* Totals */}
             <div style={{ marginTop: 18, padding: "16px 20px", background: "rgba(236,91,19,0.04)", border: "1px solid rgba(236,91,19,0.12)", borderRadius: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <span className="op-mono" style={{ fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.22)", display: "block", marginBottom: 2 }}>{totalUnits} Unit{totalUnits !== 1 ? "s" : ""} · {items.length} Product{items.length !== 1 ? "s" : ""}</span>
@@ -275,7 +262,7 @@ const ItemsModal = ({ items, orderNumber, onClose }) => {
 };
 
 /* ─────────────────────────────────────────────────────────────
-   Main OrderPage — new visual treatment
+   Main OrderPage
 ───────────────────────────────────────────────────────────── */
 const OrderPage = () => {
   const navigate = useNavigate();
@@ -309,7 +296,7 @@ const OrderPage = () => {
 
   useEffect(() => {
     fetchOrders();
-    const timer = setInterval(() => setNow(new Date()), 30000);
+    const timer = setInterval(() => setNow(new Date()), 1000);
     const chan = supabase.channel("order-page-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "verp_orders" }, fetchOrders)
       .on("postgres_changes", { event: "*", schema: "public", table: "verp_return_requests" }, fetchOrders)
@@ -322,13 +309,12 @@ const OrderPage = () => {
   };
 
   const getReturnMetrics = (deliveredAt) => {
-    if (!deliveredAt) return { timeLeft: "WINDOW PENDING", expired: false, progress: 1, ratio: 1 };
+    if (!deliveredAt) return { expired: false, progress: 1, ratio: 1, remainingMs: 48 * 3600000 };
     const exp = new Date(deliveredAt).getTime() + 48 * 3600000;
     const remaining = exp - now.getTime();
-    if (remaining <= 0) return { timeLeft: "EXPIRED", expired: true, progress: 0, ratio: 0 };
+    if (remaining <= 0) return { expired: true, progress: 0, ratio: 0, remainingMs: 0 };
     const ratio = remaining / (48 * 3600000);
-    const h = Math.floor(remaining / 3600000), m = Math.floor((remaining % 3600000) / 60000);
-    return { timeLeft: h > 0 ? `${h}H ${m}M LEFT` : `${m}M LEFT`, expired: false, progress: ratio, ratio };
+    return { expired: false, progress: ratio, ratio, remainingMs: remaining };
   };
 
   const TABS = ["active", "delivered", "returned", "all"];
@@ -356,14 +342,10 @@ const OrderPage = () => {
 
         {/* ── Page Header ── */}
         <div style={{ marginBottom: 40 }}>
-
-          {/* Row 1: eyebrow label */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
             <div style={{ width: 24, height: 1, background: "#ec5b13" }} />
             <span className="op-mono" style={{ fontSize: 11, letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(236,91,19,0.7)", fontWeight: 700 }}>Your Orders</span>
           </div>
-
-          {/* Row 2: Back button → Order Archive title on the same line */}
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
             <button
               onClick={() => navigate(-1)}
@@ -378,8 +360,6 @@ const OrderPage = () => {
               Order <span style={{ color: "#ec5b13" }}>Archive</span>
             </h1>
           </div>
-
-          {/* Row 3: Refresh — right-aligned, below the title */}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button
               onClick={fetchOrders} disabled={refreshing}
@@ -391,7 +371,6 @@ const OrderPage = () => {
               Refresh
             </button>
           </div>
-
         </div>
 
         {/* ── Tabs ── */}
@@ -453,27 +432,23 @@ const OrderPage = () => {
                   overflow: "hidden",
                 }}
               >
-                {/* ── Top bar — single row, never wraps ── */}
+                {/* ── Top bar ── */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.04)", flexWrap: "nowrap", gap: 6, overflow: "hidden" }}>
-                  {/* Left: status + order number — truncate together if needed */}
                   <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0, overflow: "hidden" }}>
-                    {/* Status badge — compact, shrinks text on mobile */}
                     <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 9px", borderRadius: 999, background: `${displayConf.color}12`, border: `1px solid ${displayConf.color}28`, flexShrink: 0 }}>
                       <div className={displayPulse ? "op-pulse" : ""} style={{ width: 5, height: 5, borderRadius: "50%", background: displayConf.color, flexShrink: 0 }} />
                       <span className="op-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: displayConf.color, whiteSpace: "nowrap" }}>{displayLabel}</span>
                     </div>
-                    {/* Order number — truncated */}
                     <span className="op-mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
                       {order.order_number || "—"}
                     </span>
                   </div>
-                  {/* Right: date — always visible, never wraps */}
                   <span className="op-mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", whiteSpace: "nowrap", flexShrink: 0 }}>
                     {new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                   </span>
                 </div>
 
-                {/* ── Body: items + right panel ── */}
+                {/* ── Body ── */}
                 <div className="op-order-body" style={{ display: "flex" }}>
 
                   {/* Items section */}
@@ -493,7 +468,6 @@ const OrderPage = () => {
                       ))}
                     </div>
 
-                    {/* View more */}
                     {extraCount > 0 && (
                       <button
                         onClick={() => setItemsModal({ items: allItems, orderNumber: order.order_number || order.id?.slice(0, 8) })}
@@ -515,7 +489,7 @@ const OrderPage = () => {
                     )}
                   </div>
 
-                  {/* ── Right panel: price + actions ── */}
+                  {/* ── Right panel ── */}
                   <div
                     className="op-right-panel"
                     style={{ flexShrink: 0, width: 160, borderLeft: "1px solid rgba(255,255,255,0.05)", padding: "16px 14px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 12 }}
@@ -534,18 +508,121 @@ const OrderPage = () => {
                       );
                     })()}
 
-                    {/* Burn window */}
-                    {metrics && !metrics.expired && (
-                      <div>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                          <span className="op-mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", letterSpacing: "0.15em" }}>Burn Window™</span>
-                          <span className="op-mono" style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: getBurnColor(metrics.ratio).primary }}>{metrics.timeLeft}</span>
+                    {/* ── Return Window: countdown with context ── */}
+                    {metrics && !metrics.expired && (() => {
+                      const bc = getBurnColor(metrics.ratio);
+                      const hoursLeft = metrics.remainingMs / 3600000;
+
+                      return (
+                        <div style={{
+                          background: `linear-gradient(145deg, rgba(0,0,0,0.6) 0%, ${bc.primary}0a 100%)`,
+                          border: `1px solid ${bc.primary}20`,
+                          borderRadius: 14,
+                          padding: "11px 12px 10px",
+                          position: "relative",
+                          overflow: "hidden",
+                        }}>
+                          {/* Corner radial glow */}
+                          <div style={{
+                            position: "absolute", top: -10, right: -10,
+                            width: 70, height: 70,
+                            background: `radial-gradient(circle, ${bc.primary}1a, transparent 65%)`,
+                            pointerEvents: "none",
+                          }} />
+
+                          {/* Top label */}
+                          <p className="op-mono" style={{
+                            fontSize: 9,
+                            letterSpacing: "0.28em",
+                            textTransform: "uppercase",
+                            color: "rgba(255,255,255,0.25)",
+                            marginBottom: 5,
+                            position: "relative",
+                          }}>
+                            Return window
+                          </p>
+
+                          {/* Hours countdown: e.g. "47.2h to return" */}
+                          <div style={{ display: "flex", alignItems: "flex-end", gap: 5, marginBottom: 4, position: "relative" }}>
+                            <span className="op-mono" style={{
+                              fontSize: 34,
+                              fontWeight: 900,
+                              letterSpacing: "-0.05em",
+                              lineHeight: 1,
+                              color: bc.primary,
+                              textShadow: `0 0 28px ${bc.primary}50`,
+                              fontVariantNumeric: "tabular-nums",
+                            }}>
+                              {hoursLeft.toFixed(1)}
+                            </span>
+                            <div style={{ paddingBottom: 5 }}>
+                              <span className="op-mono" style={{
+                                fontSize: 12,
+                                fontWeight: 700,
+                                letterSpacing: "0.06em",
+                                textTransform: "uppercase",
+                                color: `${bc.primary}80`,
+                                display: "block",
+                                lineHeight: 1.1,
+                              }}>
+                                hrs
+                              </span>
+                              <span className="op-mono" style={{
+                                fontSize: 9,
+                                letterSpacing: "0.12em",
+                                textTransform: "uppercase",
+                                color: "rgba(255,255,255,0.2)",
+                                display: "block",
+                                lineHeight: 1.2,
+                              }}>
+                                to return
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Smooth single bar — width transitions continuously */}
+                          <div style={{ marginTop: 8, position: "relative" }}>
+                            {/* Track */}
+                            <div style={{
+                              height: 6,
+                              borderRadius: 999,
+                              background: "rgba(255,255,255,0.06)",
+                              overflow: "hidden",
+                            }}>
+                              {/* Fill — smooth CSS transition on width */}
+                              <div style={{
+                                height: "100%",
+                                width: `${metrics.ratio * 100}%`,
+                                borderRadius: 999,
+                                background: `linear-gradient(to right, ${bc.secondary}, ${bc.primary})`,
+                                boxShadow: `0 0 10px ${bc.primary}70`,
+                                transition: "width 1s linear, background 2s ease",
+                              }} />
+                            </div>
+                            {/* Glowing tip dot */}
+                            <div style={{
+                              position: "absolute",
+                              top: "50%",
+                              left: `calc(${metrics.ratio * 100}% - 5px)`,
+                              transform: "translateY(-50%)",
+                              width: 10,
+                              height: 10,
+                              borderRadius: "50%",
+                              background: bc.primary,
+                              boxShadow: `0 0 8px ${bc.primary}, 0 0 16px ${bc.primary}80`,
+                              transition: "left 1s linear, background 2s ease",
+                              pointerEvents: "none",
+                            }} />
+                          </div>
+
+                          {/* Bar end labels */}
+                          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
+                            <span className="op-mono" style={{ fontSize: 8, color: "rgba(255,255,255,0.15)", letterSpacing: "0.15em" }}>NOW</span>
+                            <span className="op-mono" style={{ fontSize: 8, color: "rgba(255,255,255,0.15)", letterSpacing: "0.15em" }}>48H</span>
+                          </div>
                         </div>
-                        <div style={{ height: 3, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                          <div className="op-burn-fill" style={{ height: "100%", width: `${metrics.progress * 100}%`, borderRadius: 999, background: `linear-gradient(to left, ${getBurnColor(metrics.ratio).secondary}, ${getBurnColor(metrics.ratio).primary})` }} />
-                        </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Action buttons */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
