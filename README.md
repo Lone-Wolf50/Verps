@@ -58,24 +58,24 @@ Verp/
 │   ├── package.json
 │   ├── .env                # Not committed; see Environment Variables
 │   ├── .gitignore
-│   └── vercel.json        # Vercel serverless config for API
+│   └── vercel.json         # Vercel serverless config for API
 ├── frontend/
 │   ├── src/
 │   │   ├── main.jsx
 │   │   ├── App.jsx
 │   │   ├── config.js       # API base URL (VITE_SERVER_URL)
 │   │   ├── MercComponents/
-│   │   │   ├── Paths.jsx           # Route definitions and guards
-│   │   │   ├── supabaseClient.js
-│   │   │   ├── Homepage/           # Hero, Navbar, Footer, Categories, etc.
-│   │   │   ├── Cartoptions/        # Cart context and cart UI
-│   │   │   ├── Cartpages/          # Category pages, Checkout, Bag
-│   │   │   ├── Navoptions/         # About, Orders, Status, Reviews, Support
-│   │   │   ├── Messages/           # Support page, LiveAssistantChat, ChatBot
-│   │   │   ├── SecurityLogics/     # AuthPage, StaffLogin, Profile, NotFound, PremiumLoader
-│   │   │   ├── Administration/    # Admin dashboard, inbox, channel, broadcasts, etc.
-│   │   │   └── Assistant/         # Assistant terminal, queue, orders, push modal
-│   │   └── index.css / App.css
+│   │   │   ├── Paths.jsx             # Route definitions, guards, ScrollToTop, CartProvider
+│   │   │   ├── supabaseClient.js     # Supabase client (if used from frontend)
+│   │   │   ├── Homepage/             # Homepage.jsx, Navbar.jsx, Footer.jsx, FloatingSupport.jsx, AllCategoriesPage.jsx
+│   │   │   ├── Cartoptions/          # CartContext.jsx, Cart.jsx
+│   │   │   ├── Cartpages/            # CategoryTemplate.jsx, Checkout.jsx; category pages: BoxerPage, ShoePages, ShirtPage, SlidesPage, CapPage, HoodiePage, SweatshirtPage, BagPage, Sockspage, WatchesPage, SneakersPage, JewelryPage, JacketPages, GlassesPage, BeltsPage
+│   │   │   ├── Navoptions/           # OrderPage.jsx (orders), StatusTracker.jsx, About.jsx, Reviews.jsx, Support.jsx
+│   │   │   ├── Messages/             # SupportPage.jsx, LiveAssistantChat.jsx, ChatBot.jsx
+│   │   │   ├── SecurityLogics/       # AuthPage.jsx, StaffLogin.jsx, ProfilePages.jsx, NotFoundPage.jsx, PremiumLoader.jsx, PremiumLoader2.jsx, PremmiumLoader3.jsx, RandomLoader.jsx
+│   │   │   ├── Administration/       # AdminDashBoard.jsx, InboxPage.jsx, AddProduct.jsx, ClientMessages.jsx
+│   │   │   └── Assistant/            # AssistantTerminal.jsx, InboxTabs.jsx
+│   │   └── index.css
 │   ├── index.html
 │   ├── vite.config.js      # React plugin, /api proxy to backend
 │   ├── tailwind.config.js
@@ -201,6 +201,7 @@ Base URL: `http://localhost:5000` (dev) or your backend deployment (e.g. `https:
 | POST | `/api/paystack-charge` | — | Body: `{ amountGHS }`. Returns `chargeGHS`, `feeGHS`, `chargePesewas` (1.95% fee formula). |
 | POST | `/api/alert-staff` | `requireInternalSecret` | Body: `type`, `clientId`, `note`, etc. Sends staff notification emails (new chat, escalation, new order, broadcast, etc.). Requires header `x-internal-secret`. |
 | GET | `/api/admin/return-requests` | `requireAdminHeader` | Returns list of return requests. Auth: `Authorization: Basic base64(ADMIN_EMAIL:ADMIN_PASS)`. |
+| POST | `/api/update-order-status` | `requireAdminHeader` | Body: `{ orderId, status }`. Valid `status`: `ordered`, `pending`, `processing`, `shipped`, `delivered`, `returned`, `cancelled`. Sets `delivered_at` when status is `delivered`. Auth: `Authorization: Basic base64(ADMIN_EMAIL:ADMIN_PASS)`. |
 
 All relevant routes are also behind a **global rate limiter** (120 requests per IP per minute).
 
@@ -208,13 +209,15 @@ All relevant routes are also behind a **global rate limiter** (120 requests per 
 
 ## Frontend Routes & Features
 
-- **Public**: `/`, `/about`, `/categories`, `/category/:slug` (e.g. boxers, shoes, shirts), `/reviews`.
-- **Auth (guest only)**: `/login`, `/signup`, `/verify-otp`, `/forgot-password`, `/reset-password`, `/loading` (PremiumLoader).
+- **Public**: `/`, `/about`, `/categories`, `/reviews`, and category pages (see below).
+- **Auth (guest only)**: `/login`, `/signup`, `/verify-otp`, `/forgot-password`, `/reset-password`, `/loading` (RandomLoader).
 - **Staff**: `/sys/console/login`, `/sys/console/admin` (admin only), `/sys/console/terminal` (assistant only).
 - **Protected (logged-in user)**: `/orderpage`, `/cart`, `/checkout`, `/orderStatus`, `/inbox`, `/support`, `/reviews`, `/profile`.
-- **Support**: `/support` — support page with live chat and floating support widget on other pages (when logged in).
+- **Support**: `/support` — support page with live chat; **FloatingSupport** widget appears on other pages when logged in (except homepage, support, auth, and staff routes).
+- **Category routes** (each has its own page component): `/category/boxers`, `/category/shoes`, `/category/slides`, `/category/shirts`, `/category/caps`, `/category/jewelry`, `/category/jackets`, `/category/glasses`, `/category/Belts`, `/category/watches`, `/category/sneakers`, `/category/socks`, `/category/hoodies`, `/category/sweatshirts`, `/category/bags`.
+- **404**: Unknown paths render `NotFoundPage`.
 
-Route guards: `ProtectedRoute` (redirects to `/login` if no `userEmail` in localStorage), `StaffAdminRoute`, `StaffAssistantRoute`, `GuestRoute` for auth pages.
+Route guards: `ProtectedRoute` (redirects to `/login` if no `userEmail` in localStorage), `StaffAdminRoute`, `StaffAssistantRoute`, `GuestRoute` for auth pages. Shell (Navbar + Footer) and floating support visibility are toggled by route.
 
 ---
 
@@ -224,8 +227,9 @@ The backend expects at least:
 
 - **`verp_users`**: User accounts; columns include `email`, `password_hash`, `otp_code`, `otp_expiry`, `otp_attempts`, `otp_last_sent`, `otp_send_count`, `otp_locked_until` (see server comments and migration above).
 - **`verp_return_requests`**: Return requests listed in the admin “return requests” API.
+- **`verp_orders`**: Orders; used by `POST /api/update-order-status`. Columns include `id`, `status`, `delivered_at` (set when status becomes `delivered`). Valid statuses: `ordered`, `pending`, `processing`, `shipped`, `delivered`, `returned`, `cancelled`.
 
-Other tables may be used by the frontend (e.g. products, orders, messages) via Supabase client; configure RLS and schema to match the app.
+Other tables may be used by the frontend (e.g. products, messages) via Supabase client; configure RLS and schema to match the app.
 
 ---
 
@@ -241,7 +245,7 @@ Other tables may be used by the frontend (e.g. products, orders, messages) via S
 
 ## Deployment
 
-- **Backend**: Deploy `backend/` to Vercel with `vercel.json` that builds `server.js` via `@vercel/node` and routes `/(.*)` to it. Set all backend env vars in the Vercel project.
+- **Backend**: Deploy `backend/` to Vercel with `vercel.json` that builds `server.js` via `@vercel/node` and routes `/(.*)` to it. Set all backend env vars in the Vercel project. The server sets `trust proxy` to `1` so rate limiting works correctly behind Vercel’s reverse proxy.
 - **Frontend**: Deploy `frontend/` to Vercel with `vercel.json` that rewrites `/api/*` to the backend URL and `/(.*)` to `/index.html` for SPA routing. Set `VITE_SERVER_URL` (and other `VITE_*`) in the frontend project.
 - Production frontend URL is in backend CORS `allowedOrigins` (e.g. `https://verps-chi.vercel.app`); add or change as needed in `server.js`.
 

@@ -5,6 +5,11 @@ import { ArrowLeft, RefreshCw, X, Send, Package, Clock, CheckCircle, RotateCcw, 
 import { useNavigate } from "react-router-dom";
 
 /* ─────────────────────────────────────────────────────────────
+   Server URL — single place to change if backend moves
+───────────────────────────────────────────────────────────── */
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "https://verp-server.onrender.com";
+
+/* ─────────────────────────────────────────────────────────────
    Global styles — injected once
 ───────────────────────────────────────────────────────────── */
 if (typeof document !== "undefined" && !document.getElementById("_order_page_kf")) {
@@ -62,6 +67,28 @@ const getBurnColor = (ratio) => {
 };
 
 const NAVBAR_H = 68;
+
+/* ─────────────────────────────────────────────────────────────
+   updateOrderStatus — calls backend, stamps delivered_at server-side
+───────────────────────────────────────────────────────────── */
+export const updateOrderStatus = async (orderId, status) => {
+  const adminEmail = localStorage.getItem("adminEmail") || "";
+  const adminPass  = localStorage.getItem("adminPass")  || "";
+  const credentials = btoa(`${adminEmail}:${adminPass}`);
+
+  const res = await fetch(`${SERVER_URL}/api/update-order-status`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Basic ${credentials}`,
+    },
+    body: JSON.stringify({ orderId, status }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to update order status");
+  return data.order;
+};
 
 /* ─────────────────────────────────────────────────────────────
    Return Modal
@@ -308,9 +335,11 @@ const OrderPage = () => {
     items.forEach(item => addToCart({ id: item.id, name: item.name, price: item.price, image: item.image, quantity: item.quantity }));
   };
 
-  const getReturnMetrics = (deliveredAt) => {
-    if (!deliveredAt) return { expired: false, progress: 1, ratio: 1, remainingMs: 48 * 3600000 };
-    const exp = new Date(deliveredAt).getTime() + 48 * 3600000;
+  const getReturnMetrics = (order) => {
+    // Use delivered_at if set; fall back to created_at for old orders
+    const anchor = order.delivered_at || order.created_at;
+    if (!anchor) return { expired: true, progress: 0, ratio: 0, remainingMs: 0 };
+    const exp = new Date(anchor).getTime() + 48 * 3600000;
     const remaining = exp - now.getTime();
     if (remaining <= 0) return { expired: true, progress: 0, ratio: 0, remainingMs: 0 };
     const ratio = remaining / (48 * 3600000);
@@ -411,11 +440,10 @@ const OrderPage = () => {
             const returnReqStatus = returnStatuses[order.id];
             const returnApproved  = returnReqStatus === "approved";
             const returnPill      = returnReqStatus ? RETURN_PILL[returnReqStatus] : null;
-            const metrics         = isDelivered && !returnApproved ? getReturnMetrics(order.delivered_at) : null;
+            const metrics         = isDelivered && !returnApproved ? getReturnMetrics(order) : null;
             const displayConf     = returnPill ? { color: returnPill.color, glow: `${returnPill.color}12` } : conf;
             const displayLabel    = returnPill ? returnPill.label : conf.label;
             const displayPulse    = isActive && !returnApproved && !returnPill;
-            const StatusIcon      = conf.icon;
             const allItems        = order.items || [];
             const visibleItems    = allItems.slice(0, 2);
             const extraCount      = allItems.length - 2;
@@ -450,7 +478,6 @@ const OrderPage = () => {
 
                 {/* ── Body ── */}
                 <div className="op-order-body" style={{ display: "flex" }}>
-
                   {/* Items section */}
                   <div style={{ flex: 1, padding: "16px 18px", minWidth: 0 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -467,7 +494,6 @@ const OrderPage = () => {
                         </div>
                       ))}
                     </div>
-
                     {extraCount > 0 && (
                       <button
                         onClick={() => setItemsModal({ items: allItems, orderNumber: order.order_number || order.id?.slice(0, 8) })}
@@ -508,11 +534,10 @@ const OrderPage = () => {
                       );
                     })()}
 
-                    {/* ── Return Window: countdown with context ── */}
+                    {/* ── Return Window countdown ── */}
                     {metrics && !metrics.expired && (() => {
                       const bc = getBurnColor(metrics.ratio);
                       const hoursLeft = metrics.remainingMs / 3600000;
-
                       return (
                         <div style={{
                           background: `linear-gradient(145deg, rgba(0,0,0,0.6) 0%, ${bc.primary}0a 100%)`,
@@ -522,100 +547,25 @@ const OrderPage = () => {
                           position: "relative",
                           overflow: "hidden",
                         }}>
-                          {/* Corner radial glow */}
-                          <div style={{
-                            position: "absolute", top: -10, right: -10,
-                            width: 70, height: 70,
-                            background: `radial-gradient(circle, ${bc.primary}1a, transparent 65%)`,
-                            pointerEvents: "none",
-                          }} />
-
-                          {/* Top label */}
-                          <p className="op-mono" style={{
-                            fontSize: 9,
-                            letterSpacing: "0.28em",
-                            textTransform: "uppercase",
-                            color: "rgba(255,255,255,0.25)",
-                            marginBottom: 5,
-                            position: "relative",
-                          }}>
+                          <div style={{ position: "absolute", top: -10, right: -10, width: 70, height: 70, background: `radial-gradient(circle, ${bc.primary}1a, transparent 65%)`, pointerEvents: "none" }} />
+                          <p className="op-mono" style={{ fontSize: 9, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: 5, position: "relative" }}>
                             Return window
                           </p>
-
-                          {/* Hours countdown: e.g. "47.2h to return" */}
                           <div style={{ display: "flex", alignItems: "flex-end", gap: 5, marginBottom: 4, position: "relative" }}>
-                            <span className="op-mono" style={{
-                              fontSize: 34,
-                              fontWeight: 900,
-                              letterSpacing: "-0.05em",
-                              lineHeight: 1,
-                              color: bc.primary,
-                              textShadow: `0 0 28px ${bc.primary}50`,
-                              fontVariantNumeric: "tabular-nums",
-                            }}>
+                            <span className="op-mono" style={{ fontSize: 34, fontWeight: 900, letterSpacing: "-0.05em", lineHeight: 1, color: bc.primary, textShadow: `0 0 28px ${bc.primary}50`, fontVariantNumeric: "tabular-nums" }}>
                               {hoursLeft.toFixed(1)}
                             </span>
                             <div style={{ paddingBottom: 5 }}>
-                              <span className="op-mono" style={{
-                                fontSize: 12,
-                                fontWeight: 700,
-                                letterSpacing: "0.06em",
-                                textTransform: "uppercase",
-                                color: `${bc.primary}80`,
-                                display: "block",
-                                lineHeight: 1.1,
-                              }}>
-                                hrs
-                              </span>
-                              <span className="op-mono" style={{
-                                fontSize: 9,
-                                letterSpacing: "0.12em",
-                                textTransform: "uppercase",
-                                color: "rgba(255,255,255,0.2)",
-                                display: "block",
-                                lineHeight: 1.2,
-                              }}>
-                                to return
-                              </span>
+                              <span className="op-mono" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: `${bc.primary}80`, display: "block", lineHeight: 1.1 }}>hrs</span>
+                              <span className="op-mono" style={{ fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", display: "block", lineHeight: 1.2 }}>to return</span>
                             </div>
                           </div>
-
-                          {/* Smooth single bar — width transitions continuously */}
                           <div style={{ marginTop: 8, position: "relative" }}>
-                            {/* Track */}
-                            <div style={{
-                              height: 6,
-                              borderRadius: 999,
-                              background: "rgba(255,255,255,0.06)",
-                              overflow: "hidden",
-                            }}>
-                              {/* Fill — smooth CSS transition on width */}
-                              <div style={{
-                                height: "100%",
-                                width: `${metrics.ratio * 100}%`,
-                                borderRadius: 999,
-                                background: `linear-gradient(to right, ${bc.secondary}, ${bc.primary})`,
-                                boxShadow: `0 0 10px ${bc.primary}70`,
-                                transition: "width 1s linear, background 2s ease",
-                              }} />
+                            <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                              <div style={{ height: "100%", width: `${metrics.ratio * 100}%`, borderRadius: 999, background: `linear-gradient(to right, ${bc.secondary}, ${bc.primary})`, boxShadow: `0 0 10px ${bc.primary}70`, transition: "width 1s linear, background 2s ease" }} />
                             </div>
-                            {/* Glowing tip dot */}
-                            <div style={{
-                              position: "absolute",
-                              top: "50%",
-                              left: `calc(${metrics.ratio * 100}% - 5px)`,
-                              transform: "translateY(-50%)",
-                              width: 10,
-                              height: 10,
-                              borderRadius: "50%",
-                              background: bc.primary,
-                              boxShadow: `0 0 8px ${bc.primary}, 0 0 16px ${bc.primary}80`,
-                              transition: "left 1s linear, background 2s ease",
-                              pointerEvents: "none",
-                            }} />
+                            <div style={{ position: "absolute", top: "50%", left: `calc(${metrics.ratio * 100}% - 5px)`, transform: "translateY(-50%)", width: 10, height: 10, borderRadius: "50%", background: bc.primary, boxShadow: `0 0 8px ${bc.primary}, 0 0 16px ${bc.primary}80`, transition: "left 1s linear, background 2s ease", pointerEvents: "none" }} />
                           </div>
-
-                          {/* Bar end labels */}
                           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
                             <span className="op-mono" style={{ fontSize: 8, color: "rgba(255,255,255,0.15)", letterSpacing: "0.15em" }}>NOW</span>
                             <span className="op-mono" style={{ fontSize: 8, color: "rgba(255,255,255,0.15)", letterSpacing: "0.15em" }}>48H</span>

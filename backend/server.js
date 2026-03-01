@@ -613,6 +613,50 @@ app.get("/api/admin/return-requests", requireAdminHeader, async (req, res) => {
   }
 });
 
+// ── 9. Update Order Status ────────────────────────────────────
+// Called by admin dashboard to change order status.
+// Automatically stamps delivered_at when status → "delivered".
+app.post("/api/update-order-status", requireAdminHeader, async (req, res) => {
+  const { orderId, status } = req.body;
+
+  if (!orderId || !status) {
+    return res.status(400).json({ error: "orderId and status are required" });
+  }
+
+  const VALID = ["ordered", "pending", "processing", "shipped", "delivered", "returned", "cancelled"];
+  if (!VALID.includes(status.toLowerCase())) {
+    return res.status(400).json({ error: `Invalid status. Must be one of: ${VALID.join(", ")}` });
+  }
+
+  try {
+    const updates = { status: status.toLowerCase() };
+
+    // Stamp delivered_at the moment status becomes "delivered"
+    if (status.toLowerCase() === "delivered") {
+      updates.delivered_at = new Date().toISOString();
+    }
+
+    const { data, error } = await supabase
+      .from("verp_orders")
+      .update(updates)
+      .eq("id", orderId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[update-order-status] ❌ DB error:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+
+    console.log(`[update-order-status] ✅ Order ${orderId} → ${status}${status === "delivered" ? ` (delivered_at: ${updates.delivered_at})` : ""}`);
+    res.status(200).json({ success: true, order: data });
+
+  } catch (err) {
+    console.error("[update-order-status] ❌ CAUGHT EXCEPTION:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Health check ──────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({ status: "active", server: "Verp v2", time: new Date().toISOString() });
