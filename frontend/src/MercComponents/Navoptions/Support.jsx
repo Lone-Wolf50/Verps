@@ -91,7 +91,7 @@ const SupportPage = () => {
 		} else {
 			Swal.fire({
 				title: "CONNECTION FAILED",
-				text: error?.message || "Could not reach the Vault.",
+				text: error?.message || "Could not reach the Verp support system.",
 				background: "#0d0d0d",
 				color: "#fff",
 				icon: "error",

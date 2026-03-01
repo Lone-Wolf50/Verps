@@ -261,7 +261,7 @@ const Checkout = () => {
           
           <div className="co-fade" style={{ marginBottom: 40 }}>
             <h1 style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: "clamp(40px,7vw,80px)", color: "white", margin: 0, lineHeight: 1 }}>Checkout</h1>
-            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginTop: 10 }}>SECURE VAULT ACQUISITION</p>
+            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginTop: 10 }}>SECURE VERP ACQUISITION</p>
           </div>
 
           <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>

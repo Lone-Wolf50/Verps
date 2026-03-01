@@ -9,7 +9,7 @@ const ChatBubble = ({ msg, viewerRole, isNew }) => {
     <div style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", animation: isNew ? (isMe ? "msgUser 0.25s cubic-bezier(0.16,1,0.3,1) both" : "msgBot 0.25s cubic-bezier(0.16,1,0.3,1) both") : "none" }}>
       <div style={{ maxWidth: "75%", minWidth: 0, display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", gap: 4 }}>
         <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.25em", textTransform: "uppercase", color: isMe ? "rgba(236,91,19,0.55)" : "rgba(255,255,255,0.22)", paddingLeft: isMe ? 0 : 2, paddingRight: isMe ? 2 : 0 }}>
-          {isMe ? "YOU" : msg.sender_role === "client" ? "CLIENT" : viewerRole === "admin" ? (msg.sender_role === "assistant" ? "ASSISTANT" : "VAULT SUPPORT") : "VAULT SUPPORT"}
+          {isMe ? "YOU" : msg.sender_role === "client" ? "CLIENT" : viewerRole === "admin" ? (msg.sender_role === "assistant" ? "ASSISTANT" : "VERP SUPPORT") : "VERP SUPPORT"}
         </p>
         <div style={{ padding: "12px 16px", background: isMe ? "#ec5b13" : "linear-gradient(135deg,#1a1a1a,#141414)", border: isMe ? "none" : "1px solid rgba(255,255,255,0.07)", borderRadius: isMe ? "16px 4px 16px 16px" : "4px 16px 16px 16px", fontFamily: "'DM Sans',sans-serif", fontSize: 13, lineHeight: 1.65, color: isMe ? "#000" : "rgba(255,255,255,0.8)", fontWeight: isMe ? 500 : 400, wordBreak: "break-word", overflowWrap: "break-word", whiteSpace: "pre-wrap" }}>
           {msg.content}

@@ -328,7 +328,7 @@ const ChatBot = ({ onEscalate, mode, chatId, onFinishedRating }) => {
         </div>
         <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,
           letterSpacing:"0.3em",color:"rgba(255,255,255,0.2)",textTransform:"uppercase"}}>
-          VAULT ASSISTANT
+          VERP ASSISTANT
         </p>
         <div style={{display:"flex",alignItems:"center",gap:6}}>
           <div style={{width:6,height:6,borderRadius:"50%",background:"#22c55e",

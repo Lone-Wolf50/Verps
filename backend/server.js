@@ -153,7 +153,7 @@ const wrap = (title, body, ctaUrl, ctaLabel) => `
 <div style="max-width:560px;margin:0 auto;padding:40px 16px;">
   <div style="background:#0a0a0a;border:1px solid rgba(236,91,19,0.4);border-radius:16px;overflow:hidden;">
     <div style="background:#080808;padding:22px 28px;border-bottom:1px solid rgba(255,255,255,0.05);">
-      <h1 style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:26px;color:#ec5b13;">The Vault</h1>
+      <h1 style="margin:0;font-family:Georgia,serif;font-style:italic;font-size:26px;color:#ec5b13;">Verp</h1>
       <p style="margin:4px 0 0;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.25);">SYSTEM NOTIFICATION</p>
     </div>
     <div style="padding:28px;">
@@ -162,7 +162,7 @@ const wrap = (title, body, ctaUrl, ctaLabel) => `
       ${ctaUrl ? `<div style="margin-top:24px;"><a href="${ctaUrl}" style="display:inline-block;padding:13px 26px;background:#ec5b13;color:#000;text-decoration:none;font-weight:700;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;border-radius:10px;">${ctaLabel || "OPEN DASHBOARD"}</a></div>` : ""}
     </div>
     <div style="padding:14px 28px;border-top:1px solid rgba(255,255,255,0.04);text-align:center;">
-      <p style="margin:0;font-size:8px;color:rgba(255,255,255,0.12);letter-spacing:0.2em;text-transform:uppercase;">VAULT AUTOMATED SYSTEM · DO NOT REPLY</p>
+      <p style="margin:0;font-size:8px;color:rgba(255,255,255,0.12);letter-spacing:0.2em;text-transform:uppercase;">VERP AUTOMATED SYSTEM · DO NOT REPLY</p>
     </div>
   </div>
 </div></body></html>`;
@@ -283,7 +283,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
     await transporter.sendMail({
       from: `"VERP Security" <${process.env.GMAIL_USER}>`,
       to: email,
-      subject: `[${otp}] Your Vault Access Code`,
+      subject: `[${otp}] Your Verp Access Code`,
       html: wrap(
         "Security Verification Code",
         `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Your one-time code for <strong style="color:#ec5b13;">${type || "verification"}</strong>:</p>
@@ -526,7 +526,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
       emailSubject = `🛒 New Order Placed — ${orderNumber || clientId}`;
       html = wrap(
         "New Order Received",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A new order has been placed in the Vault.</p>
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">A new order has been placed in the Verp.</p>
          ${row("Client", clientId, "#ec5b13")}
          ${row("Order ID", orderNumber, "#38bdf8")}
          ${row("Value", orderValue ? `GH₵ ${Number(orderValue).toLocaleString()}` : "—", "#ec5b13")}
@@ -575,7 +575,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
 
     default:
       to = ADMIN_EMAIL;
-      emailSubject = `[VAULT] ${type}`;
+      emailSubject = `[VERP] ${type}`;
       html = wrap(
         `Alert: ${type}`,
         `${clientId ? row("Client", clientId, "#ec5b13") : ""}${note ? `<p style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:12px;">${note}</p>` : ""}`,
@@ -615,9 +615,9 @@ app.get("/api/admin/return-requests", requireAdminHeader, async (req, res) => {
 
 // ── Health check ──────────────────────────────────────────────
 app.get("/", (req, res) => {
-  res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() });
+  res.json({ status: "active", server: "Verp v2", time: new Date().toISOString() });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.error(`🚀 Vault Server on port ${PORT}`));
+app.listen(PORT, () => console.error(`🚀 Verp Server on port ${PORT}`));
 module.exports = app;

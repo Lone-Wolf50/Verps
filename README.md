@@ -1,4 +1,4 @@
-# Verp — The Vault
+# Verp — The Verp
 
 A full-stack e-commerce and client-support platform (“Verp”) with OTP-based authentication, Paystack payments, live assistant/admin chat, and staff dashboards. Built with React (Vite) and Node.js (Express), backed by Supabase.
 

@@ -254,7 +254,7 @@ const AvatarCard = ({ userId, name, email, joinedAt }) => {
         {/* Meta */}
         <div style={{ flex: 1, minWidth: 200 }}>
           <p style={{ fontFamily: T.serif, fontSize: "clamp(20px,3vw,26px)", color: T.text, margin: "0 0 2px", fontWeight: 700, letterSpacing: "-0.01em" }}>
-            {name || "Vault Member"}
+            {name || "Verp Member"}
           </p>
           <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.14em", color: T.textGhost, margin: "0 0 3px", textTransform: "uppercase" }}>{email}</p>
           <p style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.12em", color: "rgba(236,91,19,0.5)", margin: "0 0 18px", textTransform: "uppercase" }}>

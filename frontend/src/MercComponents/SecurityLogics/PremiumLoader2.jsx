@@ -306,7 +306,7 @@ export default function PremiumLoader2() {
               fontFamily:"'JetBrains Mono',monospace",
               fontSize:6.5, letterSpacing:"0.55em",
               color:"rgba(198,95,10,0.52)", marginBottom:10,
-            }}>VAULT ACCESS — CONFIRMED</div>
+            }}>VERP ACCESS — CONFIRMED</div>
             <div style={{
               fontFamily:"'Cormorant Garamond',serif",
               fontStyle:"italic", fontWeight:300,
