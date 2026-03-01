@@ -16,7 +16,7 @@ const StaffLogin = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
-	const from = searchParams.get("from") || ""; // "admin" | "assistant"
+	const from = searchParams.get("from") || "";
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -25,6 +25,7 @@ const StaffLogin = () => {
 			return;
 		}
 		setLoading(true);
+
 		try {
 			const base = import.meta.env.VITE_SERVER_URL || "";
 			const res = await fetch(`${base}/api/staff-login`, {
@@ -32,11 +33,23 @@ const StaffLogin = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), password }),
 			});
+
 			const data = await res.json().catch(() => ({}));
 
 			if (res.ok && data.success && data.role) {
-				localStorage.setItem("staffRole", data.role);
+				// Normalise to lowercase so "Admin" and "admin" both work
+				const role = data.role.toLowerCase();
+
+				localStorage.setItem("staffRole",  role);
 				localStorage.setItem("staffEmail", email.trim());
+
+				// Role always takes priority over the ?from param.
+				// An admin must always land on /admin, never /terminal,
+				// regardless of which login link they clicked.
+				const target = role === "admin"
+					? "/sys/console/admin"
+					: "/sys/console/terminal";
+
 				Swal.fire({
 					title: "Welcome",
 					icon: "success",
@@ -45,10 +58,12 @@ const StaffLogin = () => {
 					timer: 800,
 					showConfirmButton: false,
 				});
-				const target = from === "assistant" ? "/sys/console/terminal" : from === "admin" ? "/sys/console/admin" : data.role === "admin" ? "/sys/console/admin" : "/sys/console/terminal";
-				navigate(target, { replace: true });
+
+				// Small delay so Swal shows before navigate
+				setTimeout(() => navigate(target, { replace: true }), 850);
 				return;
 			}
+
 			Swal.fire({
 				title: "Access Denied",
 				text: data.error || "Invalid email or password.",
@@ -57,6 +72,7 @@ const StaffLogin = () => {
 				color: "#fff",
 				confirmButtonColor: T.ember,
 			});
+
 		} catch (err) {
 			Swal.fire({
 				title: "Error",

@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+
+# Block staff/admin pages from being indexed
+Disallow: /sys/console/
+Disallow: /sys/
+
+# Block auth flow pages
+Disallow: /login
+Disallow: /signup
+Disallow: /verify-otp
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /loading
+
+# Block user-specific pages
+Disallow: /orderpage
+Disallow: /orderStatus
+Disallow: /inbox
+Disallow: /checkout
+Disallow: /cart
+Disallow: /profile
+
+# Allow all product and public pages
+Allow: /
+Allow: /categories
+Allow: /category/
+Allow: /about
+Allow: /reviews
+Allow: /support

@@ -50,6 +50,25 @@ const Checkout = () => {
   const { cart, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  /*
+    Paystack is now loaded dynamically here instead of in index.html.
+    Previously js.paystack.co/v2/inline.js was a render-blocking script
+    that added 12,510ms to every page load sitewide — even pages that
+    have nothing to do with payments.
+    Now it only loads when the user actually navigates to /checkout.
+  */
+  useEffect(() => {
+    if (window.PaystackPop) return; // already loaded, skip
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v2/inline.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      // Leave the script in the DOM after first load so repeat
+      // visits to /checkout don't re-fetch it.
+    };
+  }, []);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     name: localStorage.getItem("userName") || "",

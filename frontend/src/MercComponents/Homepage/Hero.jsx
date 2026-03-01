@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import hero1 from "../../public/hero1.jpg";
-import hero2 from "../../public/hero2.jpg";
-import hero3 from "../../public/hero3.jpg";
-import hero4 from "../../public/hero4.jpg";
+import hero1 from "../../public/hero1.webp";
+import hero2 from "../../public/hero2.webp";
+import hero3 from "../../public/hero3.webp";
+import hero4 from "../../public/hero4.webp";
 
 if (typeof document !== "undefined" && !document.getElementById("_hero_kf")) {
   const s = document.createElement("style");

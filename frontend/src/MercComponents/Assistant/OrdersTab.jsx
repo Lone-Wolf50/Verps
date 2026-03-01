@@ -139,7 +139,7 @@ const CustomerInfoPanel = ({ order }) => {
 			<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 				<InfoRow icon="call"        label="Phone"            value={phone}    iconColor={T.live} />
 				<InfoRow icon="location_on" label="Location"         value={location} iconColor={T.shipped} />
-				<InfoRow icon="home"        label="Delivery Address" value={address}  iconColor="rgba(167,139,250,1)" />
+				<InfoRow icon="home"        label="Delivery Address" value={address}  iconColor="#a855f7" />
 			</div>
 
 			{/* No profile data notice */}

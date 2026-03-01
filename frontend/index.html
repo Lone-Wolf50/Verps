@@ -4,20 +4,51 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>my-verp</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Verp — Premium Men's Fashion in Ghana</title>
+    <meta name="description" content="Shop premium men's fashion at Verp — boxers, sneakers, watches, caps and more. Fast delivery across Ghana." />
+
+    <!-- Preconnect for fonts only (Paystack removed from here) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Josefin+Sans:wght@100;200&display=swap" />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://js.paystack.co/v2/inline.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!--
+      SINGLE consolidated Google Fonts request.
+      Previously there were 5 separate <link> tags — each one was a separate
+      blocking network round-trip. This merges them all into one URL.
+    -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Josefin+Sans:wght@100;200&family=Manrope:wght@200;300;400;500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Playfair+Display:ital,wght@1,400&display=swap"
+    />
+
+    <!--
+      Tailwind CDN has been REMOVED from here.
+      Install Tailwind as a build dependency instead:
+
+        npm install -D tailwindcss postcss autoprefixer
+        npx tailwindcss init -p
+
+      Then add to tailwind.config.js:
+        content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"]
+
+      And add to your main CSS file (e.g. src/index.css):
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+
+      Vite will then build a minified ~10-20 KiB CSS file instead of
+      the 127 KiB CDN script that was blocking render for 7,400ms.
+    -->
+
+    <!--
+      Paystack inline.js has been REMOVED from here.
+      It was blocking the page for 12,510ms on every page load,
+      even on pages that never need payment.
+      It is now loaded dynamically inside Checkout.jsx only when
+      the user reaches the checkout page. See Checkout.jsx for details.
+    -->
   </head>
- <body class="bg-background-light dark:bg-background-dark text-white font-display overflow-x-hidden">
+  <body class="bg-background-light dark:bg-background-dark text-white font-display overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

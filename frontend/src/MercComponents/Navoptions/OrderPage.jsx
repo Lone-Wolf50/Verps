@@ -43,13 +43,13 @@ if (typeof document !== "undefined" && !document.getElementById("_order_page_kf"
    Helpers
 ───────────────────────────────────────────────────────────── */
 const STATUS_CONFIG = {
-  ordered:    { color: "#a78bfa", glow: "rgba(167,139,250,0.15)", label: "Ordered",    icon: ShoppingBag },
-  pending:    { color: "#facc15", glow: "rgba(250,204,21,0.12)",  label: "Pending",    icon: Clock       },
-  processing: { color: "#38bdf8", glow: "rgba(56,189,248,0.12)",  label: "Processing", icon: Package     },
-  shipped:    { color: "#34d399", glow: "rgba(52,211,153,0.12)",  label: "Shipped",    icon: Truck       },
+  ordered:    { color: "#a855f7", glow: "rgba(168,85,247,0.15)",  label: "Ordered",    icon: ShoppingBag },
+  pending:    { color: "#eab308", glow: "rgba(234,179,8,0.12)",   label: "Pending",    icon: Clock       },
+  processing: { color: "#0ea5e9", glow: "rgba(14,165,233,0.12)",  label: "Processing", icon: Package     },
+  shipped:    { color: "#10b981", glow: "rgba(16,185,129,0.12)",  label: "Shipped",    icon: Truck       },
   delivered:  { color: "#ec5b13", glow: "rgba(236,91,19,0.12)",   label: "Delivered",  icon: CheckCircle },
-  returned:   { color: "#fb923c", glow: "rgba(251,146,60,0.1)",   label: "Returned",   icon: RotateCcw   },
-  cancelled:  { color: "rgba(255,255,255,0.2)", glow: "rgba(255,255,255,0.03)", label: "Cancelled", icon: X },
+  returned:   { color: "#f43f5e", glow: "rgba(244,63,94,0.12)",   label: "Returned",   icon: RotateCcw   },
+  cancelled:  { color: "#64748b", glow: "rgba(100,116,139,0.08)", label: "Cancelled",  icon: X           },
 };
 
 const RETURN_PILL = {

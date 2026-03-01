@@ -3,15 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import OrderMessagesTab from "./OrderMessagesTab";
 
-import { T, NAV }   from "./Tokens";
-import Sidebar       from "./Sidebar";
+import { T, NAV }    from "./Tokens";
+import Sidebar        from "./Sidebar";
 import InboxTabss     from "./InboxTabs";
-import QueueTab      from "./QueueTab";
-import OrdersTab     from "./OrdersTab";
-import AnalyticsTab  from "./AnalyticsTab";
-import AdminChannel  from "./AdminChannel";
+import QueueTab       from "./QueueTab";
+import OrdersTab      from "./OrdersTab";
+import AnalyticsTab   from "./AnalyticsTab";
+import AdminChannel from "../Shared/AdminChannels.jsx"; // ← updated path
 import ChatHistoryTab from "./ChatHistoryTab";
-import PushModal     from "./PushModal";
+import PushModal      from "./PushModal";
 
 /* ─── GLOBAL STYLES ──────────────────────────────────────────── */
 const STYLES = `
@@ -75,12 +75,10 @@ const AssistantTerminal = () => {
 	const waitingSessions = sessions.filter((s) => s.status === "waiting");
 
 	const handleStaffLogout = () => {
-		// Clear namespaced keys (new format)
 		localStorage.removeItem("staffRole_assistant");
 		localStorage.removeItem("staffEmail_assistant");
 		sessionStorage.removeItem("staffRole_assistant");
 		sessionStorage.removeItem("staffEmail_assistant");
-		// Clear legacy keys (old format) just in case
 		localStorage.removeItem("staffRole");
 		localStorage.removeItem("staffEmail");
 		sessionStorage.removeItem("staffRole");
@@ -167,7 +165,7 @@ const AssistantTerminal = () => {
 					{tab === "orders"         && <OrdersTab />}
 					{tab === "order-messages" && <OrderMessagesTab />}
 					{tab === "analytics"      && <AnalyticsTab />}
-					{tab === "admin"          && <AdminChannel />}
+					{tab === "admin"          && <AdminChannel role="assistant" />} {/* ← role added */}
 					{tab === "history"        && <ChatHistoryTab />}
 				</div>
 			</div>

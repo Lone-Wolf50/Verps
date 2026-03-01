@@ -6,24 +6,24 @@ export const T = {
 	ember: "#ec5b13",
 	emberDim: "rgba(236,91,19,0.10)",
 	emberBorder: "rgba(236,91,19,0.35)",
-	live: "#22c55e",
-	waiting: "#f59e0b",
+	live: "#10b981",
+	waiting: "#eab308",
 	resolved: "#6b7280",
 	escalated: "#ef4444",
-	shipped: "#38bdf8",
-	delivered: "#a78bfa",
-	returned: "#fb923c",
-	cancelled: "#f87171",
+	shipped: "#0ea5e9",
+	delivered: "#ec5b13",
+	returned: "#f43f5e",
+	cancelled: "#64748b",
 	border: "1px solid rgba(255,255,255,0.06)",
 	borderSub: "1px solid rgba(255,255,255,0.03)",
 };
 
 export const STATUS_CFG = {
-	waiting:   { color: T.waiting,  label: "WAITING",        pulse: true  },
-	live:      { color: T.live,     label: "LIVE",           pulse: true  },
-	resolved:  { color: T.resolved, label: "RESOLVED",       pulse: false },
-	escalated: { color: T.escalated,label: "ESCALATED",      pulse: true  },
-	full_push: { color: "#a78bfa",  label: "ADMIN TAKEOVER", pulse: true  },
+	waiting:   { color: T.waiting,   label: "WAITING",        pulse: true  },
+	live:      { color: T.live,      label: "LIVE",           pulse: true  },
+	resolved:  { color: T.resolved,  label: "RESOLVED",       pulse: false },
+	escalated: { color: T.escalated, label: "ESCALATED",      pulse: true  },
+	full_push: { color: "#a855f7",   label: "ADMIN TAKEOVER", pulse: true  },
 };
 
 export const ORDER_STATUSES = [
@@ -32,10 +32,10 @@ export const ORDER_STATUSES = [
 ];
 
 export const ORDER_COLOR = {
-	ordered:    "#a78bfa",
+	ordered:    "#a855f7",
 	pending:    T.waiting,
 	processing: T.shipped,
-	shipped:    T.shipped,
+	shipped:    "#10b981",
 	delivered:  T.ember,
 	returned:   T.returned,
 	cancelled:  T.cancelled,

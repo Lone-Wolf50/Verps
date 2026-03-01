@@ -7,12 +7,12 @@ const T = {
 	void: "#080808",
 	obsidian: "#0d0d0d",
 	ember: "#ec5b13",
-	live: "#22c55e",
-	waiting: "#f59e0b",
-	shipped: "#38bdf8",
-	violet: "#a78bfa",
-	returned: "#fb923c",
-	cancelled: "#ef4444",
+	live: "#10b981",
+	waiting: "#eab308",
+	shipped: "#0ea5e9",
+	violet: "#a855f7",
+	returned: "#f43f5e",
+	cancelled: "#64748b",
 	border: "1px solid rgba(255,255,255,0.06)",
 };
 
@@ -27,13 +27,13 @@ const ORDER_STATUSES = [
 ];
 
 const STATUS_COLOR = {
-	ordered: "#a78bfa",
-	pending: "#f59e0b",
-	processing: "#38bdf8",
-	shipped: "#38bdf8",
-	delivered: "#22c55e",
-	returned: "#fb923c",
-	cancelled: "#ef4444",
+	ordered:    "#a855f7",
+	pending:    "#eab308",
+	processing: "#0ea5e9",
+	shipped:    "#10b981",
+	delivered:  "#ec5b13",
+	returned:   "#f43f5e",
+	cancelled:  "#64748b",
 };
 
 /* ─── CUSTOMER PROFILE CARD ──────────────────────────────────── */

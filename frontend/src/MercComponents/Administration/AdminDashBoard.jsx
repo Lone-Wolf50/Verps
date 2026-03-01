@@ -7,7 +7,7 @@ import ClientRequests from "./ClientRequests";
 import AdminInbox from "./AdminInbox";
 import Analytics from "./Analytics";
 import ClientMessages from "./ClientMessages";
-import AdminChannel from "./AdminChannel";
+import AdminChannel from "../Shared/AdminChannels.jsx"; // ← updated path
 import Broadcasts from "./Broadcasts";
 import Swal from "sweetalert2";
 
@@ -154,7 +154,7 @@ const AdminDashBoard = () => {
 			case "messages":
 				return <ClientMessages />;
 			case "channel":
-				return <AdminChannel />;
+				return <AdminChannel role="admin" />; // ← role added
 			case "inbox":
 				return <AdminInbox />;
 			case "analytics":
