@@ -487,7 +487,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
   switch (type) {
     case "ASSISTANT_REQUEST":
     case "NEW_CHAT":
-      to = ASSISTANT_EMAIL;
+      to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = "🔔 New Client Support Request";
       html = wrap(
         "A Client Needs Help",
@@ -499,7 +499,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
 
     case "ESCALATION":
     case "PARTIAL_PUSH":
-      to = ADMIN_EMAIL;
+      to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = "⚠️ Chat Escalation — Advice Needed";
       html = wrap(
         "Partial Escalation Alert",
@@ -511,7 +511,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
 
     case "ADMIN_TAKEOVER":
     case "FULL_PUSH":
-      to = ADMIN_EMAIL;
+      to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = "🚨 URGENT — Full Admin Takeover Needed";
       html = wrap(
         "Full Takeover Required",
@@ -522,7 +522,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
       break;
 
     case "NEW_ORDER":
-      to = ADMIN_EMAIL;
+      to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = `🛒 New Order Placed — ${orderNumber || clientId}`;
       html = wrap(
         "New Order Received",
@@ -536,7 +536,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
       break;
 
     case "PUSH_BACK":
-      to = ASSISTANT_EMAIL;
+      to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = "↩️ Session Returned — Resume with Client";
       html = wrap(
         "Admin Has Pushed Back",
@@ -547,7 +547,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
       break;
 
     case "PRIVATE_MESSAGE":
-      to = ADMIN_EMAIL;
+      to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = "💬 New Private Message from Assistant";
       html = wrap(
         "Assistant Sent a Private Message",
@@ -561,7 +561,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
       break;
 
     case "BROADCAST":
-      to = ADMIN_EMAIL;
+      to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = `📢 Broadcast Confirmed — "${(subject || "").slice(0, 40)}"`;
       html = wrap(
         "Broadcast Delivered",
@@ -574,7 +574,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
       break;
 
     default:
-      to = ADMIN_EMAIL;
+      to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = `[VERP] ${type}`;
       html = wrap(
         `Alert: ${type}`,
