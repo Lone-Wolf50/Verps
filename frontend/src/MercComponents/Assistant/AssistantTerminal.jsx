@@ -5,7 +5,7 @@ import OrderMessagesTab from "./OrderMessagesTab";
 
 import { T, NAV }   from "./Tokens";
 import Sidebar       from "./Sidebar";
-import InboxTab      from "./InboxTab";
+import InboxTab      from "./InboxTabs";
 import QueueTab      from "./QueueTab";
 import OrdersTab     from "./OrdersTab";
 import AnalyticsTab  from "./AnalyticsTab";
