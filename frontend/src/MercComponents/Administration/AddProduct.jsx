@@ -44,7 +44,6 @@ const AddProduct = ({ editData, onSuccess }) => {
 			.order("name", { ascending: true });
 
 		if (error) {
-			console.error("Vault Error:", error.message);
 		} else {
 			// This is the critical line. Ensure 'categories' is the
 			// same variable used in your .map() functions.
@@ -101,7 +100,6 @@ const AddProduct = ({ editData, onSuccess }) => {
 		color: "#fff",
 	});
 	useEffect(() => {
-		console.log("MANAGE CATEGORIES: Component Mounted");
 		fetchCategories();
 	}, []);
 	const handleFileChange = (e) => {
@@ -263,9 +261,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 					await supabase.storage.from("verp-products").remove([fileName]);
 
 				if (storageError) {
-					console.error("STORAGE ERROR:", storageError);
 				} else {
-					console.log("STORAGE SUCCESS:", storageData);
 				}
 
 				// 3. DELETE FROM DATABASE
@@ -285,7 +281,6 @@ const AddProduct = ({ editData, onSuccess }) => {
 
 				await fetchCategories();
 			} catch (error) {
-				console.error("CRITICAL ERROR:", error.message);
 			} finally {
 				setLoading(false);
 			}
@@ -348,7 +343,6 @@ const AddProduct = ({ editData, onSuccess }) => {
 					body: JSON.stringify({ ...payload }),
 				});
 			} catch (err) {
-				console.warn("Notification failed.");
 			}
 
 			await Swal.fire({
@@ -371,7 +365,6 @@ const AddProduct = ({ editData, onSuccess }) => {
 			setLoading(false);
 		}
 	};
-	console.log("Current Component State:", categories);
 	return (
 		<div className="max-w-7xl mx-auto space-y-20 pb-32 px-4 md:px-6">
 			{/* SECTION 01 - CATEGORY ARCHITECTURE */}

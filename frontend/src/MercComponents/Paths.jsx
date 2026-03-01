@@ -37,6 +37,7 @@ import JacketPages       from "./Cartpages/JacketPages.jsx";
 import GlassesPage       from "./Cartpages/GlassesPage.jsx";
 import BeltsPage         from "./Cartpages/BeltsPage.jsx";
 import ProfilePage from "./SecurityLogics/ProfilePages.jsx";
+import RandomLoader from "./SecurityLogics/RandomLoader.jsx";
 /* ── Scroll to top on route change ── */
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -157,7 +158,7 @@ function Paths() {
               <Route path="/verify-otp"      element={<AuthPage mode="otp"    />} />
               <Route path="/forgot-password" element={<AuthPage mode="forgot" />} />
               <Route path="/reset-password"  element={<AuthPage mode="reset"  />} />
-              <Route path="/loading"         element={<PremiumLoader />} />
+              <Route path="/loading"         element={<RandomLoader />} />
               <Route path="/sys/console/login" element={<StaffLogin />} />
 
               {/* Staff */}

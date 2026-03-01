@@ -367,18 +367,14 @@ const AuthPage_LoginForm = ({ onSuccess }) => {
       // ✅ FIX: CartContext is already mounted and won't remount after login.
       // We must explicitly call syncFromDB here so it picks up any guest_cart
       // items the user added before logging in, and merges them with their DB cart.
-      console.log("[AuthPage][login] ✅ Login successful for", user.email, "— triggering cart sync to merge guest_cart");
       const guestRaw = localStorage.getItem("guest_cart");
       if (guestRaw) {
         try {
           const guestItems = JSON.parse(guestRaw);
-          console.log("[AuthPage][login] 🧳 guest_cart has", guestItems.length, "item(s) waiting to merge:", guestItems.map(i => i.name));
         } catch (_) {}
       } else {
-        console.log("[AuthPage][login] 🧳 No guest_cart found — user had no pre-login cart items");
       }
       await syncFromDB();
-      console.log("[AuthPage][login] ✅ syncFromDB complete — navigating to loading screen");
 
       onSuccess(user);
     } catch (err) {

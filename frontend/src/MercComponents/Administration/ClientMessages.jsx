@@ -127,27 +127,17 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 
 	const sendReply = async (e) => {
 		e.preventDefault();
-		console.log("[ClientMessages] sendReply triggered");
-		console.log("[ClientMessages] session.id:", session.id);
-		console.log("[ClientMessages] session.status:", session.status);
-		console.log("[ClientMessages] isFullPush check (must be 'full_push'):", session.status === "full_push");
-		console.log("[ClientMessages] input.trim():", input.trim());
-		console.log("[ClientMessages] sending:", sending);
 
 		if (!input.trim()) {
-			console.warn("[ClientMessages] BLOCKED — input is empty");
 			return;
 		}
 		if (sending) {
-			console.warn("[ClientMessages] BLOCKED — already sending");
 			return;
 		}
 		if (session.status !== "full_push") {
-			console.warn(`[ClientMessages] BLOCKED — session.status is '${session.status}', not 'full_push'. Admin should NOT be able to send.`);
 			return;
 		}
 
-		console.log("[ClientMessages] ✅ Sending allowed — status is full_push");
 		setSending(true);
 		clearTimeout(typingTimerRef.current);
 		broadcastAdminTyping(false);
@@ -350,7 +340,6 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 
 	const updateStatus = async (id, status) => {
 		if (!isActive) {
-			console.warn("[ReturnRequestsPanel] BLOCKED — updateStatus called while panel is not active (Support Chats tab is open). Switch to Return Requests tab to update statuses.");
 			return;
 		}
 		setUpdatingId(id);
@@ -549,15 +538,12 @@ const ClientMessages = () => {
 			.not("status", "eq", "resolved")
 			.order("updated_at", { ascending:false, nullsFirst:false });
 		if (data) {
-			console.log("[ClientMessages] syncSessions — sessions fetched:", data.map(s => ({ id: s.id, email: s.client_email, status: s.status })));
 			setSessions(data);
 			const cur = selectedSessionRef.current;
 			if (cur) {
 				const r = data.find(s => s.id === cur.id);
 				if (r) {
-					console.log(`[ClientMessages] syncSessions — updating selectedSession '${cur.id}' status: '${cur.status}' → '${r.status}'`);
 					if (r.status !== cur.status) {
-						console.warn(`[ClientMessages] ⚠️ Status changed for selected session! Was '${cur.status}', now '${r.status}'. Input will ${r.status === "full_push" ? "UNLOCK" : "stay LOCKED"}.`);
 					}
 					setSelectedSession(r);
 				}
@@ -569,16 +555,11 @@ const ClientMessages = () => {
 
 	const handlePushBack = async () => {
 		if (!selectedSession) return;
-		console.log("[ClientMessages] handlePushBack triggered");
-		console.log("[ClientMessages] selectedSession.id:", selectedSession.id);
-		console.log("[ClientMessages] selectedSession.status BEFORE push back:", selectedSession.status);
-		console.log("[ClientMessages] Setting status → 'live', clearing admin_note");
 
 		await supabase.from("verp_support_sessions")
 			.update({ status:"live", admin_note:null })
 			.eq("id", selectedSession.id);
 
-		console.log("[ClientMessages] Supabase update done. Notifying staff via private channel...");
 
 		await supabase.from("verp_private_channel").insert([{
 			sender:"admin",
@@ -590,16 +571,12 @@ const ClientMessages = () => {
 				headers:{ "Content-Type":"application/json" },
 				body:JSON.stringify({ type:"PUSH_BACK", clientId:selectedSession.client_email }),
 			});
-			console.log("[ClientMessages] /api/alert-staff notified");
 		} catch (err) {
-			console.warn("[ClientMessages] /api/alert-staff failed (non-critical):", err);
 		}
 
-		console.log("[ClientMessages] Clearing selectedSession and running syncSessions...");
 		setSelectedSession(null);
 		setMobileShowChat(false);
 		syncSessions();
-		console.log("[ClientMessages] Push back complete. Admin should now see status='live' and input locked.");
 	};
 
 	const filtered = sessions.filter(s => {

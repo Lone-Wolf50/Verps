@@ -786,7 +786,6 @@ const OverviewCard = ({ userId, email, joinedAt }) => {
       .eq("customer_email", email)
       .then(({ count, error }) => {
         if (error) {
-          console.error("[OverviewCard] ❌ Order count error:", error.message);
           setOrderCount(0);
         } else {
           setOrderCount(count ?? 0);

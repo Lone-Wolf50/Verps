@@ -84,7 +84,6 @@ const Checkout = () => {
         if (!cancelled && data.success) setFeeData(data);
         else if (!cancelled) setFeeError(true);
       } catch (err) {
-        console.error("Fee calculation error:", err);
         if (!cancelled) setFeeError(true);
       } finally {
         if (!cancelled) setFeeLoading(false);
