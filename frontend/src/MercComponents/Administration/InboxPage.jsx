@@ -241,13 +241,13 @@ const InboxPage = () => {
         ::-webkit-scrollbar-thumb { background:rgba(236,91,19,0.35);border-radius:99px }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: T.void, paddingTop: 88, paddingBottom: 80, fontFamily: "'DM Sans',sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: T.void, paddingTop: 48, paddingBottom: 80, fontFamily: "'DM Sans',sans-serif" }}>
         <div style={{ maxWidth: 700, margin: "0 auto", padding: "0 20px" }}>
           {/* PAGE HEADER */}
           <div style={{ marginBottom: 36, animation: "fadeUp 0.55s both" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
               <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(30px,6vw,48px)", fontStyle: "italic", fontWeight: 400, color: "white", lineHeight: 1.1 }}>
-                Vault <span style={{ color: T.ember }}>Inbox</span>
+                Verp <span style={{ color: T.ember }}>Inbox</span>
               </h1>
               {unreadCount > 0 && (
                 <span style={{ background: T.ember, color: "#000", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", padding: "5px 12px", borderRadius: 999, animation: "unreadPulse 2s ease-in-out infinite" }}>
