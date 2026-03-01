@@ -7,16 +7,6 @@ const SALT_ROUNDS = 12;
 require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
 const fetch = require("node-fetch");
-// ── ENV CHECK ON STARTUP ──────────────────────────────────────
-console.log("🔍 [STARTUP] Checking environment variables...");
-console.log("  SUPABASE_URL        :", process.env.SUPABASE_URL              ? "✅ set" : "❌ MISSING");
-console.log("  SUPABASE_SERVICE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "✅ set" : "❌ MISSING");
-console.log("  GMAIL_USER          :", process.env.GMAIL_USER                ? "✅ set" : "❌ MISSING");
-console.log("  GMAIL_PASS          :", process.env.GMAIL_PASS                ? "✅ set" : "❌ MISSING");
-console.log("  ADMIN_EMAIL         :", process.env.ADMIN_EMAIL               ? "✅ set" : "❌ MISSING");
-console.log("  ADMIN_PASS          :", process.env.ADMIN_PASS                ? "✅ set" : "❌ MISSING");
-console.log("  PAYSTACK_SECRET_KEY :", process.env.PAYSTACK_SECRET_KEY       ? "✅ set" : "❌ MISSING");
-console.log("  INTERNAL_SECRET     :", process.env.INTERNAL_SECRET           ? "✅ set" : "❌ MISSING — add to .env or alert-staff will reject ALL calls");
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -25,6 +15,13 @@ const supabase = createClient(
 
 const app = express();
 app.use(express.json());
+
+// ── TRUST PROXY ───────────────────────────────────────────────
+// Required when running behind Vercel / a reverse proxy.
+// Without this, express-rate-limit sees every request as the same IP
+// (the proxy's IP) and rate limiting effectively stops working.
+// "1" means trust the first hop in the X-Forwarded-For chain only.
+app.set("trust proxy", 1);
 
 // ── CORS ──────────────────────────────────────────────────────
 const allowedOrigins = [
@@ -37,16 +34,13 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log("🌐 [CORS] Request from origin:", origin || "(no origin)");
     if (!origin || allowedOrigins.includes(origin)) {
-      console.log("🌐 [CORS] ✅ Allowed");
       return callback(null, true);
     }
     console.error("🌐 [CORS] ❌ Blocked:", origin);
     return callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
   methods: ["GET", "POST", "OPTIONS"],
-  // x-internal-secret added so browser preflight allows the header
   allowedHeaders: ["Content-Type", "Authorization", "x-internal-secret"],
   credentials: true,
   preflightContinue: false,
@@ -57,10 +51,8 @@ app.use(cors(corsOptions));
 
 // ══════════════════════════════════════════════════════════════
 //  RATE LIMITERS
-//  Run: npm install express-rate-limit
 // ══════════════════════════════════════════════════════════════
 
-// Global — 120 requests per IP per minute across every route
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 120,
@@ -70,8 +62,6 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// OTP send — max 3 per IP per 10 minutes
-// Stops anyone spamming inboxes or burning your Gmail quota
 const otpSendLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 3,
@@ -80,7 +70,6 @@ const otpSendLimiter = rateLimit({
   message: { error: "Too many OTP requests. Please wait before requesting another code." },
 });
 
-// OTP verify — max 10 attempts per IP per 10 minutes
 const otpVerifyLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 10,
@@ -89,7 +78,6 @@ const otpVerifyLimiter = rateLimit({
   message: { error: "Too many verification attempts. Please wait." },
 });
 
-// Staff login — max 10 attempts per IP per 15 minutes
 const staffLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -98,7 +86,6 @@ const staffLoginLimiter = rateLimit({
   message: { error: "Too many login attempts. Please try again later." },
 });
 
-// Password reset — max 5 per IP per 15 minutes
 const resetLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -111,11 +98,6 @@ const resetLimiter = rateLimit({
 //  AUTH MIDDLEWARE
 // ══════════════════════════════════════════════════════════════
 
-// Internal secret guard — protects /api/alert-staff from public abuse
-// Backend .env  → INTERNAL_SECRET=verpvault2026secretkey
-// Frontend .env → VITE_INTERNAL_SECRET=verpvault2026secretkey
-// Every fetch call to alert-staff must include this header:
-//   "x-internal-secret": import.meta.env.VITE_INTERNAL_SECRET
 const requireInternalSecret = (req, res, next) => {
   const secret = req.headers["x-internal-secret"];
   if (!secret || secret !== process.env.INTERNAL_SECRET) {
@@ -125,12 +107,6 @@ const requireInternalSecret = (req, res, next) => {
   next();
 };
 
-// Admin header guard — protects /api/admin/* endpoints
-// Reads Authorization: Basic base64(email:password)
-// Credentials must NEVER be sent as URL query params — they end up in server logs
-// Update your admin dashboard fetch to:
-//   const creds = btoa(`${adminEmail}:${adminPassword}`);
-//   fetch("/api/admin/return-requests", { headers: { Authorization: `Basic ${creds}` } })
 const requireAdminHeader = (req, res, next) => {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith("Basic ")) {
@@ -168,7 +144,6 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify((err) => {
   if (err) console.error("❌ [SMTP] Email transporter error:", err.message);
-  else console.log("✅ [SMTP] Email transporter ready —", process.env.GMAIL_USER);
 });
 
 // ── HTML Email Wrapper ─────────────────────────────────────────
@@ -199,13 +174,9 @@ const row = (label, value, color) =>
   </div>`;
 
 // ── 1. Staff Login ─────────────────────────────────────────────
-// PROTECTED: staffLoginLimiter — blocks brute force after 10 attempts per 15 min
-// NOTE: /api/verify-staff (legacy) has been deleted — it was unprotected and redundant
 app.post("/api/staff-login", staffLoginLimiter, (req, res) => {
   const { email, password } = req.body;
-  console.log("[staff-login] called — email:", email);
   if (!email || !password) {
-    console.error("[staff-login] ❌ Missing email or password");
     return res.status(400).json({ success: false, error: "Email and password required" });
   }
   const adminEmail     = (process.env.ADMIN_EMAIL     || "").toLowerCase().trim();
@@ -213,39 +184,26 @@ app.post("/api/staff-login", staffLoginLimiter, (req, res) => {
   const em = String(email).toLowerCase().trim();
 
   if (em === adminEmail && password === process.env.ADMIN_PASS) {
-    console.log("[staff-login] ✅ Admin login success");
     return res.status(200).json({ success: true, role: "admin", message: "Access Granted" });
   }
   if (em === assistantEmail && password === process.env.ASSISTANT_PASS) {
-    console.log("[staff-login] ✅ Assistant login success");
     return res.status(200).json({ success: true, role: "assistant", message: "Access Granted" });
   }
-  console.error("[staff-login] ❌ Invalid credentials for:", em);
+  console.error("[staff-login] ❌ Invalid credentials");
   res.status(401).json({ success: false, error: "Invalid email or password" });
 });
 
 // ── 2. OTP Delivery ───────────────────────────────────────────
-// PROTECTED: otpSendLimiter — max 3 OTP emails per IP per 10 minutes
-// PROTECTED: per-email DB checks — 60s cooldown + 3 sends per 10 min + 30 min account lock
-// Also resets otp_attempts to 0 so a fresh code unlocks the account
-// REQUIRED: run this SQL in Supabase before using:
-//   ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_attempts    integer     DEFAULT 0;
-//   ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_last_sent   timestamptz;
-//   ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_send_count  integer     DEFAULT 0;
-//   ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_locked_until timestamptz;
 app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
   const { email, type } = req.body;
-  console.log("[send-otp] called — email:", email, "| type:", type);
 
   if (!email) {
-    console.error("[send-otp] ❌ No email provided");
     return res.status(400).json({ success: false, error: "Email required" });
   }
 
   const cleanEmail = email.toLowerCase().trim();
 
   try {
-    // ── Fetch user's current rate-limit state from DB ──────────
     const { data: user, error: fetchErr } = await supabase
       .from("verp_users")
       .select("id, otp_last_sent, otp_send_count, otp_locked_until")
@@ -260,22 +218,18 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
     if (user) {
       const now = new Date();
 
-      // 1. Check if account is locked
       if (user.otp_locked_until && now < new Date(user.otp_locked_until)) {
         const minutesLeft = Math.ceil((new Date(user.otp_locked_until) - now) / 60000);
-        console.error("[send-otp] ❌ Account locked until:", user.otp_locked_until, "for:", cleanEmail);
         return res.status(429).json({
           success: false,
           error: `For your security, this account is temporarily locked. Please try again in ${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""}.`,
         });
       }
 
-      // 2. Check 60-second cooldown between sends
       if (user.otp_last_sent) {
         const secondsSinceLast = (now - new Date(user.otp_last_sent)) / 1000;
         if (secondsSinceLast < 60) {
           const wait = Math.ceil(60 - secondsSinceLast);
-          console.error("[send-otp] ❌ Cooldown active —", wait, "seconds left for:", cleanEmail);
           return res.status(429).json({
             success: false,
             error: `Please wait ${wait} second${wait !== 1 ? "s" : ""} before requesting a new code.`,
@@ -283,7 +237,6 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
         }
       }
 
-      // 3. Check if they've sent too many codes in the last 10 minutes
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
       const recentSends = (user.otp_last_sent && new Date(user.otp_last_sent) > tenMinutesAgo)
         ? (user.otp_send_count || 0)
@@ -295,7 +248,6 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
           .from("verp_users")
           .update({ otp_locked_until: lockedUntil })
           .eq("email", cleanEmail);
-        console.error("[send-otp] ❌ Too many sends — locking account 30 min for:", cleanEmail);
         return res.status(429).json({
           success: false,
           error: "Too many code requests. For your security, this account has been locked for 30 minutes.",
@@ -303,7 +255,6 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       }
     }
 
-    // ── Generate OTP ───────────────────────────────────────────
     const otp    = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
     const now    = new Date();
@@ -312,10 +263,6 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       ? (user.otp_send_count || 0)
       : 0;
 
-    console.log("[send-otp] Generated OTP — expiry:", expiry);
-
-    // ── Save OTP + update rate-limit counters ──────────────────
-    console.log("[send-otp] Saving OTP to DB for:", cleanEmail);
     const { error: dbErr } = await supabase
       .from("verp_users")
       .update({
@@ -324,7 +271,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
         otp_attempts:    0,
         otp_last_sent:   now.toISOString(),
         otp_send_count:  recentSends + 1,
-        otp_locked_until: null, // clear any existing lock on fresh send
+        otp_locked_until: null,
       })
       .eq("email", cleanEmail);
 
@@ -332,10 +279,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       console.error("[send-otp] ❌ DB save failed:", dbErr.message);
       return res.status(500).json({ success: false, error: "Failed to prepare OTP", detail: dbErr.message });
     }
-    console.log("[send-otp] ✅ OTP saved to DB — send count:", recentSends + 1);
 
-    // ── Send email ─────────────────────────────────────────────
-    console.log("[send-otp] Sending email to:", cleanEmail);
     await transporter.sendMail({
       from: `"VERP Security" <${process.env.GMAIL_USER}>`,
       to: email,
@@ -351,22 +295,16 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       ),
     });
 
-    console.log("[send-otp] ✅ Email sent successfully to:", cleanEmail);
     res.status(200).json({ success: true, otp });
   } catch (err) {
     console.error("[send-otp] ❌ CAUGHT EXCEPTION:", err.message);
-    console.error("[send-otp] ❌ Full error:", err);
     res.status(500).json({ success: false, error: "Failed to deliver OTP", detail: err.message });
   }
 });
 
 // ── 3. OTP Verification ───────────────────────────────────────
-// PROTECTED: otpVerifyLimiter — max 10 attempts per IP per 10 minutes
-// PROTECTED: otp_attempts DB counter — locks account after 5 wrong guesses
-// Two layers stop brute forcing a 6-digit code within the 10-minute window
 app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
   const { email, otp } = req.body;
-  console.log("[verify-otp] called — email:", email, "| otp:", otp);
 
   if (!email || !otp) return res.status(400).json({ message: "Email and code required." });
 
@@ -377,9 +315,6 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
       .eq("email", email.toLowerCase().trim())
       .maybeSingle();
 
-    console.log("[verify-otp] DB row :", data);
-    console.log("[verify-otp] DB err :", error?.message ?? "none");
-
     if (error) {
       console.error("[verify-otp] ❌ Supabase error:", error.message);
       return res.status(500).json({ message: "DB error.", detail: error.message });
@@ -387,22 +322,15 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
     if (!data) return res.status(404).json({ message: "No account found for this email." });
 
     if (!data.otp_code) {
-      console.error("[verify-otp] ❌ otp_code is NULL for", email);
       return res.status(400).json({ message: "No active code — please request a new one." });
     }
 
-    // Block after 5 wrong guesses — forces them to request a new code
     const attempts = data.otp_attempts || 0;
     if (attempts >= 5) {
-      console.error("[verify-otp] ❌ Account locked — too many failed attempts for", email);
       return res.status(429).json({ message: "Too many incorrect attempts — please request a new code." });
     }
 
-    console.log("[verify-otp] DB code  :", JSON.stringify(String(data.otp_code).trim()));
-    console.log("[verify-otp] Provided :", JSON.stringify(String(otp).trim()));
-
     if (String(data.otp_code).trim() !== String(otp).trim()) {
-      // Increment the per-user attempt counter in DB
       await supabase
         .from("verp_users")
         .update({ otp_attempts: attempts + 1 })
@@ -412,31 +340,26 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
     }
 
     if (data.otp_expiry && new Date() > new Date(data.otp_expiry)) {
-      console.error("[verify-otp] ❌ OTP expired at", data.otp_expiry);
+      console.error("[verify-otp] ❌ OTP expired");
       return res.status(400).json({ message: "Code expired — please request a new one." });
     }
 
-    // Success — reset attempt counter
     await supabase
       .from("verp_users")
       .update({ otp_attempts: 0 })
       .eq("id", data.id);
 
-    console.log("[verify-otp] ✅ OTP valid for", email);
     res.status(200).json({ success: true });
 
   } catch (e) {
-    console.error("[verify-otp] ❌ CAUGHT EXCEPTION:", e.message, e);
+    console.error("[verify-otp] ❌ CAUGHT EXCEPTION:", e.message);
     res.status(500).json({ message: "Server error during OTP check.", detail: e.message });
   }
 });
 
 // ── 4. Reset Password ─────────────────────────────────────────
-// PROTECTED: resetLimiter — max 5 attempts per IP per 15 minutes
-// Also clears otp_attempts on success so the account is fully unlocked
 app.post("/api/reset-password", resetLimiter, async (req, res) => {
   const { email, password } = req.body;
-  console.log("[reset-password] called — email:", email);
 
   if (!email || !password)
     return res.status(400).json({ message: "Email and new password required." });
@@ -450,9 +373,6 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
       .eq("email", email.toLowerCase().trim())
       .maybeSingle();
 
-    console.log("[reset-password] DB user found:", !!user);
-    console.log("[reset-password] DB err :", fetchErr?.message ?? "none");
-
     if (fetchErr) return res.status(500).json({ message: "DB error.", detail: fetchErr.message });
     if (!user)    return res.status(404).json({ message: "No account found for this email." });
 
@@ -462,12 +382,11 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
     }
 
     if (user.otp_expiry && new Date() > new Date(user.otp_expiry)) {
-      console.error("[reset-password] ❌ OTP expired at", user.otp_expiry);
+      console.error("[reset-password] ❌ OTP expired");
       return res.status(400).json({ message: "Session expired — please request a new code." });
     }
 
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
-    console.log("[reset-password] ✅ password hashed");
 
     const { error: updateErr } = await supabase
       .from("verp_users")
@@ -479,27 +398,17 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
       return res.status(500).json({ message: "Failed to save new password.", detail: updateErr.message });
     }
 
-    console.log("[reset-password] ✅ password saved and OTP cleared for", email);
     res.status(200).json({ success: true });
 
   } catch (e) {
-    console.error("[reset-password] ❌ CAUGHT EXCEPTION:", e.message, e);
+    console.error("[reset-password] ❌ CAUGHT EXCEPTION:", e.message);
     res.status(500).json({ message: "Server error during password reset.", detail: e.message });
   }
 });
 
 // ── 5. Paystack Verification ──────────────────────────────────
-// PROTECTED: cross-checks expectedEmail + expectedAmount against Paystack's record
-// Stops anyone replaying a reference or spoofing a payment
-// Update your Checkout fetch to pass these two extra fields:
-//   body: JSON.stringify({
-//     reference,
-//     expectedEmail: localStorage.getItem("userEmail"),
-//     expectedAmount: totalAmountGHS,
-//   })
 app.post("/api/verify-payment", async (req, res) => {
   const { reference, expectedEmail, expectedAmount } = req.body;
-  console.log("[verify-payment] called — reference:", reference, "| expectedEmail:", expectedEmail, "| expectedAmount:", expectedAmount);
 
   if (!reference) return res.status(400).json({ error: "Reference required" });
 
@@ -508,34 +417,30 @@ app.post("/api/verify-payment", async (req, res) => {
       headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     });
     const data = await response.json();
-    console.log("[verify-payment] Paystack response status:", data?.data?.status);
 
     if (!data.status || data.data.status !== "success") {
       console.error("[verify-payment] ❌ Payment not verified:", data?.data?.status);
       return res.status(400).json({ success: false, message: "Payment not verified", data: data.data });
     }
 
-    // Cross-check email
     if (expectedEmail) {
       const paidEmail = (data.data.customer?.email || "").toLowerCase().trim();
       const wantEmail = expectedEmail.toLowerCase().trim();
       if (paidEmail !== wantEmail) {
-        console.error("[verify-payment] ❌ Email mismatch — paid by:", paidEmail, "| expected:", wantEmail);
+        console.error("[verify-payment] ❌ Email mismatch");
         return res.status(400).json({ success: false, message: "Payment email mismatch" });
       }
     }
 
-    // Cross-check amount (Paystack returns pesewas, divide by 100 for GHS)
     if (expectedAmount) {
       const paidGHS     = data.data.amount / 100;
       const expectedGHS = parseFloat(expectedAmount);
-      if (Math.abs(paidGHS - expectedGHS) > 0.5) { // 50p tolerance for rounding
+      if (Math.abs(paidGHS - expectedGHS) > 0.5) {
         console.error("[verify-payment] ❌ Amount mismatch — paid:", paidGHS, "| expected:", expectedGHS);
         return res.status(400).json({ success: false, message: "Payment amount mismatch" });
       }
     }
 
-    console.log("[verify-payment] ✅ Payment verified");
     res.status(200).json({ success: true, data: data.data });
 
   } catch (err) {
@@ -547,11 +452,9 @@ app.post("/api/verify-payment", async (req, res) => {
 // ── 6. Paystack Charge Calculation ───────────────────────────
 app.post("/api/paystack-charge", (req, res) => {
   const { amountGHS } = req.body;
-  console.log("[paystack-charge] called — amountGHS:", amountGHS);
   const amount = parseFloat(amountGHS);
 
   if (!amount || isNaN(amount) || amount <= 0) {
-    console.error("[paystack-charge] ❌ Invalid amount:", amountGHS);
     return res.status(400).json({ error: "Invalid amountGHS" });
   }
 
@@ -561,7 +464,6 @@ app.post("/api/paystack-charge", (req, res) => {
   const feeGHS = +(chargeGHS - amount).toFixed(2);
   const chargePesewas = Math.round(chargeGHS * 100);
 
-  console.log("[paystack-charge] ✅ Calculated — charge:", chargeGHS, "fee:", feeGHS);
   res.status(200).json({
     success: true,
     originalAmount: amount,
@@ -572,11 +474,8 @@ app.post("/api/paystack-charge", (req, res) => {
 });
 
 // ── 7. Staff & System Alerts ──────────────────────────────────
-// PROTECTED: requireInternalSecret middleware
-// Without the correct x-internal-secret header this returns 403 immediately
 app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
   const { type, clientId, note, orderNumber, orderValue, orderStatus, subject, recipientCount } = req.body;
-  console.log("[alert-staff] called — type:", type, "| clientId:", clientId);
 
   const ADMIN_EMAIL     = process.env.ADMIN_EMAIL     || process.env.GMAIL_USER;
   const ASSISTANT_EMAIL = process.env.ASSISTANT_EMAIL || process.env.GMAIL_USER;
@@ -685,12 +584,10 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
   }
 
   try {
-    console.log("[alert-staff] Sending email — type:", type, "→ to:", to);
     await transporter.sendMail({
       from: `"VERP System" <${process.env.GMAIL_USER}>`,
       to, subject: emailSubject, html,
     });
-    console.log(`[alert-staff] ✅ [${type}] → ${to}`);
     res.status(200).json({ success: true, type, to });
   } catch (err) {
     console.error(`[alert-staff] ❌ [${type}] failed:`, err.message);
@@ -699,11 +596,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
 });
 
 // ── 8. Admin: Return Requests ─────────────────────────────────
-// PROTECTED: requireAdminHeader middleware
-// Credentials are read from Authorization: Basic header — never from URL params
 app.get("/api/admin/return-requests", requireAdminHeader, async (req, res) => {
-  console.log("[return-requests] ✅ Admin verified via Authorization header");
-
   try {
     const { data, error } = await supabase
       .from("verp_return_requests")
@@ -714,7 +607,6 @@ app.get("/api/admin/return-requests", requireAdminHeader, async (req, res) => {
       console.error("[return-requests] ❌ DB error:", error.message);
       throw error;
     }
-    console.log("[return-requests] ✅ Returned", data?.length, "records");
     res.status(200).json({ success: true, data });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -723,10 +615,9 @@ app.get("/api/admin/return-requests", requireAdminHeader, async (req, res) => {
 
 // ── Health check ──────────────────────────────────────────────
 app.get("/", (req, res) => {
-  console.log("[health] ping received");
   res.json({ status: "active", server: "Vault v2", time: new Date().toISOString() });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Vault Server on port ${PORT}`));
+app.listen(PORT, () => console.error(`🚀 Vault Server on port ${PORT}`));
 module.exports = app;
