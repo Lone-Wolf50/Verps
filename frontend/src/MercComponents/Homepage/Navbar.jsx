@@ -312,14 +312,22 @@ const Navbar = () => {
   const location        = useLocation();
   const navigate        = useNavigate();
   const handleTerminate = useTerminateAccount();
-  const guestCart   = (() => { try { return JSON.parse(localStorage.getItem("guest_cart") || "[]"); } catch { return []; } })();
-  const itemCount   = isLoggedIn
-    ? cart.reduce((t, i) => t + i.quantity, 0)
-    : guestCart.reduce((t, i) => t + i.quantity, 0);
 
-  /* ── Sync auth state ── */
+  // ── FIX: cart count is ONLY shown when user is logged in ──────────────────
+  // We never show guest_cart count in the badge. Items are preserved in
+  // guest_cart key behind the scenes for merge on next login, but the UI
+  // count badge is hidden until the user authenticates.
+  const itemCount = isLoggedIn
+    ? cart.reduce((t, i) => t + i.quantity, 0)
+    : 0; // ← guest_cart count intentionally suppressed
+
+  console.log("[Navbar][cart-count] isLoggedIn:", isLoggedIn, "| itemCount:", itemCount, "| cart items:", cart.length);
+
+  /* ── Sync auth state on route change ── */
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("userEmail"));
+    const loggedIn = !!localStorage.getItem("userEmail");
+    console.log("[Navbar][auth-sync] Route changed →", location.pathname, "| isLoggedIn:", loggedIn);
+    setIsLoggedIn(loggedIn);
     setUserName(localStorage.getItem("userName") || "");
   }, [location]);
 
@@ -333,6 +341,11 @@ const Navbar = () => {
       if (e.key === "userAvatarUrl") {
         console.log("[Navbar] Avatar updated →", e.newValue);
         setAvatarUrl(e.newValue || null);
+      }
+      // ── FIX: When userEmail is removed (logout), clear cart badge immediately ──
+      if (e.key === "userEmail" && !e.newValue) {
+        console.log("[Navbar][storage] userEmail removed — setting isLoggedIn false");
+        setIsLoggedIn(false);
       }
     };
     window.addEventListener("storage", onStorage);
@@ -366,7 +379,7 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* ── GAP DIAGNOSTIC: open browser console to see why there's a gap ── */
+  /* ── GAP DIAGNOSTIC ── */
   useEffect(() => {
     const main = document.querySelector("main");
     if (!main) return;
@@ -399,11 +412,8 @@ const Navbar = () => {
         .from("verp_sessions").select("device_fingerprint")
         .eq("user_id", userId).maybeSingle();
       if (data && data.device_fingerprint !== fp) {
-        // Save cart before forced logout
-        if (cart && cart.length > 0) {
-          console.log("[session-guard] 🛒 Saving cart before forced logout due to session mismatch");
-          localStorage.setItem("guest_cart", JSON.stringify(cart));
-        }
+        console.log("[session-guard] ⚠️ Fingerprint mismatch — forced logout");
+        // DO NOT save to guest_cart here — this is a security event, not a voluntary logout
         ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
         setIsLoggedIn(false);
         navigate("/login", { replace: true });
@@ -450,7 +460,7 @@ const Navbar = () => {
 
   /* ── Session lifetime guard ── */
   useEffect(() => {
-    const vrpAlive   = sessionStorage.getItem("vrp_alive");
+    const vrpAlive    = sessionStorage.getItem("vrp_alive");
     const staffRoleLS = localStorage.getItem("staffRole");
     const staffRoleSS = sessionStorage.getItem("staffRole");
 
@@ -465,12 +475,14 @@ const Navbar = () => {
         console.log("[session-lifetime] 🛡️ Staff session detected — skipping user session wipe. staffRole =", isStaffSession);
       } else {
         console.log("[session-lifetime] ⚠️ No vrp_alive and no staff session — wiping user session keys");
-        const savedCart = localStorage.getItem("luxury_cart");
-        if (savedCart) {
-          console.log("[session-lifetime] 🛒 Preserving cart to guest_cart before session wipe");
-          localStorage.setItem("guest_cart", savedCart);
-        }
+        // ── FIX: On fresh page load (not a tab refresh), do NOT preserve cart to
+        // guest_cart. The user was properly logged out last time. Their items are
+        // safely stored in the DB and will be restored when they log back in.
+        // Saving to guest_cart here causes the merge-on-login duplication bug.
+        console.log("[session-lifetime] 🗑️ Clearing session keys (NOT preserving to guest_cart — DB holds the source of truth)");
         ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
+        // Also clear any stale guest_cart to prevent phantom count on next login
+        localStorage.removeItem("guest_cart");
         setIsLoggedIn(false);
         console.log("[session-lifetime] 🗑️ User session keys cleared");
       }
@@ -498,17 +510,19 @@ const Navbar = () => {
   }, [isLoggedIn]);
 
   const handleLogout = () => {
-    // Save cart to guest key BEFORE wiping — so items survive logout
-    const currentCart = cart;
-    if (currentCart && currentCart.length > 0) {
-      console.log("[logout] 🛒 Saving", currentCart.length, "cart item(s) to guest_cart before logout");
-      localStorage.setItem("guest_cart", JSON.stringify(currentCart));
-    } else {
-      console.log("[logout] 🛒 Cart is empty — nothing to save");
-    }
+    console.log("[logout] 🚪 User initiated logout");
+    console.log("[logout] 🛒 Cart state at logout — items:", cart.length, "| quantities:", cart.map(i => `${i.name}×${i.quantity}`).join(", ") || "empty");
+
+    // ── FIX: Do NOT save to guest_cart on manual logout.
+    // Cart items are already persisted in the DB (verp_cart_items) and will
+    // be restored via syncFromDB on next login. Saving to guest_cart causes
+    // the count to re-appear while logged out AND doubles items on next login.
+    console.log("[logout] ℹ️ Cart items are safe in DB — NOT saving to guest_cart (prevents double-add on next login)");
+
     resetCart();
-    ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
+    ["userEmail","userId","userName","deviceFingerprint","luxury_cart","guest_cart"].forEach((k) => localStorage.removeItem(k));
     setIsLoggedIn(false);
+    console.log("[logout] ✅ Auth keys cleared, cart reset, isLoggedIn → false");
     navigate("/");
   };
 
@@ -547,23 +561,11 @@ const Navbar = () => {
 
       {/* ══════════════════════════════════════════════════
           PERMANENT SPACER
-          Fixed height, never changes. Holds the layout
-          gap left by the always-fixed top nav.
           ══════════════════════════════════════════════════ */}
       <div className="h-[68px] md:h-[82px] w-full shrink-0" aria-hidden="true" />
 
       {/* ══════════════════════════════════════════════════
           TOP NAV
-          KEY FIX: "left-0 right-0" instead of "w-full".
-          w-full on a fixed element = 100vw which is tied
-          to the viewport and changes when the carousel
-          causes the scrollbar to appear/disappear (~6px
-          oscillation per frame). left-0 right-0 uses the
-          layout edges which are stable and unaffected.
-
-          will-change:transform puts the nav on its own
-          GPU compositing layer — completely isolated from
-          page repaints caused by the carousel.
           ══════════════════════════════════════════════════ */}
       <nav
         className="fixed top-0 left-0 right-0 z-[100] h-[68px] md:h-[82px]"
@@ -623,6 +625,7 @@ const Navbar = () => {
               }}>JOIN</Link>
             </div>
           ) : (
+            // ── FIX: Mobile top-bar cart icon only shown when logged in ──
             <Link to="/cart" style={{
               position: "relative", width: 40, height: 40,
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -632,6 +635,7 @@ const Navbar = () => {
               color: "rgba(255,255,255,0.5)",
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>shopping_cart</span>
+              {/* ── FIX: itemCount is 0 when logged out so badge never renders ── */}
               {itemCount > 0 && (
                 <span style={{
                   position: "absolute", top: 4, right: 4,
@@ -656,7 +660,8 @@ const Navbar = () => {
               {[
                 { name: "About",   path: "/about"     },
                 { name: "Orders",  path: "/orderpage", protected: true },
-                { name: `Cart${itemCount > 0 ? ` (${itemCount})` : ""}`, path: "/cart", protected: true, isCart: true },
+                // ── FIX: Desktop Cart nav text only shows count when logged in ──
+                { name: `Cart${isLoggedIn && itemCount > 0 ? ` (${itemCount})` : ""}`, path: "/cart", protected: true, isCart: true },
                 { name: "Inbox",   path: "/inbox",     protected: true, isInbox: true },
                 { name: "Reviews", path: "/reviews",   protected: true },
               ].map((link) => (
@@ -671,7 +676,8 @@ const Navbar = () => {
                   style={{ fontFamily: "'DM Sans',sans-serif" }}
                 >
                   {link.name}
-                  {link.isCart && itemCount > 0 && (
+                  {/* ── FIX: Cart dot only shows when logged in AND has items ── */}
+                  {link.isCart && isLoggedIn && itemCount > 0 && (
                     <span className="absolute top-[-4px] right-[-8px] w-1.5 h-1.5 rounded-full bg-[#ec5b13] animate-pulse" />
                   )}
                   {link.isInbox && unreadCount > 0 && (
@@ -692,7 +698,8 @@ const Navbar = () => {
             <Link to="/cart" onClick={(e) => handleNavClick(e, "/cart")}
               className="relative w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/50 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms] no-underline">
               <span className="material-symbols-outlined text-xl">shopping_cart</span>
-              {itemCount > 0 && (
+              {/* ── FIX: Desktop cart icon badge ONLY shown when logged in ── */}
+              {isLoggedIn && itemCount > 0 && (
                 <span className="absolute top-1 right-1 w-[15px] h-[15px] rounded-full bg-[#ec5b13] text-white flex items-center justify-center font-black border-[1.5px] border-black/90"
                   style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8 }}>{itemCount}</span>
               )}
@@ -719,15 +726,6 @@ const Navbar = () => {
 
       {/* ══════════════════════════════════════════════════════════
           MOBILE BOTTOM DOCK
-          KEY FIX: width is set to a fixed px value on mount
-          via useEffect and stored in the element directly.
-          This means the dock width NEVER recalculates from vw,
-          so the carousel's viewport oscillation can't touch it.
-
-          left-0 right-0 on the outer wrapper (same as TopNav fix)
-          then the inner pill is centered with mx-auto + max-w.
-
-          will-change:transform isolates it on its own GPU layer.
           ══════════════════════════════════════════════════════════ */}
       <div
         className="md:hidden fixed bottom-3 left-0 right-0 z-[200] flex justify-center px-4"
@@ -854,6 +852,7 @@ const Navbar = () => {
                       display: "block",
                       ...(active ? { filter: "drop-shadow(0 0 4px rgba(236,91,19,0.5))" } : {}),
                     }}>{item.icon}</span>
+                    {/* ── FIX: Mobile bottom nav cart badge — itemCount is 0 when logged out ── */}
                     {item.isCart && itemCount > 0 && (
                       <span style={{
                         position: "absolute", top: -3, right: -5,
@@ -878,7 +877,7 @@ const Navbar = () => {
                   <span style={{
                     fontSize: 7, letterSpacing: "0.12em", textTransform: "uppercase",
                     fontFamily: "'JetBrains Mono',monospace", zIndex: 1,
-                    color: active ? "#ec5b13" : "rgba(255,255,255,0.3)",
+                    color: active ? "#ec5b13" : "rgba(255,255,255,0.35)",
                     transition: "color 0.18s ease",
                   }}>{item.label}</span>
                 </Link>
