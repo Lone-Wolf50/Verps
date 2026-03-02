@@ -2,6 +2,7 @@ const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
+const { randomInt } = require("crypto");
 const rateLimit = require("express-rate-limit");
 const SALT_ROUNDS = 12;
 require("dotenv").config();
@@ -27,6 +28,7 @@ app.set("trust proxy", 1);
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
+    "http://localhost:5174",
   "http://localhost:5000",
   "https://verps-chi.vercel.app",
   "http://192.168.0.3:5173",
@@ -255,9 +257,10 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       }
     }
 
-    const otp    = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    const now    = new Date();
+    const otp       = randomInt(100000, 1000000).toString(); // cryptographically secure
+    const otpHash   = await bcrypt.hash(otp, SALT_ROUNDS);  // hash before storing
+    const expiry    = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const now       = new Date();
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     const recentSends = user && user.otp_last_sent && new Date(user.otp_last_sent) > tenMinutesAgo
       ? (user.otp_send_count || 0)
@@ -266,11 +269,11 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
     const { error: dbErr } = await supabase
       .from("verp_users")
       .update({
-        otp_code:        otp,
-        otp_expiry:      expiry,
-        otp_attempts:    0,
-        otp_last_sent:   now.toISOString(),
-        otp_send_count:  recentSends + 1,
+        otp_code:         otpHash,   // store the HASH, never the plain OTP
+        otp_expiry:       expiry,
+        otp_attempts:     0,
+        otp_last_sent:    now.toISOString(),
+        otp_send_count:   recentSends + 1,
         otp_locked_until: null,
       })
       .eq("email", cleanEmail);
@@ -295,7 +298,9 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       ),
     });
 
-    res.status(200).json({ success: true, otp });
+    // ⚠️  DO NOT return the OTP in the response — that was the bypass vector.
+    // The OTP is only delivered via email; the API confirms delivery only.
+    res.status(200).json({ success: true });
   } catch (err) {
     console.error("[send-otp] ❌ CAUGHT EXCEPTION:", err.message);
     res.status(500).json({ success: false, error: "Failed to deliver OTP", detail: err.message });
@@ -330,7 +335,21 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
       return res.status(429).json({ message: "Too many incorrect attempts — please request a new code." });
     }
 
-    if (String(data.otp_code).trim() !== String(otp).trim()) {
+    // Check expiry BEFORE bcrypt to fail fast
+    if (data.otp_expiry && new Date() > new Date(data.otp_expiry)) {
+      // Delete expired OTP immediately
+      await supabase
+        .from("verp_users")
+        .update({ otp_code: null, otp_expiry: null, otp_attempts: 0 })
+        .eq("id", data.id);
+      console.error("[verify-otp] ❌ OTP expired");
+      return res.status(400).json({ message: "Code expired — please request a new one." });
+    }
+
+    // Compare submitted OTP against the stored hash
+    const isMatch = await bcrypt.compare(String(otp).trim(), String(data.otp_code).trim());
+
+    if (!isMatch) {
       await supabase
         .from("verp_users")
         .update({ otp_attempts: attempts + 1 })
@@ -339,14 +358,11 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
       return res.status(400).json({ message: "Incorrect code — please check and try again." });
     }
 
-    if (data.otp_expiry && new Date() > new Date(data.otp_expiry)) {
-      console.error("[verify-otp] ❌ OTP expired");
-      return res.status(400).json({ message: "Code expired — please request a new one." });
-    }
-
+    // ✅ Success — delete the OTP immediately so it can never be reused
+    // Set otp_verified=true so reset-password knows the OTP step was completed
     await supabase
       .from("verp_users")
-      .update({ otp_attempts: 0 })
+      .update({ otp_code: null, otp_expiry: null, otp_attempts: 0, otp_verified: true })
       .eq("id", data.id);
 
     res.status(200).json({ success: true });
@@ -369,28 +385,24 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
   try {
     const { data: user, error: fetchErr } = await supabase
       .from("verp_users")
-      .select("id, otp_code, otp_expiry")
+      .select("id, otp_verified")
       .eq("email", email.toLowerCase().trim())
       .maybeSingle();
 
     if (fetchErr) return res.status(500).json({ message: "DB error.", detail: fetchErr.message });
     if (!user)    return res.status(404).json({ message: "No account found for this email." });
 
-    if (!user.otp_code) {
-      console.error("[reset-password] ❌ otp_code is NULL — session expired or flow broken");
-      return res.status(400).json({ message: "Session expired — please start over." });
-    }
-
-    if (user.otp_expiry && new Date() > new Date(user.otp_expiry)) {
-      console.error("[reset-password] ❌ OTP expired");
-      return res.status(400).json({ message: "Session expired — please request a new code." });
+    // After verify-otp succeeds we set otp_verified=true. Check that here.
+    if (!user.otp_verified) {
+      console.error("[reset-password] ❌ otp_verified is false — OTP step not completed");
+      return res.status(400).json({ message: "Session expired — please verify your code first." });
     }
 
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
     const { error: updateErr } = await supabase
       .from("verp_users")
-      .update({ password_hash, otp_code: null, otp_expiry: null, otp_attempts: 0 })
+      .update({ password_hash, otp_verified: false, otp_attempts: 0 })
       .eq("id", user.id);
 
     if (updateErr) {

@@ -277,10 +277,11 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
         return;
       }
       if (!data.success) throw new Error(data.error || "Failed to send verification email");
-      if (!data.otp) throw new Error("Server did not return OTP. Check server logs.");
+      // ✅ Server no longer returns the OTP in the response — it only emails it.
+      // We do NOT store the OTP in localStorage. Verification happens server-side.
 
-      // Save OTP + pending user data to DB now (upsert so re-signup works)
-      const otp = String(data.otp).trim();
+      // Save pending user data to DB now (upsert so re-signup works)
+      // The server already wrote otp_code (hashed) + otp_expiry — we just store user fields.
       const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       await supabase.from("verp_users").upsert(
         {
@@ -288,16 +289,14 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
           full_name: form.fullName,
           password_hash: hash,
           is_verified: false,
-          otp_code: otp,
           otp_expiry: expiry,
         },
         { onConflict: "email" }
       );
 
-      // Store minimal locals for the OTP screen
+      // Store only email + purpose (never the OTP itself)
       localStorage.setItem("pendingEmail", form.email);
       localStorage.setItem("otpPurpose", "SIGNUP");
-      localStorage.setItem("pendingOtp", otp);
 
       onSuccess();
     } catch (err) {
@@ -451,9 +450,7 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
         return;
       }
       if (data.success) {
-        if (data.otp) {
-          localStorage.setItem("pendingOtp", String(data.otp).trim());
-        }
+        // ✅ Server no longer returns the OTP — never store it in localStorage
         setCooldown(180);
         setOtp(["", "", "", "", "", ""]);
         refs.current[0]?.focus();
@@ -498,35 +495,31 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
     if (entered.length !== 6) return;
     setLoading(true);
 
-    const stored = String(localStorage.getItem("pendingOtp") || "").trim();
-    let valid = stored.length === 6 && entered === stored;
+    // ✅ Always verify through the server — never compare against localStorage or DB directly from frontend.
+    // The server does: bcrypt.compare(entered, stored_hash) + expiry check + attempt limiting.
+    try {
+      const res = await fetchWithTimeout(`${getApiBase()}/api/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp: entered }),
+      }, 25000);
+      const data = await res.json();
 
-    if (!valid) {
-      const { data: dbUser } = await supabase
-        .from("verp_users")
-        .select("otp_code, otp_expiry")
-        .eq("email", email)
-        .maybeSingle();
-      if (dbUser?.otp_code) {
-        const dbOtp = String(dbUser.otp_code).trim();
-        if (purpose === "RESET") {
-          valid = dbOtp === entered && new Date(dbUser.otp_expiry) > new Date();
-        } else {
-          valid = dbOtp === entered;
-        }
-      } else {
+      if (!res.ok || !data.success) {
+        Swal.fire({
+          title: "WRONG CODE",
+          text: data.message || "Double-check the digits in your email. Use RESEND if the code is old.",
+          icon: "error",
+          background: "#0a0a0a",
+          color: "#fff",
+          confirmButtonColor: T.ember,
+        });
+        setLoading(false);
+        return;
       }
-    }
-
-    if (!valid) {
-      Swal.fire({
-        title: "WRONG CODE",
-        text: "Double-check the digits in your email. Use RESEND if the code is old.",
-        icon: "error",
-        background: "#0a0a0a",
-        color: "#fff",
-        confirmButtonColor: T.ember,
-      });
+    } catch (err) {
+      const msg = err.name === "AbortError" ? "Request timed out. Check your connection." : (err.message || "Verification failed.");
+      Swal.fire({ title: "Error", text: msg, icon: "error", background: "#0a0a0a", color: "#fff", confirmButtonColor: T.ember });
       setLoading(false);
       return;
     }
@@ -538,11 +531,11 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
       return;
     }
 
-    // SIGNUP: data is already in DB from signup step — just verify the row
+    // SIGNUP: OTP verified — mark account as verified in DB
     if (purpose === "SIGNUP") {
       const { data: newUser, error: verifyErr } = await supabase
         .from("verp_users")
-        .update({ is_verified: true, otp_code: null, otp_expiry: null })
+        .update({ is_verified: true })
         .eq("email", email)
         .select("id, full_name, email")
         .single();
@@ -718,12 +711,8 @@ const AuthPage_ForgotForm = ({ onSuccess }) => {
       }
       if (!data.success) { setError(data.error || "FAILED TO SEND CODE"); setLoading(false); return; }
 
-      // 2. Save the SAME OTP to DB so verify can check it
-      const otp = String(data.otp).trim();
-      const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-      await supabase.from("verp_users").update({ otp_code: otp, otp_expiry: expiry }).eq("email", email);
-
-      localStorage.setItem("pendingOtp", otp);
+      // ✅ Server handles OTP generation + hashing + storing. Never touch the OTP here.
+      // Only store email + purpose so the OTP screen knows who to verify.
       localStorage.setItem("pendingEmail", email);
       localStorage.setItem("otpPurpose", "RESET");
       onSuccess();
@@ -770,9 +759,19 @@ const AuthPage_ResetForm = ({ onSuccess }) => {
     setErrors({}); setLoading(true);
     const email = localStorage.getItem("pendingEmail");
     try {
-      const bcrypt = await import("bcryptjs");
-      const hash = await bcrypt.hash(form.password, 10);
-      await supabase.from("verp_users").update({ password_hash: hash, otp_code: null, otp_expiry: null }).eq("email", email);
+      // ✅ Always reset password through the server — it checks otp_verified flag
+      // before allowing the password change. Direct Supabase writes bypass this check.
+      const res = await fetchWithTimeout(`${getApiBase()}/api/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: form.password }),
+      }, 25000);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        Swal.fire({ title: "Error", text: data.message || "Failed to update password.", icon: "error", background: "#0a0a0a", color: "#fff" });
+        setLoading(false);
+        return;
+      }
       localStorage.removeItem("pendingEmail");
       localStorage.removeItem("pendingOtp");
       localStorage.removeItem("otpPurpose");
