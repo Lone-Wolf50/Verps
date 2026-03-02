@@ -18,17 +18,13 @@ const app = express();
 app.use(express.json());
 
 // ── TRUST PROXY ───────────────────────────────────────────────
-// Required when running behind Vercel / a reverse proxy.
-// Without this, express-rate-limit sees every request as the same IP
-// (the proxy's IP) and rate limiting effectively stops working.
-// "1" means trust the first hop in the X-Forwarded-For chain only.
 app.set("trust proxy", 1);
 
 // ── CORS ──────────────────────────────────────────────────────
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
-    "http://localhost:5174",
+  "http://localhost:5174",
   "http://localhost:5000",
   "https://verps-chi.vercel.app",
   "http://192.168.0.3:5173",
@@ -214,7 +210,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
 
     if (fetchErr) {
       console.error("[send-otp] ❌ DB fetch failed:", fetchErr.message);
-      return res.status(500).json({ success: false, error: "Failed to prepare OTP", detail: fetchErr.message });
+      return res.status(500).json({ success: false, error: "Failed to prepare OTP" });
     }
 
     if (user) {
@@ -257,8 +253,8 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       }
     }
 
-    const otp       = randomInt(100000, 1000000).toString(); // cryptographically secure
-    const otpHash   = await bcrypt.hash(otp, SALT_ROUNDS);  // hash before storing
+    const otp       = randomInt(100000, 1000000).toString();
+    const otpHash   = await bcrypt.hash(otp, SALT_ROUNDS);
     const expiry    = new Date(Date.now() + 10 * 60 * 1000).toISOString();
     const now       = new Date();
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
@@ -269,7 +265,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
     const { error: dbErr } = await supabase
       .from("verp_users")
       .update({
-        otp_code:         otpHash,   // store the HASH, never the plain OTP
+        otp_code:         otpHash,
         otp_expiry:       expiry,
         otp_attempts:     0,
         otp_last_sent:    now.toISOString(),
@@ -280,7 +276,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
 
     if (dbErr) {
       console.error("[send-otp] ❌ DB save failed:", dbErr.message);
-      return res.status(500).json({ success: false, error: "Failed to prepare OTP", detail: dbErr.message });
+      return res.status(500).json({ success: false, error: "Failed to prepare OTP" });
     }
 
     await transporter.sendMail({
@@ -298,12 +294,10 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       ),
     });
 
-    // ⚠️  DO NOT return the OTP in the response — that was the bypass vector.
-    // The OTP is only delivered via email; the API confirms delivery only.
     res.status(200).json({ success: true });
   } catch (err) {
     console.error("[send-otp] ❌ CAUGHT EXCEPTION:", err.message);
-    res.status(500).json({ success: false, error: "Failed to deliver OTP", detail: err.message });
+    res.status(500).json({ success: false, error: "Failed to deliver OTP" });
   }
 });
 
@@ -322,7 +316,7 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
 
     if (error) {
       console.error("[verify-otp] ❌ Supabase error:", error.message);
-      return res.status(500).json({ message: "DB error.", detail: error.message });
+      return res.status(500).json({ message: "Something went wrong. Please try again." });
     }
     if (!data) return res.status(404).json({ message: "No account found for this email." });
 
@@ -335,9 +329,7 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
       return res.status(429).json({ message: "Too many incorrect attempts — please request a new code." });
     }
 
-    // Check expiry BEFORE bcrypt to fail fast
     if (data.otp_expiry && new Date() > new Date(data.otp_expiry)) {
-      // Delete expired OTP immediately
       await supabase
         .from("verp_users")
         .update({ otp_code: null, otp_expiry: null, otp_attempts: 0 })
@@ -346,7 +338,6 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
       return res.status(400).json({ message: "Code expired — please request a new one." });
     }
 
-    // Compare submitted OTP against the stored hash
     const isMatch = await bcrypt.compare(String(otp).trim(), String(data.otp_code).trim());
 
     if (!isMatch) {
@@ -358,8 +349,6 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
       return res.status(400).json({ message: "Incorrect code — please check and try again." });
     }
 
-    // ✅ Success — delete the OTP immediately so it can never be reused
-    // Set otp_verified=true so reset-password knows the OTP step was completed
     await supabase
       .from("verp_users")
       .update({ otp_code: null, otp_expiry: null, otp_attempts: 0, otp_verified: true })
@@ -369,7 +358,7 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
 
   } catch (e) {
     console.error("[verify-otp] ❌ CAUGHT EXCEPTION:", e.message);
-    res.status(500).json({ message: "Server error during OTP check.", detail: e.message });
+    res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 });
 
@@ -389,10 +378,12 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
       .eq("email", email.toLowerCase().trim())
       .maybeSingle();
 
-    if (fetchErr) return res.status(500).json({ message: "DB error.", detail: fetchErr.message });
-    if (!user)    return res.status(404).json({ message: "No account found for this email." });
+    if (fetchErr) {
+      console.error("[reset-password] ❌ DB fetch error:", fetchErr.message);
+      return res.status(500).json({ message: "Something went wrong. Please try again." });
+    }
+    if (!user) return res.status(404).json({ message: "No account found for this email." });
 
-    // After verify-otp succeeds we set otp_verified=true. Check that here.
     if (!user.otp_verified) {
       console.error("[reset-password] ❌ otp_verified is false — OTP step not completed");
       return res.status(400).json({ message: "Session expired — please verify your code first." });
@@ -407,14 +398,14 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
 
     if (updateErr) {
       console.error("[reset-password] ❌ update failed:", updateErr.message);
-      return res.status(500).json({ message: "Failed to save new password.", detail: updateErr.message });
+      return res.status(500).json({ message: "Failed to save new password. Please try again." });
     }
 
     res.status(200).json({ success: true });
 
   } catch (e) {
     console.error("[reset-password] ❌ CAUGHT EXCEPTION:", e.message);
-    res.status(500).json({ message: "Server error during password reset.", detail: e.message });
+    res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 });
 
@@ -432,7 +423,7 @@ app.post("/api/verify-payment", async (req, res) => {
 
     if (!data.status || data.data.status !== "success") {
       console.error("[verify-payment] ❌ Payment not verified:", data?.data?.status);
-      return res.status(400).json({ success: false, message: "Payment not verified", data: data.data });
+      return res.status(400).json({ success: false, message: "Payment not verified" });
     }
 
     if (expectedEmail) {
@@ -457,7 +448,7 @@ app.post("/api/verify-payment", async (req, res) => {
 
   } catch (err) {
     console.error("[verify-payment] ❌ CAUGHT EXCEPTION:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Payment verification failed. Please try again." });
   }
 });
 
@@ -603,7 +594,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
     res.status(200).json({ success: true, type, to });
   } catch (err) {
     console.error(`[alert-staff] ❌ [${type}] failed:`, err.message);
-    res.status(500).json({ error: err.message, type });
+    res.status(500).json({ error: "Failed to send alert. Please try again." });
   }
 });
 
@@ -617,17 +608,16 @@ app.get("/api/admin/return-requests", requireAdminHeader, async (req, res) => {
 
     if (error) {
       console.error("[return-requests] ❌ DB error:", error.message);
-      throw error;
+      return res.status(500).json({ error: "Failed to fetch return requests." });
     }
     res.status(200).json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("[return-requests] ❌ CAUGHT EXCEPTION:", err.message);
+    res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });
 
 // ── 9. Update Order Status ────────────────────────────────────
-// Called by admin dashboard to change order status.
-// Automatically stamps delivered_at when status → "delivered".
 app.post("/api/update-order-status", requireAdminHeader, async (req, res) => {
   const { orderId, status } = req.body;
 
@@ -643,7 +633,6 @@ app.post("/api/update-order-status", requireAdminHeader, async (req, res) => {
   try {
     const updates = { status: status.toLowerCase() };
 
-    // Stamp delivered_at the moment status becomes "delivered"
     if (status.toLowerCase() === "delivered") {
       updates.delivered_at = new Date().toISOString();
     }
@@ -657,7 +646,7 @@ app.post("/api/update-order-status", requireAdminHeader, async (req, res) => {
 
     if (error) {
       console.error("[update-order-status] ❌ DB error:", error.message);
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: "Failed to update order status. Please try again." });
     }
 
     console.log(`[update-order-status] ✅ Order ${orderId} → ${status}${status === "delivered" ? ` (delivered_at: ${updates.delivered_at})` : ""}`);
@@ -665,7 +654,7 @@ app.post("/api/update-order-status", requireAdminHeader, async (req, res) => {
 
   } catch (err) {
     console.error("[update-order-status] ❌ CAUGHT EXCEPTION:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });
 
