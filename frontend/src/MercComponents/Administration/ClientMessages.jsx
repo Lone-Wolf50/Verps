@@ -1,10 +1,221 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../supabaseClient";
 
+const getInternalSecret = () => {
+  const secret = import.meta.env.VITE_INTERNAL_SECRET;
+  if (!secret) console.error("[auth] ⚠️ VITE_INTERNAL_SECRET is not set — requests to protected endpoints will fail.");
+  return secret ?? "";
+};
+
 const T = {
 	void:"#080808", obsidian:"#0d0d0d", ember:"#ec5b13",
 	shipped:"#38bdf8", live:"#22c55e", waiting:"#f59e0b", violet:"#a78bfa",
 	border:"1px solid rgba(255,255,255,0.06)", sub:"1px solid rgba(255,255,255,0.03)",
+};
+
+/* ─── RETURN EMAIL BUILDER ───────────────────────────────────── */
+const buildReturnEmailHTML = (req, decision, clientName) => {
+	const name = clientName || req?.customer_email?.split("@")[0] || "Valued Client";
+	const orderNum = req?.order_number || req?.order_id?.slice(0, 8) || "—";
+	const amount   = Number(req?.total_amount || 0).toLocaleString();
+
+	const cfg = {
+		approved: {
+			color: "#22c55e",
+			gradientFrom: "#22c55e",
+			gradientTo: "#16a34a",
+			icon: "✅",
+			bannerLabel: "RETURN APPROVED",
+			headline: "Great News — Your Return Is Approved",
+			subline: "We've reviewed your request and it has been accepted.",
+			body: `We're pleased to let you know that your return request for order <strong style="color:#22c55e">${orderNum}</strong> has been <strong style="color:#22c55e">approved</strong>. Please ship the item(s) back to us using a trackable shipping method. Once we receive and inspect the goods, your refund of <strong style="color:#22c55e">GH₵ ${amount}</strong> will be processed within 5–7 business days.`,
+			italicNote: "We appreciate your trust in us and are committed to making this as smooth as possible.",
+			cta: "VIEW RETURN DETAILS",
+		},
+		rejected: {
+			color: "#ef4444",
+			gradientFrom: "#ef4444",
+			gradientTo: "#dc2626",
+			icon: "❌",
+			bannerLabel: "RETURN REQUEST DECLINED",
+			headline: "Return Request Not Approved",
+			subline: "We were unable to process your return request at this time.",
+			body: `After careful review, we regret to inform you that your return request for order <strong style="color:#ef4444">${orderNum}</strong> has been <strong style="color:#ef4444">declined</strong>. This may be due to the item falling outside our return window, showing signs of use beyond our policy, or missing original packaging. If you believe this decision was made in error or would like to discuss further, please contact our support team directly.`,
+			italicNote: "We understand this may be disappointing and are here to help clarify the decision.",
+			cta: "CONTACT SUPPORT",
+		},
+		completed: {
+			color: "#a78bfa",
+			gradientFrom: "#a78bfa",
+			gradientTo: "#7c3aed",
+			icon: "🎉",
+			bannerLabel: "RETURN FULLY PROCESSED",
+			headline: "Your Return Has Been Completed",
+			subline: "Everything has been resolved — thank you for your patience.",
+			body: `We're happy to confirm that the return process for order <strong style="color:#a78bfa">${orderNum}</strong> has been <strong style="color:#a78bfa">fully completed</strong>. Your refund of <strong style="color:#a78bfa">GH₵ ${amount}</strong> has been issued and should reflect in your account within 3–5 business days depending on your payment provider. Thank you for shopping with us — your satisfaction is our priority.`,
+			italicNote: "We hope to serve you again soon and wish you an exceptional experience every time.",
+			cta: "SHOP AGAIN",
+		},
+	};
+
+	const c = cfg[decision];
+	if (!c) return null;
+
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>${c.headline}</title>
+</head>
+<body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;min-height:100vh;">
+<tr><td align="center" style="padding:40px 20px;">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+    <!-- BRAND HEADER -->
+    <tr>
+      <td align="center" style="padding-bottom:32px;">
+        <p style="margin:0;font-family:'Courier New',monospace;font-size:8px;letter-spacing:0.45em;text-transform:uppercase;color:rgba(255,255,255,0.15);">
+          VERP · RETURNS & REFUNDS
+        </p>
+      </td>
+    </tr>
+
+    <!-- MAIN CARD -->
+    <tr>
+      <td style="background:linear-gradient(135deg,#0d0d0d,#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+
+        <!-- ACCENT TOP BAND -->
+        <tr>
+          <td style="height:3px;background:linear-gradient(90deg,${c.gradientFrom},${c.gradientTo},transparent);"></td>
+        </tr>
+
+        <!-- HERO SECTION -->
+        <tr>
+          <td style="background:linear-gradient(135deg,${c.gradientFrom}14,${c.gradientTo}06);padding:30px 36px 24px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <p style="margin:0 0 10px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.38em;text-transform:uppercase;color:${c.color};">
+                    ${c.bannerLabel}
+                  </p>
+                  <p style="margin:0 0 8px;font-size:26px;font-weight:300;color:#fff;letter-spacing:-0.3px;line-height:1.25;">
+                    ${c.headline}
+                  </p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.38);line-height:1.6;">
+                    ${c.subline}
+                  </p>
+                </td>
+                <td align="right" valign="middle" style="padding-left:20px;width:56px;">
+                  <table cellpadding="0" cellspacing="0" style="margin:0 0 0 auto;">
+                    <tr>
+                      <td width="52" height="52" align="center" valign="middle"
+                        style="width:52px;height:52px;border-radius:50%;background:${c.color}18;border:1px solid ${c.color}40;font-size:28px;line-height:52px;text-align:center;vertical-align:middle;">
+                        ${c.icon}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ORDER DETAILS ROW -->
+        <tr>
+          <td style="padding:22px 36px;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="width:50%;">
+                  <p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">RETURN REF</p>
+                  <p style="margin:0;font-family:'Courier New',monospace;font-size:13px;color:${c.color};font-weight:700;letter-spacing:0.06em;">${orderNum}</p>
+                </td>
+                <td align="right">
+                  <p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">ORDER VALUE</p>
+                  <p style="margin:0;font-size:20px;font-weight:700;color:${c.color};">GH₵ ${amount}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- BODY TEXT -->
+        <tr>
+          <td style="padding:26px 36px 20px;">
+            <p style="margin:0 0 14px;font-size:13px;color:rgba(255,255,255,0.82);line-height:1.7;">
+              Dear <strong style="color:#fff;">${name}</strong>,
+            </p>
+            <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.58);line-height:1.85;">
+              ${c.body}
+            </p>
+          </td>
+        </tr>
+
+        <!-- ITALIC NOTE -->
+        <tr>
+          <td style="padding:0 36px 26px;">
+            <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.28);font-style:italic;line-height:1.65;border-left:2px solid ${c.color}35;padding-left:14px;">
+              ${c.italicNote}
+            </p>
+          </td>
+        </tr>
+
+        <!-- STATUS CHIP -->
+        <tr>
+          <td style="padding:0 36px 30px;">
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="background:${c.color}16;border:1px solid ${c.color}45;border-radius:999px;padding:7px 20px;">
+                  <p style="margin:0;font-family:'Courier New',monospace;font-size:8px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${c.color};">
+                    RETURN STATUS: ${decision.toUpperCase()}
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+      </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td align="center" style="padding:32px 20px 0;">
+        <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.1);">
+          VERP EXECUTIVE COLLECTION
+        </p>
+        <p style="margin:0;font-size:10px;color:rgba(255,255,255,0.08);line-height:1.7;">
+          This is an automated message from the Verp Returns Management System.<br/>
+          For questions, reply to this email or contact our support team.
+        </p>
+      </td>
+    </tr>
+
+  </table>
+</td></tr>
+</table>
+</body>
+</html>`;
+};
+
+/* ─── SERVER-SIDE RETURN STATUS UPDATE + EMAIL ───────────────── */
+// One call to the server: it handles DB write, order sync, and client email.
+// No Supabase direct write here — avoids any risk of double-write or loop.
+const serverUpdateReturnStatus = async (returnId, status, orderId) => {
+	const res = await fetch("/api/update-return-status", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"x-internal-secret": getInternalSecret(),
+		},
+		body: JSON.stringify({ returnId, status, orderId }),
+	});
+	if (!res.ok) {
+		const err = await res.json().catch(() => ({}));
+		throw new Error(err.error || "Failed to update return status");
+	}
+	return res.json();
 };
 
 /* ── Status badge ─────────────────────────────────────────── */
@@ -69,53 +280,22 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 	const typingTimerRef = useRef(null);
 
 	const syncMessages = useCallback(async () => {
-		const { data } = await supabase
-			.from("verp_chat_messages")
-			.select("*")
-			.eq("chat_id", session.id)
-			.order("created_at", { ascending: true });
+		const { data } = await supabase.from("verp_chat_messages").select("*").eq("chat_id", session.id).order("created_at", { ascending: true });
 		if (data) setMessages(data);
-		// Read client typing from session row
-		const { data: sess } = await supabase
-			.from("verp_support_sessions")
-			.select("typing_role, typing_at")
-			.eq("id", session.id)
-			.maybeSingle();
+		const { data: sess } = await supabase.from("verp_support_sessions").select("typing_role, typing_at").eq("id", session.id).maybeSingle();
 		if (sess) {
-			const isClientTyping =
-				sess.typing_role === "client" &&
-				sess.typing_at &&
-				Date.now() - new Date(sess.typing_at).getTime() < 4000;
+			const isClientTyping = sess.typing_role === "client" && sess.typing_at && Date.now() - new Date(sess.typing_at).getTime() < 4000;
 			setClientTyping(!!isClientTyping);
 		}
 	}, [session.id]);
 
-	useEffect(() => {
-		syncMessages();
-		const i = setInterval(syncMessages, 4500);
-		return () => clearInterval(i);
-	}, [syncMessages]);
-
-	useEffect(() => {
-		if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-	}, [messages, clientTyping]);
-
-	/* ── Typing indicator — reads typing_role/typing_at from verp_support_sessions ── */
-	// clientTyping is updated inside syncMessages which polls the session row every 4.5s
-	// We just need cleanup on unmount
-	useEffect(() => {
-		return () => clearTimeout(typingTimerRef.current);
-	}, []);
+	useEffect(() => { syncMessages(); const i = setInterval(syncMessages, 4500); return () => clearInterval(i); }, [syncMessages]);
+	useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, clientTyping]);
+	useEffect(() => { return () => clearTimeout(typingTimerRef.current); }, []);
 
 	const broadcastAdminTyping = async (isTyping) => {
 		if (!session?.id) return;
-		await supabase
-			.from("verp_support_sessions")
-			.update({
-				typing_role: isTyping ? "admin" : null,
-				typing_at:   isTyping ? new Date().toISOString() : null,
-			})
-			.eq("id", session.id);
+		await supabase.from("verp_support_sessions").update({ typing_role: isTyping ? "admin" : null, typing_at: isTyping ? new Date().toISOString() : null }).eq("id", session.id);
 	};
 
 	const handleAdminInputChange = (e) => {
@@ -127,17 +307,7 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 
 	const sendReply = async (e) => {
 		e.preventDefault();
-
-		if (!input.trim()) {
-			return;
-		}
-		if (sending) {
-			return;
-		}
-		if (session.status !== "full_push") {
-			return;
-		}
-
+		if (!input.trim() || sending || session.status !== "full_push") return;
 		setSending(true);
 		clearTimeout(typingTimerRef.current);
 		broadcastAdminTyping(false);
@@ -150,9 +320,7 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 	};
 
 	const resolveSession = async () => {
-		await supabase.from("verp_support_sessions")
-			.update({ status:"resolved", updated_at:new Date().toISOString() })
-			.eq("id", session.id);
+		await supabase.from("verp_support_sessions").update({ status:"resolved", updated_at:new Date().toISOString() }).eq("id", session.id);
 		if (onSessionUpdate) onSessionUpdate();
 		if (onResolve) onResolve();
 	};
@@ -162,32 +330,23 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 
 	return (
 		<div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minHeight:0}}>
-
-			{/* Header — email + status + action buttons only. No return pills here. */}
 			<div style={{padding:"10px 14px",background:T.obsidian,borderBottom:T.sub,flexShrink:0}}>
 				<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
 					<div style={{minWidth:0,flex:1}}>
-						<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:"0.22em",color:T.ember,textTransform:"uppercase",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>
-							{session.client_email}
-						</p>
+						<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:"0.22em",color:T.ember,textTransform:"uppercase",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{session.client_email}</p>
 						<ClientMessages_StatusBadge status={session.status} />
 					</div>
 					<div style={{display:"flex",gap:6,flexShrink:0}}>
 						{isEscalated && (
-							<button onClick={onPushBack} style={{background:`${T.live}15`,border:`1px solid ${T.live}40`,borderRadius:8,padding:"6px 10px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.12em",textTransform:"uppercase",color:T.live,fontWeight:700,whiteSpace:"nowrap"}}>
-								↩ PUSH BACK
-							</button>
+							<button onClick={onPushBack} style={{background:`${T.live}15`,border:`1px solid ${T.live}40`,borderRadius:8,padding:"6px 10px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.12em",textTransform:"uppercase",color:T.live,fontWeight:700,whiteSpace:"nowrap"}}>↩ PUSH BACK</button>
 						)}
 						{isFullPush && (
-							<button onClick={resolveSession} style={{background:"rgba(34,197,94,0.15)",border:"1px solid rgba(34,197,94,0.4)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.12em",textTransform:"uppercase",color:"#22c55e",fontWeight:700,whiteSpace:"nowrap"}}>
-								RESOLVE
-							</button>
+							<button onClick={resolveSession} style={{background:"rgba(34,197,94,0.15)",border:"1px solid rgba(34,197,94,0.4)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.12em",textTransform:"uppercase",color:"#22c55e",fontWeight:700,whiteSpace:"nowrap"}}>RESOLVE</button>
 						)}
 					</div>
 				</div>
 			</div>
 
-			{/* Messages */}
 			<div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"14px",display:"flex",flexDirection:"column",gap:10,WebkitOverflowScrolling:"touch"}}>
 				{messages.length === 0 && (
 					<div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",opacity:0.15,paddingTop:40}}>
@@ -213,7 +372,6 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 				})}
 			</div>
 
-			{/* Typing indicator */}
 			{clientTyping && session.status === "full_push" && (
 				<div style={{padding:"6px 14px 2px",flexShrink:0,background:T.obsidian}}>
 					<div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -227,12 +385,10 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 				</div>
 			)}
 
-			{/* Input — full_push only; all other states show lock */}
 			<div style={{borderTop:T.sub,background:T.obsidian,padding:"10px 12px",flexShrink:0,paddingBottom:"max(10px,env(safe-area-inset-bottom))"}}>
 				{isFullPush ? (
 					<form onSubmit={sendReply} style={{display:"flex",gap:8,alignItems:"flex-end"}}>
-						<input ref={inputRef} value={input} onChange={handleAdminInputChange} disabled={sending}
-							placeholder="Reply to client..." autoComplete="off"
+						<input ref={inputRef} value={input} onChange={handleAdminInputChange} disabled={sending} placeholder="Reply to client..." autoComplete="off"
 							style={{flex:1,minWidth:0,background:"rgba(56,189,248,0.04)",border:"1px solid rgba(56,189,248,0.18)",borderRadius:10,padding:"11px 14px",color:"white",fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",WebkitAppearance:"none",boxSizing:"border-box"}} />
 						<button type="submit" disabled={sending || !input.trim()}
 							style={{flexShrink:0,background:T.shipped,borderRadius:10,padding:"11px 16px",color:"#000",fontWeight:700,border:"none",cursor:sending||!input.trim()?"not-allowed":"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:"0.1em",opacity:sending||!input.trim()?0.45:1,transition:"opacity 200ms",whiteSpace:"nowrap"}}>
@@ -241,7 +397,6 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 					</form>
 				) : (
 					<div>
-						{/* Lock banner */}
 						<div style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",marginBottom:8,borderRadius:10,background:isEscalated?"rgba(236,91,19,0.07)":"rgba(56,189,248,0.05)",border:isEscalated?"1px solid rgba(236,91,19,0.18)":"1px solid rgba(56,189,248,0.15)"}}>
 							<span className="material-symbols-outlined" style={{fontSize:14,color:isEscalated?"rgba(236,91,19,0.7)":"rgba(56,189,248,0.6)",flexShrink:0}}>lock</span>
 							<div style={{minWidth:0}}>
@@ -249,24 +404,13 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 									{isEscalated ? "PARTIAL PUSH — READ ONLY" : "AWAITING FULL PUSH"}
 								</p>
 								<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"rgba(255,255,255,0.3)",lineHeight:1.4}}>
-									{isEscalated
-										? <><b style={{color:"rgba(167,139,250,0.9)"}}>Admin Takeover</b> in the AI terminal unlocks messaging.</>
-										: "Use Push Back to return to assistant, or wait for a Full Push to enable messaging."
-									}
+									{isEscalated ? <><b style={{color:"rgba(167,139,250,0.9)"}}>Admin Takeover</b> in the AI terminal unlocks messaging.</> : "Use Push Back to return to assistant, or wait for a Full Push to enable messaging."}
 								</p>
 							</div>
 						</div>
-						{/* Ghost input — truly disabled, cannot be typed in or submitted */}
 						<div style={{display:"flex",gap:8,alignItems:"flex-end",opacity:0.25,pointerEvents:"none",userSelect:"none"}}>
-							<input
-								disabled
-								readOnly
-								placeholder="Reply to client..."
-								style={{flex:1,minWidth:0,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"11px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"rgba(255,255,255,0.2)",outline:"none",cursor:"not-allowed",boxSizing:"border-box"}}
-							/>
-							<div style={{flexShrink:0,background:"rgba(255,255,255,0.06)",borderRadius:10,padding:"11px 16px",fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:"0.1em",color:"rgba(255,255,255,0.2)",whiteSpace:"nowrap"}}>
-								SEND
-							</div>
+							<input disabled readOnly placeholder="Reply to client..." style={{flex:1,minWidth:0,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"11px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"rgba(255,255,255,0.2)",outline:"none",cursor:"not-allowed",boxSizing:"border-box"}} />
+							<div style={{flexShrink:0,background:"rgba(255,255,255,0.06)",borderRadius:10,padding:"11px 16px",fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:"0.1em",color:"rgba(255,255,255,0.2)",whiteSpace:"nowrap"}}>SEND</div>
 						</div>
 					</div>
 				)}
@@ -284,6 +428,7 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 	const [updatingId, setUpdatingId]     = useState(null);
 	const [searchQ, setSearchQ]           = useState("");
 	const [mobileShowDetail, setMobileShowDetail] = useState(false);
+	const [emailSending, setEmailSending] = useState(false);
 
 	const selectedRef      = useRef(null);
 	const activeReqRef     = useRef(null);
@@ -292,19 +437,17 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 	useEffect(() => { activeReqRef.current     = activeReq;    }, [activeReq]);
 	useEffect(() => { onCountChangeRef.current = onCountChange;}, [onCountChange]);
 
+	/* ── Status config with email trigger ── */
 	const STATUS_COLORS = {
-		pending:   { color:"#facc15", label:"PENDING"   },
-		reviewing: { color:"#38bdf8", label:"REVIEWING" },
-		approved:  { color:"#22c55e", label:"APPROVED"  },
-		rejected:  { color:"#ef4444", label:"REJECTED"  },
-		completed: { color:"#a78bfa", label:"COMPLETED" },
+		pending:   { color:"#facc15", label:"PENDING",   emailTrigger: false },
+		reviewing: { color:"#38bdf8", label:"REVIEWING", emailTrigger: false },
+		approved:  { color:"#22c55e", label:"APPROVED",  emailTrigger: true  },
+		rejected:  { color:"#ef4444", label:"REJECTED",  emailTrigger: true  },
+		completed: { color:"#a78bfa", label:"COMPLETED", emailTrigger: true  },
 	};
 
 	const sync = useCallback(async () => {
-		const { data, error } = await supabase
-			.from("verp_return_requests")
-			.select("*")
-			.order("created_at", { ascending: false });
+		const { data, error } = await supabase.from("verp_return_requests").select("*").order("created_at", { ascending: false });
 		if (error || !data) { setLoading(false); return; }
 		const emailMap = {};
 		data.forEach(r => {
@@ -313,15 +456,10 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 			emailMap[key].push(r);
 		});
 		const groupArr = Object.entries(emailMap).map(([email, reqs]) => ({
-			email,
-			requests: reqs,
-			latest: reqs[0],
+			email, requests: reqs, latest: reqs[0],
 			hasUnresolved: reqs.some(r => ["pending","reviewing"].includes(r.status)),
 		}));
-		groupArr.sort((a, b) =>
-			(b.hasUnresolved ? 1 : 0) - (a.hasUnresolved ? 1 : 0) ||
-			new Date(b.latest.created_at) - new Date(a.latest.created_at)
-		);
+		groupArr.sort((a, b) => (b.hasUnresolved ? 1 : 0) - (a.hasUnresolved ? 1 : 0) || new Date(b.latest.created_at) - new Date(a.latest.created_at));
 		setGrouped(groupArr);
 		const curSel = selectedRef.current;
 		const curReq = activeReqRef.current;
@@ -339,30 +477,30 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 	useEffect(() => { sync(); const i = setInterval(sync, 8000); return () => clearInterval(i); }, [sync]);
 
 	const updateStatus = async (id, status) => {
-		if (!isActive) {
-			return;
-		}
+		if (!isActive) return;
 		setUpdatingId(id);
-		const resolved_at = ["approved","rejected","completed"].includes(status) ? new Date().toISOString() : null;
+		const req = activeReqRef.current?.id === id ? activeReqRef.current : null;
+
+		/* Optimistic UI update */
 		setActiveReq(prev => prev?.id === id ? { ...prev, status } : prev);
 		setGrouped(prev => prev.map(g => ({
 			...g,
 			requests: g.requests.map(r => r.id === id ? { ...r, status } : r),
 			latest: g.latest?.id === id ? { ...g.latest, status } : g.latest,
-			hasUnresolved: g.requests.some(r => r.id === id
-				? ["pending","reviewing"].includes(status)
-				: ["pending","reviewing"].includes(r.status)),
+			hasUnresolved: g.requests.some(r => r.id === id ? ["pending","reviewing"].includes(status) : ["pending","reviewing"].includes(r.status)),
 		})));
-		await supabase.from("verp_return_requests").update({ status, resolved_at }).eq("id", id);
-		// Sync order status so client sees one consistent status
-		const req = activeReqRef.current?.id === id ? activeReqRef.current : null;
-		const orderId = req?.order_id;
-		if (orderId) {
-			let orderStatus = null;
-			if (status === "approved" || status === "completed") orderStatus = "returned";
-			else if (status === "rejected") orderStatus = "delivered";
-			if (orderStatus) await supabase.from("verp_orders").update({ status: orderStatus }).eq("id", orderId);
+
+		/* Single server call — handles DB update, order sync, and client email */
+		const cfg = STATUS_COLORS[status];
+		if (cfg?.emailTrigger) setEmailSending(true);
+		try {
+			await serverUpdateReturnStatus(id, status, req?.order_id);
+		} catch (err) {
+			console.error("[updateStatus] server error:", err.message);
+		} finally {
+			if (cfg?.emailTrigger) setEmailSending(false);
 		}
+
 		await sync();
 		setUpdatingId(null);
 	};
@@ -458,10 +596,14 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 							</div>
 						)}
 						<div style={{flex:1,overflowY:"auto",padding:"16px",WebkitOverflowScrolling:"touch"}}>
+
+							{/* Reason */}
 							<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:14,padding:"16px",marginBottom:16}}>
 								<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.25em",textTransform:"uppercase",color:"rgba(236,91,19,0.6)",marginBottom:10}}>REASON FOR RETURN</p>
 								<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,lineHeight:1.75,color:"rgba(255,255,255,0.7)"}}>{displayReq.reason}</p>
 							</div>
+
+							{/* Items snapshot */}
 							{displayReq.items_snapshot?.length > 0 && (
 								<div style={{marginBottom:16}}>
 									<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.25em",textTransform:"uppercase",color:"rgba(255,255,255,0.2)",marginBottom:10}}>ORDER ITEMS</p>
@@ -478,23 +620,60 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 									</div>
 								</div>
 							)}
-							{/* UPDATE STATUS — only works in Returns tab */}
+
+							{/* ── UPDATE STATUS with email trigger badges ── */}
 							<div>
-								<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.25em",textTransform:"uppercase",color:"rgba(255,255,255,0.2)",marginBottom:10}}>UPDATE STATUS</p>
+								<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+									<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.25em",textTransform:"uppercase",color:"rgba(255,255,255,0.2)"}}>UPDATE STATUS</p>
+									{emailSending && (
+										<div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:8}}>
+											<div style={{width:8,height:8,borderRadius:"50%",border:"1.5px solid rgba(34,197,94,0.3)",borderTopColor:"#22c55e",animation:"crSpin 0.7s linear infinite"}} />
+											<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:"0.18em",textTransform:"uppercase",color:"#22c55e",margin:0}}>SENDING EMAIL</p>
+										</div>
+									)}
+								</div>
 								{!isActive && (
 									<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.15em",textTransform:"uppercase",color:"rgba(239,68,68,0.5)",marginBottom:8}}>
 										⚠ SWITCH TO RETURN REQUESTS TAB TO UPDATE
 									</p>
 								)}
 								<div style={{display:"flex",flexWrap:"wrap",gap:8,pointerEvents:isActive?"auto":"none",opacity:isActive?1:0.3}}>
-									{Object.entries(STATUS_COLORS).map(([s, sc]) => (
-										<button key={s} disabled={!isActive || updatingId === displayReq.id} onClick={() => updateStatus(displayReq.id, s)}
-											style={{padding:"8px 14px",borderRadius:8,border:`1px solid ${sc.color}40`,background:displayReq.status===s?`${sc.color}20`:"transparent",fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.15em",textTransform:"uppercase",color:sc.color,cursor:(!isActive||updatingId===displayReq.id)?"not-allowed":"pointer",transition:"all 200ms",fontWeight:displayReq.status===s?700:400}}
-											onMouseEnter={e => { if (isActive && displayReq.status !== s) e.currentTarget.style.background = `${sc.color}12`; }}
-											onMouseLeave={e => { if (isActive && displayReq.status !== s) e.currentTarget.style.background = "transparent"; }}>
-											{updatingId === displayReq.id ? "…" : sc.label}
-										</button>
-									))}
+									{Object.entries(STATUS_COLORS).map(([s, sc]) => {
+										const isActive_ = displayReq.status === s;
+										return (
+											<button key={s} disabled={!isActive || updatingId === displayReq.id} onClick={() => updateStatus(displayReq.id, s)}
+												style={{
+													padding:"9px 15px",borderRadius:10,
+													border:`1px solid ${sc.color}40`,
+													background:isActive_?`${sc.color}20`:"transparent",
+													fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.15em",textTransform:"uppercase",
+													color:sc.color,cursor:(!isActive||updatingId===displayReq.id)?"not-allowed":"pointer",
+													transition:"all 200ms",fontWeight:isActive_?700:400,
+													display:"flex",alignItems:"center",gap:6,
+												}}
+												onMouseEnter={e => { if (isActive && !isActive_) e.currentTarget.style.background = `${sc.color}12`; }}
+												onMouseLeave={e => { if (isActive && !isActive_) e.currentTarget.style.background = "transparent"; }}>
+												{updatingId === displayReq.id ? "…" : sc.label}
+												{sc.emailTrigger && (
+													<span title="Sends email notification to client" style={{
+														display:"inline-flex",width:14,height:14,borderRadius:"50%",
+														background:`${sc.color}20`,border:`1px solid ${sc.color}50`,
+														alignItems:"center",justifyContent:"center",flexShrink:0,
+													}}>
+														<span style={{fontSize:8}}>✉</span>
+													</span>
+												)}
+											</button>
+										);
+									})}
+								</div>
+
+								{/* Email legend */}
+								<div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,padding:"8px 12px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8}}>
+									<span style={{fontSize:10}}>✉</span>
+									<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:"0.18em",textTransform:"uppercase",color:"rgba(255,255,255,0.2)",margin:0}}>
+										EMAIL ICON = AUTOMATIC CLIENT NOTIFICATION WILL BE SENT
+									</p>
 								</div>
 							</div>
 						</div>
@@ -506,6 +685,7 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 					</div>
 				)}
 			</div>
+			<style>{`@keyframes crSpin { to { transform: rotate(360deg); } }`}</style>
 		</div>
 	);
 };
@@ -532,21 +712,13 @@ const ClientMessages = () => {
 	};
 
 	const syncSessions = useCallback(async () => {
-		const { data } = await supabase
-			.from("verp_support_sessions")
-			.select("*")
-			.not("status", "eq", "resolved")
-			.order("updated_at", { ascending:false, nullsFirst:false });
+		const { data } = await supabase.from("verp_support_sessions").select("*").not("status", "eq", "resolved").order("updated_at", { ascending:false, nullsFirst:false });
 		if (data) {
 			setSessions(data);
 			const cur = selectedSessionRef.current;
 			if (cur) {
 				const r = data.find(s => s.id === cur.id);
-				if (r) {
-					if (r.status !== cur.status) {
-					}
-					setSelectedSession(r);
-				}
+				if (r) setSelectedSession(r);
 			}
 		}
 	}, []);
@@ -555,25 +727,11 @@ const ClientMessages = () => {
 
 	const handlePushBack = async () => {
 		if (!selectedSession) return;
-
-		await supabase.from("verp_support_sessions")
-			.update({ status:"live", admin_note:null })
-			.eq("id", selectedSession.id);
-
-
-		await supabase.from("verp_private_channel").insert([{
-			sender:"admin",
-			content:`PUSH BACK: ${selectedSession.client_email} — you can resume the session.`,
-		}]);
+		await supabase.from("verp_support_sessions").update({ status:"live", admin_note:null }).eq("id", selectedSession.id);
+		await supabase.from("verp_private_channel").insert([{ sender:"admin", content:`PUSH BACK: ${selectedSession.client_email} — you can resume the session.` }]);
 		try {
-			await fetch("/api/alert-staff", {
-				method:"POST",
-				headers:{ "Content-Type":"application/json" },
-				body:JSON.stringify({ type:"PUSH_BACK", clientId:selectedSession.client_email }),
-			});
-		} catch (err) {
-		}
-
+			await fetch("/api/alert-staff", { method:"POST", headers:{ "Content-Type":"application/json", "x-internal-secret": getInternalSecret() }, body:JSON.stringify({ type:"PUSH_BACK", clientId:selectedSession.client_email }) });
+		} catch (err) {}
 		setSelectedSession(null);
 		setMobileShowChat(false);
 		syncSessions();
@@ -612,8 +770,8 @@ const ClientMessages = () => {
 				{/* Tabs */}
 				<div style={{display:"flex",gap:4,padding:"10px 12px",borderBottom:"1px solid rgba(255,255,255,0.06)",flexShrink:0,background:T.obsidian,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
 					{[
-						{ key:"chats",   label:"Support Chats",   icon:"forum" },
-						{ key:"returns", label:"Return Requests",  icon:"assignment_return" },
+						{ key:"chats",   label:"Support Chats",  icon:"forum" },
+						{ key:"returns", label:"Return Requests", icon:"assignment_return" },
 					].map(({ key, label, icon }) => (
 						<button key={key} onClick={() => handleTabClick(key)}
 							style={{position:"relative",display:"flex",alignItems:"center",gap:6,padding:"7px 14px",borderRadius:8,background:activePanel===key?"rgba(236,91,19,0.15)":"transparent",border:activePanel===key?"1px solid rgba(236,91,19,0.35)":"1px solid transparent",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:"0.15em",textTransform:"uppercase",color:activePanel===key?T.ember:"rgba(255,255,255,0.3)",transition:"all 160ms",flexShrink:0,whiteSpace:"nowrap"}}>
@@ -636,25 +794,14 @@ const ClientMessages = () => {
 				) : (
 					<div style={{flex:1,display:"flex",overflow:"hidden"}}>
 						<div className="cm-list">
-							<ClientMessages_SessionList
-								sessions={filtered}
-								selectedId={selectedSession?.id}
-								onSelect={handleSelectSession}
-								searchQuery={searchQuery}
-								onSearchChange={setSearchQuery}
-							/>
+							<ClientMessages_SessionList sessions={filtered} selectedId={selectedSession?.id} onSelect={handleSelectSession} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 						</div>
 						<div className="cm-chat-pane">
 							<button className="cm-back-btn" onClick={() => setMobileShowChat(false)}>
 								<span className="material-symbols-outlined" style={{fontSize:16}}>arrow_back</span>SESSIONS
 							</button>
 							{selectedSession ? (
-								<ClientMessages_ChatWindow
-									session={selectedSession}
-									onPushBack={handlePushBack}
-									onSessionUpdate={syncSessions}
-									onResolve={() => { syncSessions(); setSelectedSession(null); setMobileShowChat(false); }}
-								/>
+								<ClientMessages_ChatWindow session={selectedSession} onPushBack={handlePushBack} onSessionUpdate={syncSessions} onResolve={() => { syncSessions(); setSelectedSession(null); setMobileShowChat(false); }} />
 							) : (
 								<div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14,opacity:0.12}}>
 									<span className="material-symbols-outlined" style={{fontSize:44}}>forum</span>

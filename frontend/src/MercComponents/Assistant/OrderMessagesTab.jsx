@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import Swal from "sweetalert2";
 
-/* ─── DESIGN TOKENS (mirrored from AssistantTerminal) ─────────── */
+/* ─── DESIGN TOKENS ──────────────────────────────────────────── */
 const T = {
   void:        "#080808",
   obsidian:    "#0d0d0d",
@@ -18,12 +18,95 @@ const MONO  = "'JetBrains Mono', monospace";
 const SANS  = "'DM Sans', sans-serif";
 const SERIF = "'Playfair Display', serif";
 
+/* ─── BUILD REPLY EMAIL HTML ─────────────────────────────────── */
+const buildReplyEmailHTML = (toEmail, subject, bodyText, fromRole) => {
+  const name      = toEmail.split("@")[0] || "Valued Client";
+  const roleLabel = fromRole === "admin" ? "Admin" : "Support Team";
+  const cleanBody = String(bodyText || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>");
+
+  return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;min-height:100vh;">
+<tr><td align="center" style="padding:40px 20px;">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+    <!-- BRAND -->
+    <tr><td align="center" style="padding-bottom:28px;">
+      <p style="margin:0;font-family:'Courier New',monospace;font-size:8px;letter-spacing:0.44em;text-transform:uppercase;color:rgba(255,255,255,0.15);">VERP · SUPPORT INBOX</p>
+    </td></tr>
+
+    <!-- CARD -->
+    <tr><td style="background:linear-gradient(135deg,#0d0d0d,#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+
+        <!-- accent -->
+        <tr><td style="height:3px;background:linear-gradient(90deg,#ec5b13,transparent);"></td></tr>
+
+        <!-- hero -->
+        <tr><td style="background:linear-gradient(135deg,rgba(236,91,19,0.1),rgba(236,91,19,0.02));padding:26px 36px 20px;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td>
+              <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.38em;text-transform:uppercase;color:#ec5b13;">REPLY FROM ${roleLabel.toUpperCase()}</p>
+              <p style="margin:0;font-size:23px;font-weight:300;color:#fff;letter-spacing:-0.3px;line-height:1.3;">You Have a New Message</p>
+            </td>
+            <td align="right" valign="middle" style="padding-left:16px;width:48px;"><div style="font-size:34px;line-height:1;text-align:center;display:block;">💬</div></td>
+          </tr></table>
+        </td></tr>
+
+        <!-- subject strip -->
+        <tr><td style="padding:18px 36px 14px;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">SUBJECT</p>
+          <p style="margin:0;font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);">${subject || "(no subject)"}</p>
+        </td></tr>
+
+        <!-- greeting + body -->
+        <tr><td style="padding:22px 36px 16px;">
+          <p style="margin:0 0 14px;font-size:13px;color:rgba(255,255,255,0.82);line-height:1.7;">Dear <strong style="color:#fff;">${name}</strong>,</p>
+          <div style="background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 18px;">
+            <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.68);line-height:1.85;">${cleanBody}</p>
+          </div>
+        </td></tr>
+
+        <!-- italic note -->
+        <tr><td style="padding:0 36px 26px;">
+          <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.25);font-style:italic;line-height:1.65;border-left:2px solid rgba(236,91,19,0.3);padding-left:14px;">
+            If you have further questions, feel free to reply to this message or contact our support team directly.
+          </p>
+        </td></tr>
+
+        <!-- signature chip -->
+        <tr><td style="padding:0 36px 28px;">
+          <table cellpadding="0" cellspacing="0"><tr>
+            <td style="background:rgba(236,91,19,0.12);border:1px solid rgba(236,91,19,0.35);border-radius:999px;padding:6px 18px;">
+              <p style="margin:0;font-family:'Courier New',monospace;font-size:8px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#ec5b13;">
+                VERP ${roleLabel.toUpperCase()} · IN-APP MESSAGE
+              </p>
+            </td>
+          </tr></table>
+        </td></tr>
+
+      </table>
+    </td></tr>
+
+    <!-- footer -->
+    <tr><td align="center" style="padding:26px 20px 0;">
+      <p style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.1);">VERP EXECUTIVE COLLECTION</p>
+      <p style="margin:0;font-size:10px;color:rgba(255,255,255,0.08);line-height:1.7;">Automated message from the Verp support system. Do not reply directly to this email.</p>
+    </td></tr>
+
+  </table>
+</td></tr>
+</table>
+</body></html>`;
+};
+
 /* ─── ORDER MESSAGES TAB ─────────────────────────────────────── */
 const OrderMessagesTab = () => {
   const [messages,  setMessages]  = useState([]);
   const [selected,  setSelected]  = useState(null);
-  const [readIds,   setReadIds]   = useState(new Set()); // local read tracking
-  const [filter,    setFilter]    = useState("all");     // all | unread | read
+  const [readIds,   setReadIds]   = useState(new Set());
+  const [filter,    setFilter]    = useState("all");
   const [reply,     setReply]     = useState("");
   const [busy,      setBusy]      = useState(false);
   const [loading,   setLoading]   = useState(true);
@@ -52,24 +135,50 @@ const OrderMessagesTab = () => {
 
   const isRead = (msg) => readIds.has(msg.id);
 
-  /* ── send reply ── */
+  /* ── send reply — writes to DB + sends real email ── */
   const sendReply = async () => {
     if (!selected || !reply.trim()) return;
     setBusy(true);
-    const { error } = await supabase.from("verp_inbox_messages").insert([
-      {
-        to_email:  selected.from_email || selected.to_email,
-        from_role: "assistant",
-        subject:   `Re: ${selected.subject || "Your Message"}`,
-        body:      reply.trim(),
-      },
-    ]);
-    setBusy(false);
+
+    const replyTo    = selected.from_email || selected.to_email;
+    const replySubj  = `Re: ${selected.subject || "Your Message"}`;
+    const replyBody  = reply.trim();
+
+    /* 1. Save reply to inbox DB (so client sees it in-app) */
+    const { error } = await supabase.from("verp_inbox_messages").insert([{
+      to_email:  replyTo,
+      from_role: "assistant",
+      subject:   replySubj,
+      body:      replyBody,
+    }]);
+
     if (error) {
+      setBusy(false);
       Swal.fire({ title: "Error", text: error.message, icon: "error", background: T.obsidian, color: "#fff" });
       return;
     }
+
+    /* 2. Send real email via server — non-critical, won't break if it fails */
+    if (replyTo) {
+      try {
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": import.meta.env.VITE_INTERNAL_SECRET ?? "",
+          },
+          body: JSON.stringify({
+            to:      replyTo,
+            subject: replySubj,
+            html:    buildReplyEmailHTML(replyTo, replySubj, replyBody, "assistant"),
+          }),
+        });
+      } catch (_) { /* non-critical */ }
+    }
+
     setReply("");
+    setBusy(false);
+
     Swal.fire({
       title: "Sent!",
       text: "Reply delivered to client inbox.",
@@ -79,6 +188,7 @@ const OrderMessagesTab = () => {
       timer: 2000,
       showConfirmButton: false,
     });
+
     loadMessages();
   };
 
@@ -267,9 +377,16 @@ const OrderMessagesTab = () => {
               </div>
 
               <div>
-                <p style={{ fontFamily: MONO, fontSize: 8, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 8 }}>
-                  REPLY
-                </p>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <p style={{ fontFamily: MONO, fontSize: 8, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", margin: 0 }}>
+                    REPLY
+                  </p>
+                  {/* Email indicator */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 9px", background: "rgba(236,91,19,0.08)", border: "1px solid rgba(236,91,19,0.25)", borderRadius: 8 }}>
+                    <span style={{ fontSize: 9 }}>✉</span>
+                    <p style={{ fontFamily: MONO, fontSize: 6, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(236,91,19,0.7)", margin: 0 }}>EMAIL SENT</p>
+                  </div>
+                </div>
                 <textarea
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}

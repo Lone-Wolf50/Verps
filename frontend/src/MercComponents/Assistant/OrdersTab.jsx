@@ -182,12 +182,95 @@ const OrdersTab = () => {
 			: OUTGOING.includes(o.status?.toLowerCase()),
 	);
 
+	/* Statuses that send a client notification email */
+	const EMAIL_TRIGGER_STATUSES = new Set(["shipped", "delivered", "cancelled", "returned"]);
+
+	const STATUS_COLOR_MAP = {
+		ordered: "#a855f7", pending: "#eab308", processing: "#0ea5e9",
+		shipped: "#10b981", delivered: "#ec5b13", returned: "#f43f5e", cancelled: "#64748b",
+	};
+
+	const STATUS_EMAIL_SUBJECT = {
+		shipped:   (n) => `Your Order ${n} Has Shipped 🚚`,
+		delivered: (n) => `Your Order ${n} Has Been Delivered ✅`,
+		cancelled: (n) => `Order ${n} — Cancellation Confirmed`,
+		returned:  (n) => `Return Initiated for Order ${n}`,
+	};
+
+	const buildStatusHTML = (order, status) => {
+		const color = STATUS_COLOR_MAP[status] || "#ec5b13";
+		const cfg = {
+			shipped:   { icon:"🚚", headline:"Your Order Is On Its Way",      body:`Your order <strong style="color:${color}">${order.order_number}</strong> has been dispatched and is heading to you. Our team has carefully packaged your items and handed them to our delivery partner.`, note:"Thank you for choosing us. We hope you love every piece." },
+			delivered: { icon:"✅", headline:"Order Delivered",                body:`Your order <strong style="color:${color}">${order.order_number}</strong> has been successfully delivered. We hope the experience has been exceptional from start to finish.`, note:"We'd love to hear what you think — your feedback means the world to us." },
+			cancelled: { icon:"❌", headline:"Order Cancellation Notice",       body:`Your order <strong style="color:${color}">${order.order_number}</strong> has been cancelled. Any applicable refund will be processed within 3–5 business days.`, note:"We're sorry this order didn't work out. We hope to serve you again." },
+			returned:  { icon:"↩️", headline:"Return Initiated",               body:`Your return request for order <strong style="color:${color}">${order.order_number}</strong> has been initiated. Once processed, your refund will be issued within 5–7 business days.`, note:"We appreciate your patience and are committed to making this right." },
+		};
+		const c = cfg[status];
+		if (!c) return null;
+		const name   = order.delivery_name || order.customer_name || order.client_email || order.email || "Valued Client";
+		const amount = Number(order.total_amount || 0).toLocaleString();
+		return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;min-height:100vh;">
+<tr><td align="center" style="padding:40px 20px;">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+    <tr><td align="center" style="padding-bottom:28px;"><p style="margin:0;font-family:'Courier New',monospace;font-size:8px;letter-spacing:0.42em;text-transform:uppercase;color:rgba(255,255,255,0.15);">VERP EXECUTIVE COLLECTION</p></td></tr>
+    <tr><td style="background:linear-gradient(135deg,#0d0d0d,#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="height:3px;background:linear-gradient(90deg,${color},transparent);"></td></tr>
+        <tr><td style="background:linear-gradient(135deg,${color}14,${color}04);padding:28px 36px 22px;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td><p style="margin:0 0 9px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.38em;text-transform:uppercase;color:${color};">STATUS: ${status.toUpperCase()}</p><p style="margin:0 0 7px;font-size:25px;font-weight:300;color:#fff;">${c.headline}</p></td>
+            <td align="right" valign="middle" style="padding-left:16px;width:50px;"><div style="font-size:36px;line-height:1;text-align:center;display:block;">${c.icon}</div></td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:20px 36px;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td><p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">ORDER</p><p style="margin:0;font-family:'Courier New',monospace;font-size:13px;color:${color};font-weight:700;">${order.order_number || "—"}</p></td>
+            <td align="right"><p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">VALUE</p><p style="margin:0;font-size:18px;font-weight:700;color:${color};">GH₵ ${amount}</p></td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:24px 36px 18px;"><p style="margin:0 0 12px;font-size:13px;color:rgba(255,255,255,0.82);line-height:1.7;">Dear <strong style="color:#fff;">${name}</strong>,</p><p style="margin:0;font-size:13px;color:rgba(255,255,255,0.58);line-height:1.85;">${c.body}</p></td></tr>
+        <tr><td style="padding:0 36px 24px;"><p style="margin:0;font-size:11px;color:rgba(255,255,255,0.28);font-style:italic;border-left:2px solid ${color}35;padding-left:14px;">${c.note}</p></td></tr>
+        <tr><td style="padding:0 36px 28px;"><table cellpadding="0" cellspacing="0"><tr><td style="background:${color}16;border:1px solid ${color}45;border-radius:999px;padding:6px 18px;"><p style="margin:0;font-family:'Courier New',monospace;font-size:8px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${color};">STATUS: ${status.toUpperCase()}</p></td></tr></table></td></tr>
+      </table>
+    </td></tr>
+    <tr><td align="center" style="padding:28px 20px 0;"><p style="margin:0;font-size:10px;color:rgba(255,255,255,0.08);line-height:1.7;">Automated message from Verp. For questions, contact our support team.</p></td></tr>
+  </table>
+</td></tr>
+</table></body></html>`;
+	};
+
 	const applyStatus = async () => {
 		if (!selected || !newStatus) return;
 		setBusy(true);
+
 		await supabase.from("verp_orders").update({ status: newStatus }).eq("id", selected.id);
 		setOrders((prev) => prev.map((o) => (o.id === selected.id ? { ...o, status: newStatus } : o)));
 		setSelected((prev) => ({ ...prev, status: newStatus }));
+
+		/* Send client email for trigger statuses */
+		if (EMAIL_TRIGGER_STATUSES.has(newStatus)) {
+			const toEmail = selected.customer_email || selected.client_email || selected.email;
+			const html    = buildStatusHTML(selected, newStatus);
+			if (toEmail && html) {
+				try {
+					await fetch("/api/send-email", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"x-internal-secret": import.meta.env.VITE_INTERNAL_SECRET ?? "",
+						},
+						body: JSON.stringify({
+							to: toEmail,
+							subject: STATUS_EMAIL_SUBJECT[newStatus]?.(selected.order_number) || `Order Update: ${newStatus}`,
+							html,
+						}),
+					});
+				} catch (_) { /* non-critical */ }
+			}
+		}
+
 		setBusy(false);
 	};
 

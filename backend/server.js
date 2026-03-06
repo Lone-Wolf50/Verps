@@ -658,6 +658,233 @@ app.post("/api/update-order-status", requireAdminHeader, async (req, res) => {
   }
 });
 
+// ── 10. Send Client Email (order status & return decisions) ───
+// Called from the frontend ClientRequests / ClientMessages components.
+// requireInternalSecret keeps it locked to your own app.
+app.post("/api/send-email", requireInternalSecret, async (req, res) => {
+  const { to, subject, html } = req.body || {};
+
+  if (!to || typeof to !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    return res.status(400).json({ success: false, error: "Invalid or missing recipient email." });
+  }
+  if (!subject || typeof subject !== "string") {
+    return res.status(400).json({ success: false, error: "Missing subject." });
+  }
+  if (!html || typeof html !== "string") {
+    return res.status(400).json({ success: false, error: "Missing HTML body." });
+  }
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"Verp" <${process.env.GMAIL_USER}>`,
+      to,
+      subject,
+      html,
+      // Plain-text fallback — strips tags so email clients that need it are covered
+      text: html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim(),
+    });
+    console.log(`[send-email] ✅ Sent to ${to} | ${info.messageId}`);
+    res.status(200).json({ success: true, messageId: info.messageId });
+  } catch (err) {
+    console.error("[send-email] ❌", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── 11. Update Return Request Status + auto-email client ──────
+// Single endpoint so the DB write and email fire together server-side.
+// No loop risk: DB is written here, email is sent here — nothing calls back in.
+app.post("/api/update-return-status", requireInternalSecret, async (req, res) => {
+  const { returnId, status, orderId } = req.body || {};
+
+  const VALID_STATUSES = ["pending", "reviewing", "approved", "rejected", "completed"];
+  // Statuses that trigger a client-facing email
+  const EMAIL_STATUSES = { approved: true, rejected: true, completed: true };
+  // Statuses that require syncing the parent order
+  const ORDER_STATUS_MAP = { approved: "returned", completed: "returned", rejected: "delivered" };
+
+  if (!returnId || !status) {
+    return res.status(400).json({ success: false, error: "returnId and status are required." });
+  }
+  if (!VALID_STATUSES.includes(status)) {
+    return res.status(400).json({ success: false, error: `status must be one of: ${VALID_STATUSES.join(", ")}` });
+  }
+
+  try {
+    // ── 1. Fetch the return request row ──
+    const { data: req_, error: fetchErr } = await supabase
+      .from("verp_return_requests")
+      .select("*")
+      .eq("id", returnId)
+      .maybeSingle();
+
+    if (fetchErr || !req_) {
+      console.error("[update-return-status] ❌ Fetch error:", fetchErr?.message);
+      return res.status(404).json({ success: false, error: "Return request not found." });
+    }
+
+    // ── 2. Update the return request in DB ──
+    const resolved_at = EMAIL_STATUSES[status] ? new Date().toISOString() : null;
+    const { error: updateErr } = await supabase
+      .from("verp_return_requests")
+      .update({ status, resolved_at })
+      .eq("id", returnId);
+
+    if (updateErr) {
+      console.error("[update-return-status] ❌ Update error:", updateErr.message);
+      return res.status(500).json({ success: false, error: "Failed to update return request." });
+    }
+
+    // ── 3. Sync parent order status if needed ──
+    const targetOrderId = orderId || req_.order_id;
+    if (targetOrderId && ORDER_STATUS_MAP[status]) {
+      await supabase
+        .from("verp_orders")
+        .update({ status: ORDER_STATUS_MAP[status] })
+        .eq("id", targetOrderId);
+    }
+
+    // ── 4. Send client email for approved / rejected / completed ──
+    if (EMAIL_STATUSES[status]) {
+      const clientEmail = req_.customer_email;
+      if (clientEmail) {
+        const orderNum = req_.order_number || req_.order_id?.slice(0, 8) || "—";
+        const amount   = Number(req_.total_amount || 0).toLocaleString();
+        const name     = clientEmail.split("@")[0];
+
+        const CFG = {
+          approved: {
+            color: "#22c55e", icon: "✅",
+            banner: "RETURN APPROVED",
+            headline: "Your Return Has Been Approved",
+            subline: "A decision has been reached. Please read the next steps carefully.",
+            body: `Following our review, your return request for order <strong style="color:#22c55e">${orderNum}</strong> has been <strong style="color:#22c55e">approved</strong>. To proceed, please ship the item(s) back to us using a trackable delivery method and retain your proof of postage. Once the item is received and inspected by our team, your refund of <strong style="color:#22c55e">GH₵ ${amount}</strong> will be formally processed — you will receive a final confirmation at that stage.`,
+            note: "Approval is subject to the returned item passing physical inspection upon receipt. Please ensure items are securely packaged and in their original condition.",
+            emailSubject: `Return Approved — Next Steps for Order ${orderNum}`,
+          },
+          rejected: {
+            color: "#ef4444", icon: "❌",
+            banner: "RETURN REQUEST DECLINED",
+            headline: "Return Request Not Approved",
+            subline: "We were unable to process your return request at this time.",
+            body: `After careful review, your return for order <strong style="color:#ef4444">${orderNum}</strong> has been <strong style="color:#ef4444">declined</strong>. This may be due to the item falling outside our return window, signs of use beyond our policy, or missing packaging. If you believe this is an error, please contact our support team.`,
+            note: "We understand this may be disappointing — our team is here to help clarify.",
+            emailSubject: `Return Request for Order ${orderNum} — Decision Notice`,
+          },
+          completed: {
+            color: "#a78bfa", icon: "🎉",
+            banner: "RETURN FULLY PROCESSED",
+            headline: "Your Return Has Been Completed",
+            subline: "Everything has been resolved — thank you for your patience.",
+            body: `We're happy to confirm that the return for order <strong style="color:#a78bfa">${orderNum}</strong> is <strong style="color:#a78bfa">fully complete</strong>. Your refund of <strong style="color:#a78bfa">GH₵ ${amount}</strong> has been issued and should reflect in your account within 3–5 business days depending on your payment provider.`,
+            note: "Thank you for shopping with us — your satisfaction is our priority.",
+            emailSubject: `Return Completed — Refund Issued for Order ${orderNum} 🎉`,
+          },
+        };
+
+        const c = CFG[status];
+
+        const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;min-height:100vh;">
+<tr><td align="center" style="padding:40px 20px;">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+    <tr><td align="center" style="padding-bottom:28px;">
+      <p style="margin:0;font-family:'Courier New',monospace;font-size:8px;letter-spacing:0.42em;text-transform:uppercase;color:rgba(255,255,255,0.15);">VERP · RETURNS &amp; REFUNDS</p>
+    </td></tr>
+
+    <tr><td style="background:linear-gradient(135deg,#0d0d0d,#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <!-- accent line -->
+        <tr><td style="height:3px;background:linear-gradient(90deg,${c.color},transparent);"></td></tr>
+
+        <!-- hero -->
+        <tr><td style="background:linear-gradient(135deg,${c.color}14,${c.color}04);padding:28px 36px 22px;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td>
+              <p style="margin:0 0 9px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.38em;text-transform:uppercase;color:${c.color};">${c.banner}</p>
+              <p style="margin:0 0 7px;font-size:25px;font-weight:300;color:#fff;letter-spacing:-0.3px;line-height:1.25;">${c.headline}</p>
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.38);line-height:1.6;">${c.subline}</p>
+            </td>
+            <td align="right" valign="middle" style="padding-left:18px;width:52px;"><div style="font-size:38px;line-height:1;text-align:center;display:block;">${c.icon}</div></td>
+          </tr></table>
+        </td></tr>
+
+        <!-- order strip -->
+        <tr><td style="padding:20px 36px;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td style="width:50%;">
+              <p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">RETURN REF</p>
+              <p style="margin:0;font-family:'Courier New',monospace;font-size:13px;color:${c.color};font-weight:700;">${orderNum}</p>
+            </td>
+            <td align="right">
+              <p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">ORDER VALUE</p>
+              <p style="margin:0;font-size:19px;font-weight:700;color:${c.color};">GH₵ ${amount}</p>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <!-- body -->
+        <tr><td style="padding:24px 36px 18px;">
+          <p style="margin:0 0 13px;font-size:13px;color:rgba(255,255,255,0.82);line-height:1.7;">Dear <strong style="color:#fff;">${name}</strong>,</p>
+          <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.58);line-height:1.85;">${c.body}</p>
+        </td></tr>
+
+        <!-- italic note -->
+        <tr><td style="padding:0 36px 24px;">
+          <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.28);font-style:italic;line-height:1.65;border-left:2px solid ${c.color}35;padding-left:14px;">${c.note}</p>
+        </td></tr>
+
+        <!-- status chip -->
+        <tr><td style="padding:0 36px 28px;">
+          <table cellpadding="0" cellspacing="0"><tr>
+            <td style="background:${c.color}16;border:1px solid ${c.color}45;border-radius:999px;padding:6px 18px;">
+              <p style="margin:0;font-family:'Courier New',monospace;font-size:8px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${c.color};">RETURN STATUS: ${status.toUpperCase()}</p>
+            </td>
+          </tr></table>
+        </td></tr>
+      </table>
+
+    </td></tr>
+
+    <tr><td align="center" style="padding:28px 20px 0;">
+      <p style="margin:0 0 7px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.1);">VERP EXECUTIVE COLLECTION</p>
+      <p style="margin:0;font-size:10px;color:rgba(255,255,255,0.08);line-height:1.7;">Automated message from the Verp Returns System. For questions, contact our support team.</p>
+    </td></tr>
+
+  </table>
+</td></tr>
+</table>
+</body></html>`;
+
+        try {
+          await transporter.sendMail({
+            from: `"Verp" <${process.env.GMAIL_USER}>`,
+            to: clientEmail,
+            subject: c.emailSubject,
+            html,
+            text: html.replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim(),
+          });
+          console.log(`[update-return-status] ✅ Email sent to ${clientEmail} for status: ${status}`);
+        } catch (emailErr) {
+          // Non-fatal — DB was already updated, log and continue
+          console.error(`[update-return-status] ⚠️ Email failed (non-fatal): ${emailErr.message}`);
+        }
+      }
+    }
+
+    console.log(`[update-return-status] ✅ Return ${returnId} → ${status}`);
+    res.status(200).json({ success: true, returnId, status });
+
+  } catch (err) {
+    console.error("[update-return-status] ❌ CAUGHT EXCEPTION:", err.message);
+    res.status(500).json({ success: false, error: "Something went wrong. Please try again." });
+  }
+});
+
 // ── Health check ──────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({ status: "active", server: "Verp v2", time: new Date().toISOString() });
