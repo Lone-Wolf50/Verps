@@ -266,7 +266,7 @@ const sendStatusEmail = async (order, status) => {
 	};
 
 	try {
-		await fetch("/api/send-email", {
+		await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

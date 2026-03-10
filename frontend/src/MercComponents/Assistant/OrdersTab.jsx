@@ -255,7 +255,8 @@ const OrdersTab = () => {
 			const html    = buildStatusHTML(selected, newStatus);
 			if (toEmail && html) {
 				try {
-					await fetch("/api/send-email", {
+					
+await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
@@ -267,7 +268,9 @@ const OrdersTab = () => {
 							html,
 						}),
 					});
-				} catch (_) { /* non-critical */ }
+				} catch (err) {
+  console.error("[applyStatus] Email send failed:", err);
+}
 			}
 		}
 
