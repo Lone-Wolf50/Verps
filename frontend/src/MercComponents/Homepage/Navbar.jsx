@@ -606,24 +606,16 @@ const Navbar = () => {
           )}
 
           {!isLoggedIn ? (
-            <div style={{ display: "flex", gap: 8 }}>
-              <Link to="/login" style={{
-                display: "flex", alignItems: "center", height: 36,
-                padding: "0 14px", borderRadius: 10, textDecoration: "none",
-                fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase",
-                color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.1)",
-                fontFamily: "'JetBrains Mono',monospace",
-              }}>LOGIN</Link>
-              <Link to="/signup" style={{
-                display: "flex", alignItems: "center", height: 36,
-                padding: "0 14px", borderRadius: 10, textDecoration: "none",
-                fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase",
-                fontWeight: 800, color: "#fff",
-                background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
-                fontFamily: "'JetBrains Mono',monospace",
-                boxShadow: "0 4px 14px rgba(236,91,19,0.3)",
-              }}>JOIN</Link>
-            </div>
+            <Link to="/login" style={{
+              display: "flex", alignItems: "center", height: 36,
+              padding: "0 18px", borderRadius: 10, textDecoration: "none",
+              fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase",
+              fontWeight: 800, color: "#fff",
+              background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
+              fontFamily: "'JetBrains Mono',monospace",
+              boxShadow: "0 4px 14px rgba(236,91,19,0.35)",
+              border: "1px solid rgba(236,91,19,0.4)",
+            }}>LOGIN</Link>
           ) : (
             // ── FIX: Mobile top-bar cart icon only shown when logged in ──
             <Link to="/cart" style={{
@@ -708,14 +700,18 @@ const Navbar = () => {
               {isLoggedIn ? (
                 <Navbar_UserMenu userName={userName} avatarUrl={avatarUrl} onLogout={handleLogout} onTerminate={handleTerminate} />
               ) : (
-                <div className="flex gap-2">
-                  <Link to="/login"
-                    className="flex items-center h-11 px-[18px] rounded-xl no-underline text-[10px] tracking-[0.16em] uppercase text-white/45 border border-white/10 hover:border-[#ec5b13]/40 hover:text-[#ec5b13] transition-all duration-[180ms]"
-                    style={{ fontFamily: "'JetBrains Mono',monospace" }}>LOGIN</Link>
-                  <Link to="/signup"
-                    className="flex items-center h-11 px-[18px] rounded-xl no-underline text-[10px] tracking-[0.16em] uppercase font-bold text-white"
-                    style={{ fontFamily: "'JetBrains Mono',monospace", background: "linear-gradient(135deg,#ec5b13,#d94e0f)", boxShadow: "0 4px 14px rgba(236,91,19,0.3)" }}>JOIN</Link>
-                </div>
+                <Link to="/login"
+                  className="flex items-center h-11 px-[22px] rounded-xl no-underline text-[10px] tracking-[0.22em] uppercase font-bold text-white transition-all duration-[200ms]"
+                  style={{
+                    fontFamily: "'JetBrains Mono',monospace",
+                    background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
+                    boxShadow: "0 4px 18px rgba(236,91,19,0.35)",
+                    border: "1px solid rgba(236,91,19,0.4)",
+                    letterSpacing: "0.22em",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 6px 26px rgba(236,91,19,0.55)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 4px 18px rgba(236,91,19,0.35)"; e.currentTarget.style.transform = "none"; }}
+                >LOGIN</Link>
               )}
             </div>
           </div>
