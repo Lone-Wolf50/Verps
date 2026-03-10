@@ -10,7 +10,7 @@ const Cart = () => {
 		return (
 			<div className="min-h-screen bg-[#0d0d0d] text-white flex flex-col items-center justify-center p-6">
 				<span className="material-symbols-outlined text-6xl text-white/10 mb-4">
-					shopping_bag
+					shoppingCart
 				</span>
 				<h2 className="text-2xl font-black uppercase tracking-tighter italic">
 					Your Bag is Empty
