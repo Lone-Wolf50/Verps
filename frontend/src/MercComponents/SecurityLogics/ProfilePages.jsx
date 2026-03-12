@@ -458,7 +458,7 @@ const PasswordCard = ({ email: userEmail }) => {
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  /* ── STEP 1: send OTP — exact copy of AuthPage_ForgotForm submit ── */
+  /* ── STEP 1: send OTP ── */
   const sendOtp = async () => {
     setErr("");
     setLoading(true);
@@ -471,14 +471,7 @@ const PasswordCard = ({ email: userEmail }) => {
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to send code");
 
-      // exact same lines as AuthPage_ForgotForm
-      const otp = String(data.otp).trim();
-      const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-      await supabase.from("verp_users").update({ otp_code: otp, otp_expiry: expiry }).eq("email", userEmail);
-      localStorage.setItem("pendingOtp", otp);
-      localStorage.setItem("pendingEmail", userEmail);
-      localStorage.setItem("otpPurpose", "RESET");
-
+      // Server handles hashing + saving otp_code to DB — do NOT touch otp_code here.
       setOtpDigits(["", "", "", "", "", ""]);
       setCooldown(180);
       setStep("otp");
@@ -491,7 +484,7 @@ const PasswordCard = ({ email: userEmail }) => {
     } finally { setLoading(false); }
   };
 
-  /* ── Resend — exact copy of AuthPage_OtpForm handleResend ── */
+  /* ── Resend ── */
   const handleResend = async () => {
     if (resending) return;
     setResending(true);
@@ -503,7 +496,7 @@ const PasswordCard = ({ email: userEmail }) => {
       }, 25000);
       const data = await res.json();
       if (data.success) {
-        if (data.otp) localStorage.setItem("pendingOtp", String(data.otp).trim());
+        // Server handles hashing + saving — do NOT touch otp_code here.
         setCooldown(180);
         setOtpDigits(["", "", "", "", "", ""]);
         refs_focus0();
@@ -536,35 +529,40 @@ const PasswordCard = ({ email: userEmail }) => {
     if (pasted.length === 6) { setOtpDigits(pasted.split("")); otpRefs.current[5]?.focus(); }
   };
 
-  /* ── STEP 2: verify OTP — exact copy of AuthPage_OtpForm verify ── */
+  /* ── STEP 2: verify OTP via server (bcrypt compare + expiry check) ── */
   const verifyOtp = async () => {
     const entered = otpDigits.join("").trim();
     if (entered.length !== 6) return;
     setLoading(true);
 
-    const stored = String(localStorage.getItem("pendingOtp") || "").trim();
-    let valid = stored.length === 6 && entered === stored;
+    try {
+      const res = await fetchWithTimeout(`${getApiBase()}/api/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail, otp: entered }),
+      }, 25000);
+      const data = await res.json();
 
-    if (!valid) {
-      const { data: dbUser } = await supabase
-        .from("verp_users")
-        .select("otp_code, otp_expiry")
-        .eq("email", userEmail)
-        .maybeSingle();
-      if (dbUser?.otp_code) {
-        const dbOtp = String(dbUser.otp_code).trim();
-        // RESET purpose checks expiry — same as AuthPage
-        valid = dbOtp === entered && new Date(dbUser.otp_expiry) > new Date();
+      if (!res.ok || !data.success) {
+        Swal.fire({
+          title: "WRONG CODE",
+          text: data.message || "Double-check the digits in your email. Use RESEND if the code is old.",
+          icon: "error",
+          background: "#0a0a0a",
+          color: "#fff",
+        });
+        setLoading(false);
+        return;
       }
-    }
-
-    if (!valid) {
-      Swal.fire({ title: "WRONG CODE", text: "Double-check the digits in your email. Use RESEND if the code is old.", icon: "error", background: "#0a0a0a", color: "#fff" });
+    } catch (e) {
+      const msg = e.name === "AbortError"
+        ? "Request timed out. Check your connection and try again."
+        : (e.message || "Verification failed.");
+      Swal.fire({ title: "Error", text: msg, icon: "error", background: "#0a0a0a", color: "#fff" });
       setLoading(false);
       return;
     }
 
-    localStorage.removeItem("pendingOtp");
     setLoading(false);
     setStep("password");
   };

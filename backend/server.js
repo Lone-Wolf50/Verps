@@ -230,7 +230,8 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
           const wait = Math.ceil(60 - secondsSinceLast);
           return res.status(429).json({
             success: false,
-            error: `Please wait ${wait} second${wait !== 1 ? "s" : ""} before requesting a new code.`,
+            
+error: `Please wait a moment before requesting a new code.`,
           });
         }
       }
@@ -241,7 +242,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
         : 0;
 
       if (recentSends >= 3) {
-        const lockedUntil = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+        const lockedUntil = new Date(Date.now() + 60 * 60 * 1000).toISOString();
         await supabase
           .from("verp_users")
           .update({ otp_locked_until: lockedUntil })
