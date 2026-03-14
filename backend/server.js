@@ -92,6 +92,14 @@ const resetLimiter = rateLimit({
   message: { error: "Too many reset attempts. Please try again later." },
 });
 
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,   // 1 hour window
+  max: 5,                      // max 5 signup attempts per IP per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many registration attempts. Please try again later." },
+});
+
 // ══════════════════════════════════════════════════════════════
 //  AUTH MIDDLEWARE
 // ══════════════════════════════════════════════════════════════
@@ -201,10 +209,25 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
 
   const cleanEmail = email.toLowerCase().trim();
 
+  // ── Email format guard ──────────────────────────────────────
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return res.status(400).json({ success: false, error: "Valid email address required." });
+  }
+
+  // ── Domain whitelist — exact match prevents subdomain bypass ──
+  const emailDomain = cleanEmail.split("@")[1];
+  const ALLOWED_DOMAINS = ["gmail.com"];
+  if (!ALLOWED_DOMAINS.includes(emailDomain)) {
+    return res.status(400).json({
+      success: false,
+      error: "Only Gmail addresses (@gmail.com) are accepted at this time.",
+    });
+  }
+
   try {
     const { data: user, error: fetchErr } = await supabase
       .from("verp_users")
-      .select("id, otp_last_sent, otp_send_count, otp_locked_until")
+      .select("id, otp_code, otp_expiry, otp_last_sent, otp_send_count, otp_locked_until")
       .eq("email", cleanEmail)
       .maybeSingle();
 
@@ -224,14 +247,14 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
         });
       }
 
-      if (user.otp_last_sent) {
+      // Only enforce cooldown if user still has a live, unexpired code
+      const hasActiveCode = user.otp_code && user.otp_expiry && new Date() < new Date(user.otp_expiry);
+      if (hasActiveCode && user.otp_last_sent) {
         const secondsSinceLast = (now - new Date(user.otp_last_sent)) / 1000;
         if (secondsSinceLast < 60) {
-          const wait = Math.ceil(60 - secondsSinceLast);
           return res.status(429).json({
             success: false,
-            
-error: `Please wait a moment before requesting a new code.`,
+            error: "Please wait a moment before requesting a new code.",
           });
         }
       }
@@ -322,7 +345,9 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
     if (!data) return res.status(404).json({ message: "No account found for this email." });
 
     if (!data.otp_code) {
-      return res.status(400).json({ message: "No active code — please request a new one." });
+      // Reset attempts so user can cleanly request a new code without being locked
+      await supabase.from("verp_users").update({ otp_attempts: 0 }).eq("id", data.id);
+      return res.status(400).json({ message: "No active code — please tap Resend Code to get a fresh one." });
     }
 
     const attempts = data.otp_attempts || 0;
@@ -350,10 +375,17 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
       return res.status(400).json({ message: "Incorrect code — please check and try again." });
     }
 
-    await supabase
+    // Atomic update — only succeeds if otp_code still exists (prevents race condition double-verify)
+    const { data: atomicResult, error: atomicErr } = await supabase
       .from("verp_users")
       .update({ otp_code: null, otp_expiry: null, otp_attempts: 0, otp_verified: true })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .not("otp_code", "is", null)
+      .select("id");
+
+    if (atomicErr || !atomicResult || atomicResult.length === 0) {
+      return res.status(400).json({ message: "Code already used — please request a new one." });
+    }
 
     res.status(200).json({ success: true });
 
@@ -371,6 +403,8 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
     return res.status(400).json({ message: "Email and new password required." });
   if (password.length < 8)
     return res.status(400).json({ message: "Password must be at least 8 characters." });
+  if (password.length > 128)
+    return res.status(400).json({ message: "Password must be 128 characters or fewer." });
 
   try {
     const { data: user, error: fetchErr } = await supabase
@@ -685,10 +719,10 @@ app.post("/api/send-email", requireInternalSecret, async (req, res) => {
       text: html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim(),
     });
     console.log("[send-email] ✅ Email delivered successfully");
-    res.status(200).json({ success: true, messageId: info.messageId });
+    res.status(200).json({ success: true });
   } catch (err) {
     console.error("[send-email] ❌", err.message);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: "Failed to deliver email. Please try again." });
   }
 });
 
@@ -882,6 +916,143 @@ app.post("/api/update-return-status", requireInternalSecret, async (req, res) =>
 
   } catch (err) {
     console.error("[update-return-status] ❌ CAUGHT EXCEPTION:", err.message);
+    res.status(500).json({ success: false, error: "Something went wrong. Please try again." });
+  }
+});
+
+// ── 12. Register — server-side validation + upsert ──────────
+// This is the single source of truth for signup data.
+// The frontend sends name + email + password; the server validates,
+// hashes, and writes to Supabase using the SERVICE KEY (not anon key).
+// The frontend never writes to verp_users directly after this endpoint exists.
+app.post("/api/register", registerLimiter, async (req, res) => {
+  const { fullName, email, password } = req.body || {};
+
+  // ── 1. Presence checks ──────────────────────────────────────
+  if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
+    return res.status(400).json({ success: false, error: "Full name is required." });
+  }
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ success: false, error: "Email is required." });
+  }
+  if (!password || typeof password !== "string") {
+    return res.status(400).json({ success: false, error: "Password is required." });
+  }
+
+  const cleanName  = fullName.trim();
+  const cleanEmail = email.toLowerCase().trim();
+
+  // ── 2. Name validation — letters, spaces, hyphens, apostrophes only ──
+  if (cleanName.length < 2) {
+    return res.status(400).json({ success: false, error: "Name must be at least 2 characters." });
+  }
+  if (cleanName.length > 60) {
+    return res.status(400).json({ success: false, error: "Name must be 60 characters or fewer." });
+  }
+  if (!/^[A-Za-z\s'\-]+$/.test(cleanName)) {
+    return res.status(400).json({ success: false, error: "Name must contain letters only — no numbers or symbols." });
+  }
+
+  // ── 3. Email format + domain whitelist ──────────────────────
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return res.status(400).json({ success: false, error: "Valid email address required." });
+  }
+  const emailDomain = cleanEmail.split("@")[1];
+  const ALLOWED_DOMAINS = ["gmail.com"];
+  if (!ALLOWED_DOMAINS.includes(emailDomain)) {
+    return res.status(400).json({ success: false, error: "Only Gmail addresses (@gmail.com) are accepted." });
+  }
+
+  // ── 4. Password strength ────────────────────────────────────
+  if (password.length < 8) {
+    return res.status(400).json({ success: false, error: "Password must be at least 8 characters." });
+  }
+  if (password.length > 128) {
+    return res.status(400).json({ success: false, error: "Password must be 128 characters or fewer." });
+  }
+
+  try {
+    // ── 5. Check for existing verified account ─────────────────
+    const { data: existing, error: lookupErr } = await supabase
+      .from("verp_users")
+      .select("id, is_verified")
+      .eq("email", cleanEmail)
+      .maybeSingle();
+
+    if (lookupErr) {
+      console.error("[register] ❌ DB lookup error");
+      return res.status(500).json({ success: false, error: "Something went wrong. Please try again." });
+    }
+
+    if (existing?.is_verified) {
+      return res.status(409).json({ success: false, error: "An account with this email already exists." });
+    }
+
+    // ── 6. Hash password — server-side only, never touched by frontend ──
+    const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+    const otp_expiry    = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+    // ── 7. Upsert user record (handles re-signup of unverified accounts) ──
+    const { error: upsertErr } = await supabase
+      .from("verp_users")
+      .upsert(
+        {
+          email:         cleanEmail,
+          full_name:     cleanName,
+          password_hash,
+          is_verified:   false,
+          otp_expiry,
+        },
+        { onConflict: "email" }
+      );
+
+    if (upsertErr) {
+      console.error("[register] ❌ DB upsert error");
+      return res.status(500).json({ success: false, error: "Failed to create account. Please try again." });
+    }
+
+    // ── 8. Send OTP via existing send-otp logic ─────────────────
+    // Generate OTP here so register is fully self-contained
+    const otp     = randomInt(100000, 1000000).toString();
+    const otpHash = await bcrypt.hash(otp, SALT_ROUNDS);
+    const expiry  = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+    const { error: otpErr } = await supabase
+      .from("verp_users")
+      .update({
+        otp_code:         otpHash,
+        otp_expiry:       expiry,
+        otp_attempts:     0,
+        otp_last_sent:    new Date().toISOString(),
+        otp_send_count:   1,
+        otp_locked_until: null,
+      })
+      .eq("email", cleanEmail);
+
+    if (otpErr) {
+      console.error("[register] ❌ OTP save error");
+      return res.status(500).json({ success: false, error: "Account created but failed to send verification code. Please use Resend." });
+    }
+
+    await transporter.sendMail({
+      from: `"VERP Security" <${process.env.GMAIL_USER}>`,
+      to: cleanEmail,
+      subject: `[${otp}] Your Verp Verification Code`,
+      html: wrap(
+        "Verify Your Account",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Welcome to Verp, <strong style="color:#ec5b13;">${cleanName}</strong>. Your verification code is:</p>
+         <div style="margin:20px 0;text-align:center;padding:20px;background:#111;border-radius:12px;border:1px solid rgba(236,91,19,0.2);">
+           <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#fff;font-family:monospace;">${otp}</span>
+         </div>
+         <p style="color:rgba(255,255,255,0.3);font-size:11px;">Expires in 10 minutes. Do not share this code.</p>`,
+        null, null,
+      ),
+    });
+
+    res.status(200).json({ success: true });
+
+  } catch (err) {
+    console.error("[register] ❌ CAUGHT EXCEPTION");
     res.status(500).json({ success: false, error: "Something went wrong. Please try again." });
   }
 });

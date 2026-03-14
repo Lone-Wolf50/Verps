@@ -50,16 +50,22 @@ const STRENGTH_LABEL = ["", "WEAK", "FAIR", "GOOD", "STRONG"];
 const STRENGTH_COLOR = ["", "#ef4444", "#f59e0b", "#38bdf8", "#22c55e"];
 
 /* ─── SHARED FIELD ───────────────────────────────────────────── */
-const Field = ({ label, type = "text", value, onChange, placeholder, error, children }) => (
+const Field = ({ label, type = "text", value, onChange, placeholder, error, hint, maxLength, children }) => (
   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
     <label style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: T.ember, fontWeight: 700 }}>{label}</label>
     <div style={{ position: "relative" }}>
-      <input type={type} value={value} onChange={onChange} placeholder={placeholder} required
+      <input type={type} value={value} onChange={onChange} placeholder={placeholder} required maxLength={maxLength}
         style={{ width: "100%", background: "rgba(255,255,255,0.03)", border: error ? "1px solid #ef4444" : "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "14px 16px", fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.92)", outline: "none", transition: "border-color 200ms", boxSizing: "border-box" }}
         onFocus={e => { if (!error) e.currentTarget.style.borderColor = "rgba(236,91,19,0.5)"; }}
         onBlur={e => { if (!error) e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)"; }} />
       {children}
     </div>
+    {hint && !error && (
+      <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", display: "flex", alignItems: "center", gap: 5 }}>
+        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(236,91,19,0.5)", display: "inline-block", flexShrink: 0 }} />
+        {hint}
+      </p>
+    )}
     {error && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#ef4444", letterSpacing: "0.15em" }}>{error}</p>}
   </div>
 );
@@ -230,9 +236,12 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
   const validate = () => {
     const e = {};
     if (!form.fullName.trim()) e.fullName = "FULL NAME REQUIRED";
-    else if (!/^[A-Za-z\s'-]+$/.test(form.fullName.trim())) e.fullName = "NAME MUST CONTAIN LETTERS ONLY — NO NUMBERS OR SYMBOLS";
+    else if (form.fullName.trim().length > 60) e.fullName = "NAME MUST BE 60 CHARACTERS OR FEWER";
+    else if (!/^[A-Za-z\s'\-]+$/.test(form.fullName.trim())) e.fullName = "LETTERS ONLY — NO NUMBERS OR SYMBOLS ALLOWED";
     if (!form.email.includes("@")) e.email = "VALID EMAIL REQUIRED";
+    else if (form.email.toLowerCase().split("@")[1] !== "gmail.com") e.email = "ONLY GMAIL ADDRESSES ARE ACCEPTED (@gmail.com)";
     if (form.password.length < 8) e.password = "MIN 8 CHARACTERS";
+    else if (form.password.length > 128) e.password = "PASSWORD MUST BE 128 CHARACTERS OR FEWER";
     if (form.password !== form.confirmPassword) e.confirmPassword = "PASSWORDS DO NOT MATCH";
     return e;
   };
@@ -244,31 +253,24 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
     setErrors({});
     setLoading(true);
     try {
-      const { data: existing } = await supabase
-        .from("verp_users")
-        .select("id, is_verified")
-        .eq("email", form.email)
-        .maybeSingle();
-      if (existing?.is_verified) {
-        setErrors({ email: "EMAIL ALREADY REGISTERED" });
-        setLoading(false);
-        return;
-      }
-
-      const bcrypt = await import("bcryptjs");
-      const hash = await bcrypt.hash(form.password, 10);
-
-      // Call server to send OTP — server generates + emails it (mobile: same-origin fallback + timeout)
-      const res = await fetchWithTimeout(`${getApiBase()}/api/send-otp`, {
+      // ✅ /api/register handles everything server-side:
+      //    name validation, email format+domain check, password hashing,
+      //    DB upsert, OTP generation + email — frontend never touches Supabase directly.
+      const res = await fetchWithTimeout(`${getApiBase()}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, type: "SIGNUP" }),
+        body: JSON.stringify({
+          fullName: form.fullName,
+          email:    form.email,
+          password: form.password,
+        }),
       }, 25000);
       const data = await res.json();
+
       if (res.status === 429) {
         Swal.fire({
           title: "Too Many Requests",
-          text: data.error || "Please wait before requesting another code.",
+          text: data.error || "Please wait before trying again.",
           icon: "warning",
           background: "#0a0a0a",
           color: "#fff",
@@ -277,25 +279,26 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
         setLoading(false);
         return;
       }
-      if (!data.success) throw new Error(data.error || "Failed to send verification email");
-      // ✅ Server no longer returns the OTP in the response — it only emails it.
-      // We do NOT store the OTP in localStorage. Verification happens server-side.
 
-      // Save pending user data to DB now (upsert so re-signup works)
-      // The server already wrote otp_code (hashed) + otp_expiry — we just store user fields.
-      const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-      await supabase.from("verp_users").upsert(
-        {
-          email: form.email,
-          full_name: form.fullName,
-          password_hash: hash,
-          is_verified: false,
-          otp_expiry: expiry,
-        },
-        { onConflict: "email" }
-      );
+      if (res.status === 409) {
+        setErrors({ email: "EMAIL ALREADY REGISTERED" });
+        setLoading(false);
+        return;
+      }
 
-      // Store only email + purpose (never the OTP itself)
+      if (!data.success) {
+        // Surface server validation errors back into the relevant field
+        const msg = data.error || "Something went wrong.";
+        if (msg.toLowerCase().includes("name"))     setErrors({ fullName: msg.toUpperCase() });
+        else if (msg.toLowerCase().includes("email")) setErrors({ email: msg.toUpperCase() });
+        else if (msg.toLowerCase().includes("password")) setErrors({ password: msg.toUpperCase() });
+        else Swal.fire({ title: "Error", text: msg, icon: "error", background: "#0a0a0a", color: "#fff", confirmButtonColor: T.ember });
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Server wrote user + OTP to DB and emailed the code.
+      // Store only email + purpose for the OTP screen.
       localStorage.setItem("pendingEmail", form.email);
       localStorage.setItem("otpPurpose", "SIGNUP");
 
@@ -334,9 +337,9 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
 
   return (
     <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <Field label="Full Name" value={form.fullName} onChange={e => { const v = e.target.value; if (/^[A-Za-z\s'\-]*$/.test(v)) setForm(f => ({ ...f, fullName: v })); }} placeholder="Your full name" error={errors.fullName} />
+      <Field label="Full Name" value={form.fullName} onChange={e => { const v = e.target.value; if (v.length <= 60 && /^[A-Za-z\s'\-]*$/.test(v)) setForm(f => ({ ...f, fullName: v })); }} placeholder="Your full name" error={errors.fullName} hint="Letters only — no numbers or symbols" maxLength={60} />
       <Field label="Email Address" type="email" value={form.email} onChange={set("email")} placeholder="mail@gmail.com" error={errors.email} />
-      <Field label="Access Key" type={show.password ? "text" : "password"} value={form.password} onChange={set("password")} placeholder="Min. 8 characters" error={errors.password}>
+      <Field label="Access Key" type={show.password ? "text" : "password"} value={form.password} onChange={set("password")} placeholder="Min. 8 characters" error={errors.password} maxLength={128}>
         <EyeBtn visible={show.password} onToggle={() => setShow(s => ({ ...s, password: !s.password }))} />
       </Field>
       {form.password && (
@@ -349,7 +352,7 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
           {strength > 0 && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: STRENGTH_COLOR[strength], letterSpacing: "0.2em" }}>{STRENGTH_LABEL[strength]}</p>}
         </div>
       )}
-      <Field label="Confirm Key" type={show.confirm ? "text" : "password"} value={form.confirmPassword} onChange={set("confirmPassword")} placeholder="Repeat password" error={errors.confirmPassword}>
+      <Field label="Confirm Key" type={show.confirm ? "text" : "password"} value={form.confirmPassword} onChange={set("confirmPassword")} placeholder="Repeat password" error={errors.confirmPassword} maxLength={128}>
         <EyeBtn visible={show.confirm} onToggle={() => setShow(s => ({ ...s, confirm: !s.confirm }))} />
       </Field>
       <SubmitButton loading={loading} label="INITIALIZE ACCOUNT" />

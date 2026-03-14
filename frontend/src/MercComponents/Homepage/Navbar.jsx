@@ -313,20 +313,13 @@ const Navbar = () => {
   const navigate        = useNavigate();
   const handleTerminate = useTerminateAccount();
 
-  // ── FIX: cart count is ONLY shown when user is logged in ──────────────────
-  // We never show guest_cart count in the badge. Items are preserved in
-  // guest_cart key behind the scenes for merge on next login, but the UI
-  // count badge is hidden until the user authenticates.
   const itemCount = isLoggedIn
     ? cart.reduce((t, i) => t + i.quantity, 0)
-    : 0; // ← guest_cart count intentionally suppressed
-
-  console.log("[Navbar][cart-count] isLoggedIn:", isLoggedIn, "| itemCount:", itemCount, "| cart items:", cart.length);
+    : 0;
 
   /* ── Sync auth state on route change ── */
   useEffect(() => {
     const loggedIn = !!localStorage.getItem("userEmail");
-    console.log("[Navbar][auth-sync] Route changed →", location.pathname, "| isLoggedIn:", loggedIn);
     setIsLoggedIn(loggedIn);
     setUserName(localStorage.getItem("userName") || "");
   }, [location]);
@@ -335,16 +328,12 @@ const Navbar = () => {
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === "userName" && e.newValue) {
-        console.log("[Navbar] Name updated →", e.newValue);
         setUserName(e.newValue);
       }
       if (e.key === "userAvatarUrl") {
-        console.log("[Navbar] Avatar updated →", e.newValue);
         setAvatarUrl(e.newValue || null);
       }
-      // ── FIX: When userEmail is removed (logout), clear cart badge immediately ──
       if (e.key === "userEmail" && !e.newValue) {
-        console.log("[Navbar][storage] userEmail removed — setting isLoggedIn false");
         setIsLoggedIn(false);
       }
     };
@@ -379,28 +368,6 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* ── GAP DIAGNOSTIC ── */
-  useEffect(() => {
-    const main = document.querySelector("main");
-    if (!main) return;
-    const computed = window.getComputedStyle(main);
-    const pt = computed.paddingTop;
-    const mt = computed.marginTop;
-    const ptPx = parseInt(pt, 10);
-    console.log("[Navbar][Gap] <main> paddingTop:", pt, "| marginTop:", mt);
-    if (ptPx > 0) {
-      console.error(
-        "[Navbar][Gap] ⚠️ DOUBLE-GAP DETECTED — <main> has paddingTop:", pt,
-        "\nThe Navbar already renders its own spacer div (" +
-        (window.innerWidth >= 768 ? "82" : "68") + "px) in the normal document flow." +
-        "\nIf <main> also has pt-[68px] or pt-[82px], the gap is doubled." +
-        "\nFIX: In Paths.jsx change your <main> to just:  <main className=\"flex-1 min-h-0\">"
-      );
-    } else {
-      console.log("[Navbar][Gap] ✅ <main> has no extra padding. Spacer height:", document.querySelector('[aria-hidden="true"]')?.offsetHeight, "px");
-    }
-  }, []);
-
   /* ── Session hijack guard ── */
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -412,8 +379,6 @@ const Navbar = () => {
         .from("verp_sessions").select("device_fingerprint")
         .eq("user_id", userId).maybeSingle();
       if (data && data.device_fingerprint !== fp) {
-        console.log("[session-guard] ⚠️ Fingerprint mismatch — forced logout");
-        // DO NOT save to guest_cart here — this is a security event, not a voluntary logout
         ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
         setIsLoggedIn(false);
         navigate("/login", { replace: true });
@@ -464,30 +429,13 @@ const Navbar = () => {
     const staffRoleLS = localStorage.getItem("staffRole");
     const staffRoleSS = sessionStorage.getItem("staffRole");
 
-    console.log("[session-lifetime] 🔍 Running on mount");
-    console.log("[session-lifetime] sessionStorage.vrp_alive =", vrpAlive ?? "(null — fresh load/refresh)");
-    console.log("[session-lifetime] localStorage.staffRole   =", staffRoleLS ?? "(null)");
-    console.log("[session-lifetime] sessionStorage.staffRole =", staffRoleSS ?? "(null)");
-
     if (!vrpAlive) {
       const isStaffSession = staffRoleLS || staffRoleSS;
-      if (isStaffSession) {
-        console.log("[session-lifetime] 🛡️ Staff session detected — skipping user session wipe. staffRole =", isStaffSession);
-      } else {
-        console.log("[session-lifetime] ⚠️ No vrp_alive and no staff session — wiping user session keys");
-        // ── FIX: On fresh page load (not a tab refresh), do NOT preserve cart to
-        // guest_cart. The user was properly logged out last time. Their items are
-        // safely stored in the DB and will be restored when they log back in.
-        // Saving to guest_cart here causes the merge-on-login duplication bug.
-        console.log("[session-lifetime] 🗑️ Clearing session keys (NOT preserving to guest_cart — DB holds the source of truth)");
+      if (!isStaffSession) {
         ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
-        // Also clear any stale guest_cart to prevent phantom count on next login
         localStorage.removeItem("guest_cart");
         setIsLoggedIn(false);
-        console.log("[session-lifetime] 🗑️ User session keys cleared");
       }
-    } else {
-      console.log("[session-lifetime] ✅ vrp_alive present — no wipe needed");
     }
     sessionStorage.setItem("vrp_alive", "1");
     const onPageHide = (e) => {
@@ -510,19 +458,9 @@ const Navbar = () => {
   }, [isLoggedIn]);
 
   const handleLogout = () => {
-    console.log("[logout] 🚪 User initiated logout");
-    console.log("[logout] 🛒 Cart state at logout — items:", cart.length, "| quantities:", cart.map(i => `${i.name}×${i.quantity}`).join(", ") || "empty");
-
-    // ── FIX: Do NOT save to guest_cart on manual logout.
-    // Cart items are already persisted in the DB (verp_cart_items) and will
-    // be restored via syncFromDB on next login. Saving to guest_cart causes
-    // the count to re-appear while logged out AND doubles items on next login.
-    console.log("[logout] ℹ️ Cart items are safe in DB — NOT saving to guest_cart (prevents double-add on next login)");
-
     resetCart();
     ["userEmail","userId","userName","deviceFingerprint","luxury_cart","guest_cart"].forEach((k) => localStorage.removeItem(k));
     setIsLoggedIn(false);
-    console.log("[logout] ✅ Auth keys cleared, cart reset, isLoggedIn → false");
     navigate("/");
   };
 
@@ -617,7 +555,6 @@ const Navbar = () => {
               border: "1px solid rgba(236,91,19,0.4)",
             }}>LOGIN</Link>
           ) : (
-            // ── FIX: Mobile top-bar cart icon only shown when logged in ──
             <Link to="/cart" style={{
               position: "relative", width: 40, height: 40,
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -627,7 +564,6 @@ const Navbar = () => {
               color: "rgba(255,255,255,0.72)",
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>shopping_cart</span>
-              {/* ── FIX: itemCount is 0 when logged out so badge never renders ── */}
               {itemCount > 0 && (
                 <span style={{
                   position: "absolute", top: 4, right: 4,
@@ -652,7 +588,6 @@ const Navbar = () => {
               {[
                 { name: "About",   path: "/about"     },
                 { name: "Orders",  path: "/orderpage", protected: true },
-                // ── FIX: Desktop Cart nav text only shows count when logged in ──
                 { name: `Cart${isLoggedIn && itemCount > 0 ? ` (${itemCount})` : ""}`, path: "/cart", protected: true, isCart: true },
                 { name: "Inbox",   path: "/inbox",     protected: true, isInbox: true },
                 { name: "Reviews", path: "/reviews",   protected: true },
@@ -668,7 +603,6 @@ const Navbar = () => {
                   style={{ fontFamily: "'DM Sans',sans-serif" }}
                 >
                   {link.name}
-                  {/* ── FIX: Cart dot only shows when logged in AND has items ── */}
                   {link.isCart && isLoggedIn && itemCount > 0 && (
                     <span className="absolute top-[-4px] right-[-8px] w-1.5 h-1.5 rounded-full bg-[#ec5b13] animate-pulse" />
                   )}
@@ -690,7 +624,6 @@ const Navbar = () => {
             <Link to="/cart" onClick={(e) => handleNavClick(e, "/cart")}
               className="relative w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/50 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms] no-underline">
               <span className="material-symbols-outlined text-xl">shopping_cart</span>
-              {/* ── FIX: Desktop cart icon badge ONLY shown when logged in ── */}
               {isLoggedIn && itemCount > 0 && (
                 <span className="absolute top-1 right-1 w-[15px] h-[15px] rounded-full bg-[#ec5b13] text-white flex items-center justify-center font-black border-[1.5px] border-black/90"
                   style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }}>{itemCount}</span>
@@ -848,7 +781,6 @@ const Navbar = () => {
                       display: "block",
                       ...(active ? { filter: "drop-shadow(0 0 4px rgba(236,91,19,0.5))" } : {}),
                     }}>{item.icon}</span>
-                    {/* ── FIX: Mobile bottom nav cart badge — itemCount is 0 when logged out ── */}
                     {item.isCart && itemCount > 0 && (
                       <span style={{
                         position: "absolute", top: -3, right: -5,
