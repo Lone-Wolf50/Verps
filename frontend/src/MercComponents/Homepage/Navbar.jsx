@@ -65,13 +65,13 @@ const Navbar_AuthPrompt = ({ isOpen, onClose, targetPath }) => {
           <button onClick={() => goTo("/signup")} style={{
             width: "100%", borderRadius: 14, padding: "14px 0",
             background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
-            color: "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 10,
+            color: "rgba(255,255,255,0.72)", fontWeight: 700, fontSize: 10,
             letterSpacing: "0.22em", textTransform: "uppercase",
             cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
           }}>CREATE ACCOUNT</button>
           <button onClick={onClose} style={{
             background: "none", border: "none", cursor: "pointer", marginTop: 4,
-            fontSize: 8, letterSpacing: "0.2em", textTransform: "uppercase",
+            fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase",
             color: "rgba(255,255,255,0.18)", fontFamily: "'JetBrains Mono',monospace",
           }}>CONTINUE BROWSING</button>
         </div>
@@ -132,7 +132,7 @@ const ProfileTray = ({ userName, avatarUrl, onLogout, onTerminate, isOpen, onClo
             </div>
             <div style={{ overflow: "hidden" }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</p>
-              <p style={{ fontSize: 7, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>VAULT MEMBER</p>
+              <p style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>VAULT MEMBER</p>
             </div>
           </div>
         </div>
@@ -597,7 +597,7 @@ const Navbar = () => {
                 padding: "9px 14px", borderRadius: 12,
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,255,255,0.08)",
-                cursor: "pointer", color: "rgba(255,255,255,0.3)",
+                cursor: "pointer", color: "rgba(255,255,255,0.52)",
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>search</span>
@@ -624,7 +624,7 @@ const Navbar = () => {
               borderRadius: 10, textDecoration: "none",
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.07)",
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(255,255,255,0.72)",
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>shopping_cart</span>
               {/* ── FIX: itemCount is 0 when logged out so badge never renders ── */}
@@ -634,7 +634,7 @@ const Navbar = () => {
                   width: 14, height: 14, borderRadius: "50%",
                   background: "#ec5b13", color: "#fff",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 7, fontWeight: 900, border: "1.5px solid #080808",
+                  fontSize: 9, fontWeight: 900, border: "1.5px solid #080808",
                   fontFamily: "'JetBrains Mono',monospace",
                 }}>{itemCount}</span>
               )}
@@ -674,7 +674,7 @@ const Navbar = () => {
                   )}
                   {link.isInbox && unreadCount > 0 && (
                     <span className="absolute top-[-8px] right-[-14px] min-w-[17px] h-[17px] rounded-full bg-[#ec5b13] text-black flex items-center justify-center font-bold px-0.5"
-                      style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8 }}>
+                      style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }}>
                       {unreadCount}
                     </span>
                   )}
@@ -693,7 +693,7 @@ const Navbar = () => {
               {/* ── FIX: Desktop cart icon badge ONLY shown when logged in ── */}
               {isLoggedIn && itemCount > 0 && (
                 <span className="absolute top-1 right-1 w-[15px] h-[15px] rounded-full bg-[#ec5b13] text-white flex items-center justify-center font-black border-[1.5px] border-black/90"
-                  style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8 }}>{itemCount}</span>
+                  style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }}>{itemCount}</span>
               )}
             </Link>
             <div className="ml-1">
@@ -779,9 +779,9 @@ const Navbar = () => {
                       }
                     </div>
                     <span style={{
-                      fontSize: 7, letterSpacing: "0.14em", textTransform: "uppercase",
+                      fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase",
                       fontFamily: "'JetBrains Mono',monospace",
-                      color: profileTrayOpen ? "#ec5b13" : "rgba(255,255,255,0.3)",
+                      color: profileTrayOpen ? "#ec5b13" : "rgba(255,255,255,0.52)",
                       transition: "color 0.18s ease",
                     }}>You</span>
                   </button>
@@ -811,7 +811,7 @@ const Navbar = () => {
                       }}>lock</span>
                     </div>
                     <span style={{
-                      fontSize: 7, letterSpacing: "0.12em", textTransform: "uppercase",
+                      fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase",
                       fontFamily: "'JetBrains Mono',monospace",
                       color: "rgba(255,255,255,0.15)",
                     }}>{item.label}</span>
@@ -855,7 +855,7 @@ const Navbar = () => {
                         width: 13, height: 13, borderRadius: "50%",
                         background: "#ec5b13", color: "#fff",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 7, fontWeight: 900, border: "1.5px solid #080808",
+                        fontSize: 9, fontWeight: 900, border: "1.5px solid #080808",
                         fontFamily: "'JetBrains Mono',monospace",
                       }}>{itemCount}</span>
                     )}
@@ -865,13 +865,13 @@ const Navbar = () => {
                         minWidth: 13, height: 13, borderRadius: 7,
                         background: "#ec5b13", color: "#fff",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 7, fontWeight: 900, border: "1.5px solid #080808", padding: "0 2px",
+                        fontSize: 9, fontWeight: 900, border: "1.5px solid #080808", padding: "0 2px",
                         fontFamily: "'JetBrains Mono',monospace",
                       }}>{unreadCount}</span>
                     )}
                   </div>
                   <span style={{
-                    fontSize: 7, letterSpacing: "0.12em", textTransform: "uppercase",
+                    fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase",
                     fontFamily: "'JetBrains Mono',monospace", zIndex: 1,
                     color: active ? "#ec5b13" : "rgba(255,255,255,0.35)",
                     transition: "color 0.18s ease",

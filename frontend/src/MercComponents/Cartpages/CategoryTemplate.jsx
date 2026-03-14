@@ -186,7 +186,7 @@ const ToastStack = ({ toasts, onDismiss }) => {
 									display: "flex",
 									alignItems: "center",
 									justifyContent: "center",
-									color: "rgba(255,255,255,0.25)",
+									color: "rgba(255,255,255,0.48)",
 									transition: "all 150ms",
 								}}
 								onMouseEnter={(e) => {
@@ -197,7 +197,7 @@ const ToastStack = ({ toasts, onDismiss }) => {
 								onMouseLeave={(e) => {
 									e.currentTarget.style.background =
 										"rgba(255,255,255,0.04)";
-									e.currentTarget.style.color = "rgba(255,255,255,0.25)";
+									e.currentTarget.style.color = "rgba(255,255,255,0.48)";
 								}}
 							>
 								<X style={{ width: 11, height: 11 }} />

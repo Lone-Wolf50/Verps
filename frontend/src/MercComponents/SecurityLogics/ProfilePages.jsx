@@ -13,8 +13,8 @@ const T = {
   bdr:      "rgba(255,255,255,0.07)",
   bdrSub:   "rgba(255,255,255,0.04)",
   text:     "rgba(255,255,255,0.82)",
-  textDim:  "rgba(255,255,255,0.38)",
-  textGhost:"rgba(255,255,255,0.16)",
+  textDim:  "rgba(255,255,255,0.55)",
+  textGhost:"rgba(255,255,255,0.30)",
   mono:     "'JetBrains Mono',monospace",
   sans:     "'DM Sans',sans-serif",
   serif:    "'Playfair Display',serif",
@@ -59,7 +59,7 @@ const Field = ({ label, icon, value, onChange, placeholder, type = "text", disab
   const [focused, setFocused] = useState(false);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <label style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: T.ember, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+      <label style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: T.ember, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
         {icon && <span className="material-symbols-outlined" style={{ fontSize: 13, color: T.ember }}>{icon}</span>}
         {label}
       </label>
@@ -72,7 +72,7 @@ const Field = ({ label, icon, value, onChange, placeholder, type = "text", disab
             background: disabled ? "rgba(255,255,255,0.02)" : focused ? "rgba(236,91,19,0.04)" : T.glass,
             border: error ? "1px solid #ef4444" : focused ? `1px solid ${T.emberBdr}` : `1px solid ${T.bdr}`,
             borderRadius: 12, padding: children ? "13px 44px 13px 14px" : "13px 14px",
-            fontFamily: T.sans, fontSize: 14, color: disabled ? T.textGhost : T.text,
+            fontFamily: T.sans, fontSize: 15, color: disabled ? T.textGhost : T.text,
             outline: "none", transition: "all 200ms", cursor: disabled ? "not-allowed" : "text",
           }}
           onFocus={() => setFocused(true)}
@@ -81,10 +81,10 @@ const Field = ({ label, icon, value, onChange, placeholder, type = "text", disab
         {children}
       </div>
       {hint && !error && (
-        <p style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.1em", color: T.textGhost, margin: 0 }}>{hint}</p>
+        <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.1em", color: T.textGhost, margin: 0 }}>{hint}</p>
       )}
       {error && (
-        <p style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.1em", color: "#ef4444", margin: 0 }}>{error}</p>
+        <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.1em", color: "#ef4444", margin: 0 }}>{error}</p>
       )}
     </div>
   );
@@ -122,8 +122,8 @@ const CardHead = ({ icon, title, sub, action, danger }) => (
         <span className="material-symbols-outlined" style={{ fontSize: 16, color: danger ? "#ef4444" : T.ember }}>{icon}</span>
       </div>
       <div>
-        <p style={{ fontFamily: T.serif, fontSize: 16, color: T.text, margin: 0, fontWeight: 600, letterSpacing: "0.01em" }}>{title}</p>
-        {sub && <p style={{ fontFamily: T.mono, fontSize: 8, color: danger ? "rgba(239,68,68,0.45)" : T.textGhost, letterSpacing: "0.18em", textTransform: "uppercase", margin: "3px 0 0" }}>{sub}</p>}
+        <p style={{ fontFamily: T.serif, fontSize: 17, color: T.text, margin: 0, fontWeight: 700, letterSpacing: "0.01em" }}>{title}</p>
+        {sub && <p style={{ fontFamily: T.mono, fontSize: 10, color: danger ? "rgba(239,68,68,0.55)" : T.textGhost, letterSpacing: "0.18em", textTransform: "uppercase", margin: "3px 0 0" }}>{sub}</p>}
       </div>
     </div>
     {action && <div>{action}</div>}
@@ -135,7 +135,7 @@ const SaveBtn = ({ loading, onClick, disabled }) => (
     display: "flex", alignItems: "center", gap: 7, padding: "10px 20px", borderRadius: 10,
     background: loading || disabled ? "rgba(236,91,19,0.25)" : "linear-gradient(135deg,#ec5b13,#d94e0f)",
     border: "none", cursor: loading || disabled ? "not-allowed" : "pointer",
-    fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.16em", textTransform: "uppercase",
+    fontFamily: T.mono, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase",
     color: "#fff", fontWeight: 700, transition: "all 200ms",
     boxShadow: loading || disabled ? "none" : "0 4px 16px rgba(236,91,19,0.28)",
   }}>
@@ -154,7 +154,7 @@ const Toast = ({ show, type = "success", message }) => {
       <span className="material-symbols-outlined" style={{ fontSize: 14, color: isSuccess ? "#22c55e" : "#ef4444" }}>
         {isSuccess ? "check_circle" : "error"}
       </span>
-      <span style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: isSuccess ? "#22c55e" : "rgba(239,68,68,0.9)" }}>
+      <span style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: isSuccess ? "#22c55e" : "rgba(239,68,68,0.9)" }}>
         {message}
       </span>
     </div>
@@ -253,11 +253,11 @@ const AvatarCard = ({ userId, name, email, joinedAt }) => {
 
         {/* Meta */}
         <div style={{ flex: 1, minWidth: 200 }}>
-          <p style={{ fontFamily: T.serif, fontSize: "clamp(20px,3vw,26px)", color: T.text, margin: "0 0 2px", fontWeight: 700, letterSpacing: "-0.01em" }}>
+          <p style={{ fontFamily: T.serif, fontSize: "clamp(22px,3vw,28px)", color: T.text, margin: "0 0 2px", fontWeight: 800, letterSpacing: "-0.01em" }}>
             {name || "Verp Member"}
           </p>
-          <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.14em", color: T.textGhost, margin: "0 0 3px", textTransform: "uppercase" }}>{email}</p>
-          <p style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.12em", color: "rgba(236,91,19,0.5)", margin: "0 0 18px", textTransform: "uppercase" }}>
+          <p style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: "0.14em", color: T.textDim, margin: "0 0 3px", textTransform: "uppercase" }}>{email}</p>
+          <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.12em", color: "rgba(236,91,19,0.7)", margin: "0 0 18px", textTransform: "uppercase" }}>
             MEMBER SINCE {joinedAt ? new Date(joinedAt).toLocaleDateString("en-GB", { month: "long", year: "numeric" }).toUpperCase() : "—"}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -266,7 +266,7 @@ const AvatarCard = ({ userId, name, email, joinedAt }) => {
               display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10,
               background: T.emberDim, border: `1px solid ${T.emberBdr}`,
               cursor: busy ? "not-allowed" : "pointer",
-              fontFamily: T.mono, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: T.ember, fontWeight: 700,
+              fontFamily: T.mono, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: T.ember, fontWeight: 700,
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>upload</span>
               {url ? "CHANGE PHOTO" : "UPLOAD PHOTO"}
@@ -276,7 +276,7 @@ const AvatarCard = ({ userId, name, email, joinedAt }) => {
                 display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderRadius: 10,
                 background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)",
                 cursor: busy ? "not-allowed" : "pointer",
-                fontFamily: T.mono, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(239,68,68,0.7)", fontWeight: 700,
+                fontFamily: T.mono, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(239,68,68,0.85)", fontWeight: 700,
               }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
                 REMOVE
@@ -326,6 +326,10 @@ const PersonalInfoCard = ({ userId, email, initialName }) => {
 
   const save = async () => {
     if (!name.trim()) return;
+    if (!/^[A-Za-z\s'\-]+$/.test(name.trim())) {
+      Swal.fire({ title: "Invalid Name", text: "Name must contain letters only — no numbers or symbols.", icon: "warning", background: "#0a0a0a", color: "#fff" });
+      return;
+    }
     setLoading(true);
     try {
       // Run update and capture full result including errors
@@ -364,7 +368,7 @@ const PersonalInfoCard = ({ userId, email, initialName }) => {
       <CardHead icon="person" title="Personal Information" sub="Name · Phone · Address" action={<SaveBtn loading={loading} onClick={save} disabled={!name.trim()} />} />
       <div style={{ padding: "22px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))", gap: 16 }}>
-          <Field label="Display Name"     icon="badge"       value={name}    onChange={e => setName(e.target.value)}    placeholder="Your full name" />
+          <Field label="Display Name"     icon="badge"       value={name}    onChange={e => { const v = e.target.value; if (/^[A-Za-z\s'\-]*$/.test(v)) setName(v); }}    placeholder="Your full name" hint="LETTERS ONLY — NO NUMBERS OR SYMBOLS" />
           <Field label="Email Address"    icon="mail"        value={email}   disabled hint="EMAIL CANNOT BE CHANGED" />
           <Field label="Phone Number"     icon="phone"       value={phone}   onChange={e => setPhone(e.target.value)}   placeholder="+233 XX XXX XXXX" />
           <Field label="Address Location" icon="location_on" value={address} onChange={e => setAddress(e.target.value)} placeholder="Street, City, Region" />
@@ -414,13 +418,13 @@ const BioCard = ({ userId }) => {
             style={{
               width: "100%", boxSizing: "border-box", resize: "vertical", minHeight: 105,
               background: T.glass, border: `1px solid ${T.bdr}`, borderRadius: 12,
-              padding: "13px 14px 30px", fontFamily: T.sans, fontSize: 13.5,
+              padding: "13px 14px 30px", fontFamily: T.sans, fontSize: 15,
               color: T.text, outline: "none", lineHeight: 1.65, transition: "border-color 200ms",
             }}
             onFocus={e => { e.currentTarget.style.borderColor = T.emberBdr; e.currentTarget.style.background = "rgba(236,91,19,0.03)"; }}
             onBlur={e => { e.currentTarget.style.borderColor = T.bdr; e.currentTarget.style.background = T.glass; }}
           />
-          <span style={{ position: "absolute", right: 12, bottom: 10, fontFamily: T.mono, fontSize: 7, color: bio.length >= MAX ? T.ember : T.textGhost, letterSpacing: "0.1em" }}>
+          <span style={{ position: "absolute", right: 12, bottom: 10, fontFamily: T.mono, fontSize: 9, color: bio.length >= MAX ? T.ember : T.textGhost, letterSpacing: "0.1em" }}>
             {bio.length}/{MAX}
           </span>
         </div>
@@ -614,9 +618,9 @@ const PasswordCard = ({ email: userEmail }) => {
             <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
               <span className="material-symbols-outlined" style={{ fontSize: 24, color: "#22c55e" }}>check_circle</span>
             </div>
-            <p style={{ fontFamily: T.serif, fontSize: 15, color: T.text, margin: "0 0 4px", fontWeight: 600 }}>Password Updated</p>
-            <p style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.16em", textTransform: "uppercase", color: T.textGhost, margin: "0 0 18px" }}>YOUR ACCOUNT IS SECURE</p>
-            <button onClick={reset} style={{ background: "none", border: `1px solid ${T.bdr}`, borderRadius: 10, padding: "8px 18px", cursor: "pointer", fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.16em", textTransform: "uppercase", color: T.textDim }}>CHANGE AGAIN</button>
+            <p style={{ fontFamily: T.serif, fontSize: 16, color: T.text, margin: "0 0 4px", fontWeight: 700 }}>Password Updated</p>
+            <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: T.textDim, margin: "0 0 18px" }}>YOUR ACCOUNT IS SECURE</p>
+            <button onClick={reset} style={{ background: "none", border: `1px solid ${T.bdr}`, borderRadius: 10, padding: "8px 18px", cursor: "pointer", fontFamily: T.mono, fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", color: T.textDim }}>CHANGE AGAIN</button>
           </div>
         )}
 
@@ -628,7 +632,7 @@ const PasswordCard = ({ email: userEmail }) => {
               display: "flex", alignItems: "center", gap: 7, padding: "11px 18px", borderRadius: 10, alignSelf: "flex-start",
               background: loading ? "rgba(236,91,19,0.25)" : "linear-gradient(135deg,#ec5b13,#d94e0f)",
               border: "none", cursor: loading ? "not-allowed" : "pointer",
-              fontFamily: T.mono, fontSize: 8, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700,
+              fontFamily: T.mono, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700,
               boxShadow: loading ? "none" : "0 4px 16px rgba(236,91,19,0.28)",
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 14, animation: loading ? "spin 1s linear infinite" : "none" }}>{loading ? "autorenew" : "send"}</span>
@@ -646,8 +650,8 @@ const PasswordCard = ({ email: userEmail }) => {
                   <span className="material-symbols-outlined" style={{ fontSize: 18, color: T.ember }}>mark_email_unread</span>
                 </div>
                 <div>
-                  <p style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.22em", textTransform: "uppercase", color: T.textGhost, margin: "0 0 3px" }}>CODE SENT TO</p>
-                  <p style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.text, margin: 0 }}>{maskedEmail}</p>
+                  <p style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: T.textDim, margin: "0 0 3px" }}>CODE SENT TO</p>
+                  <p style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 700, color: T.text, margin: 0 }}>{maskedEmail}</p>
                 </div>
               </div>
             </div>
@@ -677,10 +681,10 @@ const PasswordCard = ({ email: userEmail }) => {
             {/* Cooldown — informational only, not a gate */}
             <div style={{ textAlign: "center", minHeight: 16 }}>
               {cooldown > 0
-                ? <p style={{ fontFamily: T.mono, fontSize: 8, color: T.textGhost, letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>
+                ? <p style={{ fontFamily: T.mono, fontSize: 10, color: T.textDim, letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>
                     SENT <span style={{ color: T.ember, fontWeight: 700 }}>{Math.floor((180 - cooldown) / 60)}:{String((180 - cooldown) % 60).padStart(2, "0")}</span> AGO
                   </p>
-                : <p style={{ fontFamily: T.mono, fontSize: 8, color: T.textGhost, letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>DIDN'T GET IT? RESEND BELOW</p>
+                : <p style={{ fontFamily: T.mono, fontSize: 10, color: T.textDim, letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>DIDN'T GET IT? RESEND BELOW</p>
               }
             </div>
 
@@ -698,7 +702,7 @@ const PasswordCard = ({ email: userEmail }) => {
             </button>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-              <button onClick={reset} style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "none", cursor: "pointer", fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", textTransform: "uppercase", color: T.textGhost, padding: "8px 0", transition: "color 180ms" }}
+              <button onClick={reset} style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "none", cursor: "pointer", fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: T.textDim, padding: "8px 0", transition: "color 180ms" }}
                 onMouseEnter={e => e.currentTarget.style.color = T.textDim}
                 onMouseLeave={e => e.currentTarget.style.color = T.textGhost}>
                 <span className="material-symbols-outlined" style={{ fontSize: 13 }}>arrow_back</span>
@@ -708,7 +712,7 @@ const PasswordCard = ({ email: userEmail }) => {
                 display: "flex", alignItems: "center", gap: 6,
                 background: "rgba(236,91,19,0.08)", border: "1px solid rgba(236,91,19,0.3)",
                 borderRadius: 9, padding: "9px 14px", cursor: resending ? "not-allowed" : "pointer",
-                fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", textTransform: "uppercase",
+                fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase",
                 color: T.ember, opacity: resending ? 0.55 : 1, transition: "all 200ms",
               }}
                 onMouseEnter={e => { if (!resending) { e.currentTarget.style.background = "rgba(236,91,19,0.16)"; e.currentTarget.style.borderColor = "rgba(236,91,19,0.5)"; } }}
@@ -737,7 +741,7 @@ const PasswordCard = ({ email: userEmail }) => {
                 <div style={{ display: "flex", gap: 4 }}>
                   {[1,2,3,4].map(i => <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= strength ? STRENGTH_COLOR[strength] : T.bdr, transition: "background 250ms" }} />)}
                 </div>
-                <span style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.22em", color: STRENGTH_COLOR[strength] }}>{STRENGTH_LABEL[strength]}</span>
+                <span style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: STRENGTH_COLOR[strength] }}>{STRENGTH_LABEL[strength]}</span>
               </div>
             )}
             <Field label="Confirm Password" icon="check_circle"
@@ -751,7 +755,7 @@ const PasswordCard = ({ email: userEmail }) => {
             <button onClick={reset} style={{
               display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.04)", border: `1px solid ${T.bdr}`,
               borderRadius: 10, padding: "10px 16px", cursor: "pointer", alignSelf: "flex-start",
-              fontFamily: T.mono, fontSize: 8, letterSpacing: "0.18em", textTransform: "uppercase", color: T.textDim, transition: "all 180ms",
+              fontFamily: T.mono, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: T.textDim, transition: "all 180ms",
             }}
               onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = T.text; }}
               onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = T.textDim; }}>
@@ -819,9 +823,9 @@ const OverviewCard = ({ userId, email, joinedAt }) => {
           <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 14px", borderRadius: 12, background: i % 2 === 0 ? T.glass : "transparent", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15, color: T.textGhost }}>{r.icon}</span>
-              <span style={{ fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: T.textDim }}>{r.label}</span>
+              <span style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: T.textDim }}>{r.label}</span>
             </div>
-            <span style={{ fontFamily: T.sans, fontSize: 14, color: T.text, fontWeight: 600, textAlign: "right" }}>{r.value}</span>
+            <span style={{ fontFamily: T.sans, fontSize: 15, color: T.text, fontWeight: 700, textAlign: "right" }}>{r.value}</span>
           </div>
         ))}
       </div>
@@ -870,14 +874,14 @@ const DangerCard = ({ userId, email, onLogout }) => {
   const ActionRow = ({ title, sub, btnLabel, btnIcon, onClick, red }) => (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, padding: "16px 0" }}>
       <div>
-        <p style={{ fontFamily: T.sans, fontSize: 13.5, color: T.text, fontWeight: 600, margin: "0 0 2px" }}>{title}</p>
-        <p style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.12em", textTransform: "uppercase", color: T.textGhost, margin: 0 }}>{sub}</p>
+        <p style={{ fontFamily: T.sans, fontSize: 15, color: T.text, fontWeight: 600, margin: "0 0 2px" }}>{title}</p>
+        <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: T.textDim, margin: 0 }}>{sub}</p>
       </div>
       <button onClick={onClick} style={{
         display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10,
         background: red ? "rgba(239,68,68,0.07)" : "rgba(255,255,255,0.04)",
         border: red ? "1px solid rgba(239,68,68,0.22)" : `1px solid ${T.bdr}`,
-        cursor: "pointer", fontFamily: T.mono, fontSize: 9,
+        cursor: "pointer", fontFamily: T.mono, fontSize: 10,
         letterSpacing: "0.14em", textTransform: "uppercase",
         color: red ? "rgba(239,68,68,0.8)" : T.textDim, fontWeight: 700,
       }}>
@@ -939,7 +943,7 @@ const ProfilePage = () => {
     <div style={{ minHeight: "100dvh", background: T.void, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ textAlign: "center" }}>
         <span className="material-symbols-outlined" style={{ fontSize: 32, color: T.ember, animation: "spin 1s linear infinite", display: "block" }}>autorenew</span>
-        <p style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.3em", color: T.textGhost, marginTop: 14, textTransform: "uppercase" }}>LOADING PROFILE</p>
+        <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.3em", color: T.textDim, marginTop: 14, textTransform: "uppercase" }}>LOADING PROFILE</p>
       </div>
     </div>
   );
@@ -970,13 +974,13 @@ const ProfilePage = () => {
 
           {/* ── Header ── */}
           <div style={{ marginBottom: 28, animation: "fadeUp 0.35s ease both" }}>
-            <button onClick={() => navigate(-1)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: T.textGhost, fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", padding: "0 0 14px" }}>
+            <button onClick={() => navigate(-1)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: T.textDim, fontFamily: T.mono, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", padding: "0 0 14px" }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>arrow_back</span>BACK
             </button>
             <h1 style={{ fontFamily: T.serif, fontSize: "clamp(26px,5vw,35px)", color: T.text, margin: 0, fontWeight: 700, letterSpacing: "-0.01em" }}>
               Your Profile
             </h1>
-            <p style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.24em", textTransform: "uppercase", color: T.textGhost, margin: "6px 0 0" }}>
+            <p style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: "0.24em", textTransform: "uppercase", color: T.textDim, margin: "6px 0 0" }}>
               VERP MEMBER · PERSONAL SPACE
             </p>
           </div>

@@ -87,7 +87,7 @@ const Hero = () => {
 
       {/* ── Slide dots — top right (desktop) ── */}
       <div className="absolute z-30 hidden md:flex flex-col items-end gap-1" style={{ top: NAVBAR_H + 20, right: 40 }}>
-        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.3em", color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase" }}>
           {slide.index} / 0{slides.length}
         </span>
         <div className="flex gap-2 mt-2">
@@ -107,7 +107,7 @@ const Hero = () => {
         {/* Label */}
         <div key={`label-${current}`} className="hero-text-in flex items-center gap-3 mb-4" style={{ animationDelay: "0.1s" }}>
           <div style={{ width: 24, height: 1, background: "#ec5b13" }} />
-          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.4em", color: "#ec5b13", textTransform: "uppercase", fontWeight: 700 }}>
+          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.4em", color: "#ec5b13", textTransform: "uppercase", fontWeight: 700 }}>
             {slide.label}
           </span>
         </div>
@@ -143,7 +143,7 @@ const Hero = () => {
             fontSize: "clamp(11px, 1.4vw, 13px)",
             fontWeight: 400,
             lineHeight: 1.7,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.62)",
             animationDelay: "0.35s",
             display: "-webkit-box",
             WebkitLineClamp: 2,          /* max 2 lines on mobile to save space */
@@ -191,7 +191,7 @@ const Hero = () => {
       >
         {/* Mobile dots — left side */}
         <div className="flex items-center gap-3 md:hidden">
-          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.25em", color: "rgba(255,255,255,0.3)" }}>
+          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", color: "rgba(255,255,255,0.5)" }}>
             {slide.index} / 0{slides.length}
           </span>
           <div className="flex gap-1.5">

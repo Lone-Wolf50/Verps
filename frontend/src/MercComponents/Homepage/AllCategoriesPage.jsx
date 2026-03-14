@@ -51,14 +51,14 @@ const PremiumCategoryCard = ({ cat, isFeatured = false }) => (
 			<div className="absolute bottom-0 left-0 p-4 w-full">
 				<span
 					className="block mb-1.5"
-					style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.3em", color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}
+					style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.3em", color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}
 				>
 					Collection
 				</span>
 				<div className="flex items-center justify-between">
 					<h3
 						className="text-white uppercase group-hover:text-[#ec5b13] transition-colors duration-300"
-						style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isFeatured ? 17 : 14, fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1 }}
+						style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isFeatured ? 19 : 16, fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1 }}
 					>
 						{cat.name}
 					</h3>
@@ -91,7 +91,7 @@ const AllCategoriesPage = () => {
 			<div className="min-h-screen bg-[#050505] flex items-center justify-center">
 				<div className="text-center">
 					<div className="w-8 h-8 border border-[#ec5b13] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.28em", color: "rgba(255,255,255,0.2)" }}>
+					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.28em", color: "rgba(255,255,255,0.45)" }}>
 						LOADING
 					</p>
 				</div>
@@ -111,7 +111,7 @@ const AllCategoriesPage = () => {
 						<div>
 							<div className="flex items-center gap-3 mb-3">
 								<div style={{ width: 20, height: 1, background: "#ec5b13" }} />
-								<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.38em", color: "#ec5b13", textTransform: "uppercase" }}>
+								<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.38em", color: "#ec5b13", textTransform: "uppercase" }}>
 									Index 00
 								</span>
 							</div>
@@ -120,7 +120,7 @@ const AllCategoriesPage = () => {
 								style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "clamp(36px,5vw,60px)", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 0.95 }}
 							>
 								Verp{" "}
-								<span style={{ fontWeight: 300, fontStyle: "italic", color: "rgba(255,255,255,0.28)" }}>
+								<span style={{ fontWeight: 300, fontStyle: "italic", color: "rgba(255,255,255,0.45)" }}>
 									Categories
 								</span>
 							</h1>
@@ -135,7 +135,7 @@ const AllCategoriesPage = () => {
 								className="group-hover:-translate-x-0.5 transition-transform duration-300"
 								style={{ width: 14, height: 14, color: "#ec5b13" }}
 							/>
-							<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase" }}>
+							<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase" }}>
 								Back
 							</span>
 						</button>
@@ -167,7 +167,7 @@ const AllCategoriesPage = () => {
 				<div className="mb-14">
 					<div className="flex items-center gap-3 mb-6">
 						<LayoutGrid style={{ width: 13, height: 13, color: "#ec5b13" }} />
-						<h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+						<h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
 							Curated Highlights
 						</h2>
 					</div>
@@ -189,9 +189,9 @@ const AllCategoriesPage = () => {
 							style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 20, fontWeight: 300, letterSpacing: "-0.01em" }}
 						>
 							Complete{" "}
-							<span style={{ color: "rgba(255,255,255,0.28)" }}>Inventory</span>
+							<span style={{ color: "rgba(255,255,255,0.45)" }}>Inventory</span>
 						</h2>
-						<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.2em", color: "rgba(255,255,255,0.18)" }}>
+						<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}>
 							{categories.length} DEPARTMENTS
 						</span>
 					</div>
@@ -204,7 +204,7 @@ const AllCategoriesPage = () => {
 
 					{categories.length === 0 && (
 						<div className="py-32 text-center border border-dashed border-white/[0.06]" style={{ borderRadius: 4 }}>
-							<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", color: "rgba(255,255,255,0.18)", textTransform: "uppercase" }}>
+							<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>
 								The vault is currently empty
 							</p>
 						</div>

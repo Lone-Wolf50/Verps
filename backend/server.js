@@ -35,7 +35,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    console.error("🌐 [CORS] ❌ Blocked:", origin);
+    console.error("🌐 [CORS] ❌ Blocked origin — request rejected");
     return callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
   methods: ["GET", "POST", "OPTIONS"],
@@ -124,7 +124,7 @@ const requireAdminHeader = (req, res, next) => {
     }
     next();
   } catch (e) {
-    console.error("[auth] ❌ Authorization parse error:", e.message);
+    console.error("[auth] ❌ Authorization header parse error");
     return res.status(401).json({ error: "Unauthorized" });
   }
 };
@@ -346,7 +346,7 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
         .from("verp_users")
         .update({ otp_attempts: attempts + 1 })
         .eq("id", data.id);
-      console.error("[verify-otp] ❌ Code mismatch — attempt", attempts + 1, "of 5");
+      console.error("[verify-otp] ❌ Code mismatch");
       return res.status(400).json({ message: "Incorrect code — please check and try again." });
     }
 
@@ -386,7 +386,7 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
     if (!user) return res.status(404).json({ message: "No account found for this email." });
 
     if (!user.otp_verified) {
-      console.error("[reset-password] ❌ otp_verified is false — OTP step not completed");
+      console.error("[reset-password] ❌ OTP verification step not completed");
       return res.status(400).json({ message: "Session expired — please verify your code first." });
     }
 
@@ -423,7 +423,7 @@ app.post("/api/verify-payment", async (req, res) => {
     const data = await response.json();
 
     if (!data.status || data.data.status !== "success") {
-      console.error("[verify-payment] ❌ Payment not verified:", data?.data?.status);
+      console.error("[verify-payment] ❌ Payment not verified by Paystack");
       return res.status(400).json({ success: false, message: "Payment not verified" });
     }
 
@@ -440,7 +440,7 @@ app.post("/api/verify-payment", async (req, res) => {
       const paidGHS     = data.data.amount / 100;
       const expectedGHS = parseFloat(expectedAmount);
       if (Math.abs(paidGHS - expectedGHS) > 0.5) {
-        console.error("[verify-payment] ❌ Amount mismatch — paid:", paidGHS, "| expected:", expectedGHS);
+        console.error("[verify-payment] ❌ Amount mismatch");
         return res.status(400).json({ success: false, message: "Payment amount mismatch" });
       }
     }
@@ -650,7 +650,7 @@ app.post("/api/update-order-status", requireAdminHeader, async (req, res) => {
       return res.status(500).json({ error: "Failed to update order status. Please try again." });
     }
 
-    console.log(`[update-order-status] ✅ Order ${orderId} → ${status}${status === "delivered" ? ` (delivered_at: ${updates.delivered_at})` : ""}`);
+    console.log(`[update-order-status] ✅ Status updated → ${status}`);
     res.status(200).json({ success: true, order: data });
 
   } catch (err) {
@@ -684,7 +684,7 @@ app.post("/api/send-email", requireInternalSecret, async (req, res) => {
       // Plain-text fallback — strips tags so email clients that need it are covered
       text: html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim(),
     });
-    console.log(`[send-email] ✅ Sent to ${to} | ${info.messageId}`);
+    console.log("[send-email] ✅ Email delivered successfully");
     res.status(200).json({ success: true, messageId: info.messageId });
   } catch (err) {
     console.error("[send-email] ❌", err.message);
@@ -869,7 +869,7 @@ app.post("/api/update-return-status", requireInternalSecret, async (req, res) =>
             html,
             text: html.replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim(),
           });
-          console.log(`[update-return-status] ✅ Email sent to ${clientEmail} for status: ${status}`);
+          console.log(`[update-return-status] ✅ Client email sent for status: ${status}`);
         } catch (emailErr) {
           // Non-fatal — DB was already updated, log and continue
           console.error(`[update-return-status] ⚠️ Email failed (non-fatal): ${emailErr.message}`);
@@ -877,7 +877,7 @@ app.post("/api/update-return-status", requireInternalSecret, async (req, res) =>
       }
     }
 
-    console.log(`[update-return-status] ✅ Return ${returnId} → ${status}`);
+    console.log(`[update-return-status] ✅ Status updated → ${status}`);
     res.status(200).json({ success: true, returnId, status });
 
   } catch (err) {

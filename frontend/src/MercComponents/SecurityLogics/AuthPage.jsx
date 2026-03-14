@@ -52,15 +52,15 @@ const STRENGTH_COLOR = ["", "#ef4444", "#f59e0b", "#38bdf8", "#22c55e"];
 /* ─── SHARED FIELD ───────────────────────────────────────────── */
 const Field = ({ label, type = "text", value, onChange, placeholder, error, children }) => (
   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-    <label style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase", color: T.ember, fontWeight: 700 }}>{label}</label>
+    <label style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: T.ember, fontWeight: 700 }}>{label}</label>
     <div style={{ position: "relative" }}>
       <input type={type} value={value} onChange={onChange} placeholder={placeholder} required
-        style={{ width: "100%", background: "rgba(255,255,255,0.03)", border: error ? "1px solid #ef4444" : "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "14px 16px", fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: "rgba(255,255,255,0.85)", outline: "none", transition: "border-color 200ms", boxSizing: "border-box" }}
+        style={{ width: "100%", background: "rgba(255,255,255,0.03)", border: error ? "1px solid #ef4444" : "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "14px 16px", fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.92)", outline: "none", transition: "border-color 200ms", boxSizing: "border-box" }}
         onFocus={e => { if (!error) e.currentTarget.style.borderColor = "rgba(236,91,19,0.5)"; }}
         onBlur={e => { if (!error) e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)"; }} />
       {children}
     </div>
-    {error && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "#ef4444", letterSpacing: "0.15em" }}>{error}</p>}
+    {error && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#ef4444", letterSpacing: "0.15em" }}>{error}</p>}
   </div>
 );
 
@@ -77,7 +77,7 @@ const EyeBtn = ({ visible, onToggle }) => (
 /* ─── SUBMIT BUTTON ──────────────────────────────────────────── */
 const SubmitButton = ({ loading, label, disabled }) => (
   <button type="submit" disabled={loading || disabled}
-    style={{ width: "100%", background: "linear-gradient(135deg, #ec5b13, #d94e0f)", border: "none", borderRadius: 12, padding: "15px 0", fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 800, letterSpacing: "0.25em", textTransform: "uppercase", color: "#fff", cursor: loading || disabled ? "not-allowed" : "pointer", opacity: loading || disabled ? 0.7 : 1, transition: "all 220ms", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 4px 20px rgba(236,91,19,0.2)" }}
+    style={{ width: "100%", background: "linear-gradient(135deg, #ec5b13, #d94e0f)", border: "none", borderRadius: 12, padding: "15px 0", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 800, letterSpacing: "0.25em", textTransform: "uppercase", color: "#fff", cursor: loading || disabled ? "not-allowed" : "pointer", opacity: loading || disabled ? 0.7 : 1, transition: "all 220ms", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 4px 20px rgba(236,91,19,0.2)" }}
     onMouseEnter={e => { if (!loading && !disabled) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(236,91,19,0.35)"; } }}
     onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(236,91,19,0.2)"; }}>
     {loading
@@ -88,7 +88,7 @@ const SubmitButton = ({ loading, label, disabled }) => (
 
 /* ─── AUTH SWITCH LINK ───────────────────────────────────────── */
 const AuthSwitch = ({ mode }) => (
-  <p style={{ textAlign: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>
+  <p style={{ textAlign: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>
     {mode === "login" ? "NEW OPERATIVE? " : "ALREADY REGISTERED? "}
     <Link to={mode === "login" ? "/signup" : "/login"} style={{ color: T.ember, fontWeight: 700, textDecoration: "none" }}>
       {mode === "login" ? "JOIN VERP" : "LOGIN IN"}
@@ -230,6 +230,7 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
   const validate = () => {
     const e = {};
     if (!form.fullName.trim()) e.fullName = "FULL NAME REQUIRED";
+    else if (!/^[A-Za-z\s'-]+$/.test(form.fullName.trim())) e.fullName = "NAME MUST CONTAIN LETTERS ONLY — NO NUMBERS OR SYMBOLS";
     if (!form.email.includes("@")) e.email = "VALID EMAIL REQUIRED";
     if (form.password.length < 8) e.password = "MIN 8 CHARACTERS";
     if (form.password !== form.confirmPassword) e.confirmPassword = "PASSWORDS DO NOT MATCH";
@@ -298,6 +299,31 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
       localStorage.setItem("pendingEmail", form.email);
       localStorage.setItem("otpPurpose", "SIGNUP");
 
+      await Swal.fire({
+        html: `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0;">
+            <div style="width:54px;height:54px;border-radius:50%;background:rgba(236,91,19,0.1);border:1.5px solid rgba(236,91,19,0.4);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:'Material Symbols Outlined';font-size:26px;color:#ec5b13;">mark_email_unread</span>
+            </div>
+            <div>
+              <p style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.38em;text-transform:uppercase;color:#ec5b13;margin:0 0 10px;font-weight:700;">Verification Code Sent</p>
+              <p style="font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;color:#fff;margin:0 0 8px;line-height:1.4;">Check Your Inbox</p>
+              <p style="font-family:'DM Sans',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);margin:0;line-height:1.65;">A 6-digit code has been sent to <strong style="color:rgba(255,255,255,0.85);">${form.email}</strong>. Open your email app and enter the code on the next screen.</p>
+            </div>
+            <div style="width:100%;padding:12px 16px;background:rgba(236,91,19,0.06);border:1px solid rgba(236,91,19,0.18);border-radius:12px;display:flex;align-items:center;gap:10px;">
+              <span style="font-family:'Material Symbols Outlined';font-size:16px;color:#ec5b13;">info</span>
+              <p style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;color:rgba(255,255,255,0.5);margin:0;text-transform:uppercase;">Code expires in 10 minutes</p>
+            </div>
+          </div>`,
+        background: "#0a0a0a",
+        color: "#fff",
+        showConfirmButton: true,
+        confirmButtonText: "OPEN CODE SCREEN",
+        confirmButtonColor: "#ec5b13",
+        customClass: { popup: "verp-otp-toast", confirmButton: "verp-otp-btn" },
+        width: 420,
+      });
+
       onSuccess();
     } catch (err) {
       const msg = err.name === "AbortError" ? "Request timed out. Check your connection and try again." : (err.message || "Something went wrong.");
@@ -308,7 +334,7 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
 
   return (
     <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <Field label="Full Name" value={form.fullName} onChange={set("fullName")} placeholder="Your full name" error={errors.fullName} />
+      <Field label="Full Name" value={form.fullName} onChange={e => { const v = e.target.value; if (/^[A-Za-z\s'\-]*$/.test(v)) setForm(f => ({ ...f, fullName: v })); }} placeholder="Your full name" error={errors.fullName} />
       <Field label="Email Address" type="email" value={form.email} onChange={set("email")} placeholder="mail@gmail.com" error={errors.email} />
       <Field label="Access Key" type={show.password ? "text" : "password"} value={form.password} onChange={set("password")} placeholder="Min. 8 characters" error={errors.password}>
         <EyeBtn visible={show.password} onToggle={() => setShow(s => ({ ...s, password: !s.password }))} />
@@ -320,7 +346,7 @@ const AuthPage_SignupForm = ({ onSuccess }) => {
               <div key={i} style={{ flex: 1, height: 3, borderRadius: 99, background: strength >= i ? STRENGTH_COLOR[strength] : "rgba(255,255,255,0.08)", transition: "background 300ms" }} />
             ))}
           </div>
-          {strength > 0 && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: STRENGTH_COLOR[strength], letterSpacing: "0.2em" }}>{STRENGTH_LABEL[strength]}</p>}
+          {strength > 0 && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: STRENGTH_COLOR[strength], letterSpacing: "0.2em" }}>{STRENGTH_LABEL[strength]}</p>}
         </div>
       )}
       <Field label="Confirm Key" type={show.confirm ? "text" : "password"} value={form.confirmPassword} onChange={set("confirmPassword")} placeholder="Repeat password" error={errors.confirmPassword}>
@@ -389,7 +415,7 @@ const AuthPage_LoginForm = ({ onSuccess }) => {
         <EyeBtn visible={show} onToggle={() => setShow(s => !s)} />
       </Field>
       <div style={{ textAlign: "right" }}>
-        <Link to="/forgot-password" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.2em", textTransform: "uppercase", color: T.ember, textDecoration: "none", opacity: 0.7 }}>FORGOT ACCESS KEY?</Link>
+        <Link to="/forgot-password" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: T.ember, textDecoration: "none", opacity: 0.9 }}>FORGOT ACCESS KEY?</Link>
       </div>
       <SubmitButton loading={loading} label="ACCESS VERP" />
       <AuthSwitch mode="login" />
@@ -506,13 +532,18 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        const msg = data.message || "";
+        const isNoCode = msg.toLowerCase().includes("no active code") || msg.toLowerCase().includes("expired");
         Swal.fire({
-          title: "WRONG CODE",
-          text: data.message || "Double-check the digits in your email. Use RESEND if the code is old.",
-          icon: "error",
+          title: isNoCode ? "CODE EXPIRED" : "WRONG CODE",
+          text: isNoCode
+            ? "Your code has expired or was already used. Tap RESEND CODE below to get a fresh one."
+            : msg || "Double-check the digits in your email. Use RESEND if the code is old.",
+          icon: isNoCode ? "warning" : "error",
           background: "#0a0a0a",
           color: "#fff",
           confirmButtonColor: T.ember,
+          confirmButtonText: isNoCode ? "OK — I'LL RESEND" : "TRY AGAIN",
         });
         setLoading(false);
         return;
@@ -577,8 +608,8 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
             <span className="material-symbols-outlined" style={{ fontSize: 20, color: T.ember }}>mark_email_unread</span>
           </div>
           <div>
-            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>CODE SENT TO</p>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>{maskedEmail}</p>
+            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>CODE SENT TO</p>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{maskedEmail}</p>
           </div>
         </div>
       </div>
@@ -615,7 +646,7 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
         {/* Timer — purely informational, NOT a gate */}
         <div style={{ textAlign: "center", minHeight: 18 }}>
           {cooldown > 0 ? (
-            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.22)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
+            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
               SENT{" "}
               <span style={{ color: T.ember, fontWeight: 700 }}>
                 {Math.floor((180 - cooldown) / 60)}:{String((180 - cooldown) % 60).padStart(2, "0")}
@@ -623,7 +654,7 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
               {" "}AGO
             </p>
           ) : (
-            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.3)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
+            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.5)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
               DIDN'T GET IT? RESEND BELOW
             </p>
           )}
@@ -637,7 +668,7 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
         <button
           type="button"
           onClick={() => { clearPending(); navigate(purpose === "RESET" ? "/forgot-password" : "/signup"); }}
-          style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "none", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", padding: "10px 0", transition: "color 180ms" }}
+          style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "none", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", padding: "10px 0", transition: "color 180ms" }}
           onMouseEnter={e => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}
           onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.25)"}
         >
@@ -655,7 +686,7 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
             border: "1px solid rgba(236,91,19,0.3)",
             borderRadius: 10, padding: "10px 18px",
             cursor: resending ? "not-allowed" : "pointer",
-            fontFamily: "'JetBrains Mono',monospace", fontSize: 7,
+            fontFamily: "'JetBrains Mono',monospace", fontSize: 9,
             letterSpacing: "0.18em", textTransform: "uppercase",
             color: T.ember,
             opacity: resending ? 0.55 : 1, transition: "all 200ms",
@@ -715,6 +746,31 @@ const AuthPage_ForgotForm = ({ onSuccess }) => {
       // Only store email + purpose so the OTP screen knows who to verify.
       localStorage.setItem("pendingEmail", email);
       localStorage.setItem("otpPurpose", "RESET");
+
+      await Swal.fire({
+        html: `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0;">
+            <div style="width:54px;height:54px;border-radius:50%;background:rgba(236,91,19,0.1);border:1.5px solid rgba(236,91,19,0.4);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:'Material Symbols Outlined';font-size:26px;color:#ec5b13;">lock_reset</span>
+            </div>
+            <div>
+              <p style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.38em;text-transform:uppercase;color:#ec5b13;margin:0 0 10px;font-weight:700;">Reset Code Sent</p>
+              <p style="font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;color:#fff;margin:0 0 8px;line-height:1.4;">Check Your Inbox</p>
+              <p style="font-family:'DM Sans',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);margin:0;line-height:1.65;">A 6-digit reset code has been sent to <strong style="color:rgba(255,255,255,0.85);">${email}</strong>. Enter it on the next screen to set a new password.</p>
+            </div>
+            <div style="width:100%;padding:12px 16px;background:rgba(236,91,19,0.06);border:1px solid rgba(236,91,19,0.18);border-radius:12px;display:flex;align-items:center;gap:10px;">
+              <span style="font-family:'Material Symbols Outlined';font-size:16px;color:#ec5b13;">info</span>
+              <p style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;color:rgba(255,255,255,0.5);margin:0;text-transform:uppercase;">Code expires in 10 minutes</p>
+            </div>
+          </div>`,
+        background: "#0a0a0a",
+        color: "#fff",
+        showConfirmButton: true,
+        confirmButtonText: "ENTER RESET CODE",
+        confirmButtonColor: "#ec5b13",
+        width: 420,
+      });
+
       onSuccess();
     } catch (err) {
       const msg = err.name === "AbortError" ? "Request timed out. Check your connection and try again." : (err.message || "Network error. Check connection and try again.");
@@ -796,7 +852,7 @@ const AuthPage_ResetForm = ({ onSuccess }) => {
       <button
         type="button"
         onClick={handleBackToLogin}
-        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "12px 0", fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", cursor: "pointer", transition: "all 200ms" }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "12px 0", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", cursor: "pointer", transition: "all 200ms" }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.4)"; e.currentTarget.style.color = T.ember; }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}
       >
@@ -847,6 +903,8 @@ const AuthPage = ({ mode: propMode }) => {
         * { margin:0; padding:0; box-sizing:border-box; }
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-thumb { background: rgba(236,91,19,0.3); border-radius: 99px; }
+        .verp-otp-toast { border: 1px solid rgba(236,91,19,0.2) !important; border-radius: 20px !important; }
+        .verp-otp-btn { font-family: 'JetBrains Mono',monospace !important; font-size: 10px !important; letter-spacing: 0.25em !important; font-weight: 700 !important; border-radius: 10px !important; padding: 13px 28px !important; }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: T.void, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px", fontFamily: "'DM Sans',sans-serif" }}>
@@ -886,7 +944,7 @@ const AuthPage = ({ mode: propMode }) => {
             {/* Heading */}
             <div style={{ marginBottom: 32 }}>
               <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(24px,2.8vw,32px)", fontStyle: "italic", fontWeight: 400, color: "white", lineHeight: 1.2 }}>{title}</h1>
-              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginTop: 10 }}>{sub}</p>
+              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", marginTop: 10 }}>{sub}</p>
               <div style={{ width: 32, height: 2, background: T.ember, marginTop: 14, borderRadius: 2 }} />
             </div>
 

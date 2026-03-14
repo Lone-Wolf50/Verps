@@ -529,7 +529,7 @@ const OrderPage = () => {
                         <div>
                           <p className="op-mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", letterSpacing: "0.25em", marginBottom: 4 }}>Total Paid</p>
                           <p className="op-serif" style={{ fontSize: 22, color: "rgba(255,255,255,0.9)", lineHeight: 1 }}>GH₵{chargeGHS.toLocaleString()}</p>
-                          <p className="op-mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.18)", marginTop: 3 }}>incl. GH₵{feeGHS.toFixed(2)} fee</p>
+                          <p className="op-mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.18)", marginTop: 3 }}>CHARGES. GH₵{feeGHS.toFixed(2)} fee</p>
                         </div>
                       );
                     })()}

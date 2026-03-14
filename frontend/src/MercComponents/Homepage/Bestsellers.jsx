@@ -264,7 +264,7 @@ const Bestsellers = () => {
           />
           <div style={{ position: "absolute", top: 12, left: 12, zIndex: 3 }}>
             <span style={{
-              fontFamily: "'JetBrains Mono',monospace", fontSize: 7, fontWeight: 700,
+              fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 800,
               letterSpacing: "0.2em", textTransform: "uppercase",
               color: "rgba(255,255,255,0.8)", background: "rgba(0,0,0,0.55)",
               backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.1)",
@@ -291,11 +291,11 @@ const Bestsellers = () => {
           </div>
         </div>
         <div style={{ padding: "14px 16px 18px" }}>
-          <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.24)", marginBottom: 6 }}>
+          <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.24)", marginBottom: 6 }}>
             {product.series || product.category || "Collection"}
           </p>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-            <h4 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.88)", letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+            <h4 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.88)", letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
               {product.name}
             </h4>
             {fmt(product.price) && (
@@ -448,14 +448,14 @@ const Bestsellers = () => {
               </div>
               <div style={{ flex: 1, padding: "36px 28px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div>
-                  <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 8 }}>
+                  <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 8 }}>
                     {quickView.category || "Collection"}{quickView.origin ? ` · ${quickView.origin}` : ""}
                   </p>
                   <h3 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 8, lineHeight: 1.1, color: "white" }}>
                     {quickView.name}
                   </h3>
                   {quickView.series && (
-                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(236,91,19,0.65)", marginBottom: 14 }}>
+                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(236,91,19,0.65)", marginBottom: 14 }}>
                       {quickView.series}
                     </p>
                   )}
@@ -482,7 +482,7 @@ const Bestsellers = () => {
                   </button>
                   <button
                     className="bs-btn-ghost"
-                    style={{ padding: "10px 0", borderRadius: 12, fontSize: 8 }}
+                    style={{ padding: "10px 0", borderRadius: 12, fontSize: 10 }}
                     onClick={() => setQuickView(null)}
                   >
                     Close
@@ -501,7 +501,7 @@ const Bestsellers = () => {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
               <div style={{ width: 28, height: 1, background: "#ec5b13" }} />
-              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.4em", color: "#ec5b13", textTransform: "uppercase", fontWeight: 700 }}>
+              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.4em", color: "#ec5b13", textTransform: "uppercase", fontWeight: 800 }}>
                 Editor's Select
               </span>
             </div>
@@ -512,16 +512,16 @@ const Bestsellers = () => {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
             {!isMobile && (
-              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.16)", display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.16)", display: "inline-flex", alignItems: "center", gap: 7 }}>
                 <span className="material-symbols-outlined bs-spin" style={{ fontSize: 11 }}>autorenew</span>
                 Auto-refreshing
               </span>
             )}
             <Link
               to="/categories"
-              style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 200ms" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", textDecoration: "none", transition: "color 200ms" }}
               onMouseEnter={e => e.currentTarget.style.color = "#ec5b13"}
-              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.3)"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.55)"}
             >
               View All <ChevronRight size={14} />
             </Link>
@@ -641,7 +641,7 @@ const Bestsellers = () => {
         <div style={{ textAlign: "center", marginTop: 56 }}>
           <Link
             to="/categories"
-            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "13px 34px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", textDecoration: "none", transition: "all 220ms" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "13px 34px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 800, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", textDecoration: "none", transition: "all 220ms" }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = "#ec5b13"; e.currentTarget.style.color = "#ec5b13"; e.currentTarget.style.boxShadow = "0 0 28px rgba(236,91,19,0.12)"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.38)"; e.currentTarget.style.boxShadow = "none"; }}
           >

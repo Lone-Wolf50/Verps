@@ -48,7 +48,7 @@ const InfoModal = ({ message, onClose }) => (
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#ec5b13" }} />
         <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", color: "#ec5b13", textTransform: "uppercase", fontWeight: 700 }}>Verp Info</span>
       </div>
-      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.65)" }}>{message}</p>
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, lineHeight: 1.75, color: "rgba(255,255,255,0.82)" }}>{message}</p>
       <button
         onClick={onClose}
         style={{
@@ -74,7 +74,7 @@ const AccordionItem = ({ title, links, open, onToggle, onInfo }) => (
       onClick={onToggle}
       style={{ width: "100%", padding: "18px 0", display: "flex", alignItems: "center", justifyContent: "space-between", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
     >
-      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: open ? "#ec5b13" : "rgba(255,255,255,0.5)", transition: "color 200ms" }}>{title}</span>
+      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: open ? "#ec5b13" : "rgba(255,255,255,0.7)", transition: "color 200ms" }}>{title}</span>
       <span className="material-symbols-outlined" style={{ fontSize: 18, color: "rgba(255,255,255,0.25)", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 300ms" }}>expand_more</span>
     </button>
     <div style={{ overflow: "hidden", maxHeight: open ? 400 : 0, opacity: open ? 1 : 0, transition: "max-height 0.3s ease, opacity 0.3s ease" }}>
@@ -125,7 +125,7 @@ const Footer = () => {
   <img src={logo} alt="Verp" style={{ height: 64, width: 67, objectFit: "contain" }} />
   <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 28, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "white" }}>Verp</span>
 </div>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.35)", lineHeight: 1.75, marginBottom: 28, maxWidth: 260 }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 16, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, marginBottom: 28, maxWidth: 260 }}>
               Premium streetwear born from ambition. Every piece is crafted with intention — for those who know quality when they feel it. Proudly Ghanaian.
             </p>
             <div style={{ display: "flex", gap: 10 }}>
@@ -143,19 +143,19 @@ const Footer = () => {
           {/* Desktop link columns */}
           {Object.entries(footerLinks).map(([title, links], idx) => (
             <div key={title} className="footer-col" style={{ animationDelay:`${(idx+1)*0.07}s` }}>
-              <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:10, fontWeight:700, letterSpacing:"0.3em", textTransform:"uppercase", color:"rgba(255,255,255,0.3)", marginBottom:22 }}>{title}</p>
+              <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:12, fontWeight:700, letterSpacing:"0.3em", textTransform:"uppercase", color:"rgba(255,255,255,0.5)", marginBottom:22 }}>{title}</p>
               <ul style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:12 }}>
                 {links.map(link => (
                   <li key={link.label}>
                     {link.to ? (
-                      <Link to={link.to} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:15, color:"rgba(255,255,255,0.35)", textDecoration:"none", transition:"color 200ms" }}
+                      <Link to={link.to} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:16, color:"rgba(255,255,255,0.55)", textDecoration:"none", transition:"color 200ms" }}
                         onMouseEnter={e => e.currentTarget.style.color="#ec5b13"}
                         onMouseLeave={e => e.currentTarget.style.color="rgba(255,255,255,0.35)"}
                       >{link.label}</Link>
                     ) : (
                       <button
                         onClick={() => setModalMsg(link.info)}
-                        style={{ background:"none", border:"none", padding:0, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:15, color:"rgba(255,255,255,0.35)", transition:"color 200ms", textAlign:"left" }}
+                        style={{ background:"none", border:"none", padding:0, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:16, color:"rgba(255,255,255,0.55)", transition:"color 200ms", textAlign:"left" }}
                         onMouseEnter={e => e.currentTarget.style.color="#ec5b13"}
                         onMouseLeave={e => e.currentTarget.style.color="rgba(255,255,255,0.35)"}
                       >
@@ -182,12 +182,12 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div style={{ paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-          <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:10, color:"rgba(255,255,255,0.15)", letterSpacing:"0.25em", textTransform:"uppercase" }}>
+          <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:11, color:"rgba(255,255,255,0.35)", letterSpacing:"0.25em", textTransform:"uppercase" }}>
             © {new Date().getFullYear()} Verp Collective. All Rights Reserved.
           </p>
           <div style={{ display:"flex", gap:32, flexWrap:"wrap" }}>
             {["Free Delivery on Orders Over GH₵500","48-Hour Returns Policy","Proudly Made in Ghana"].map(item => (
-              <span key={item} style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:9, color:"rgba(255,255,255,0.12)", letterSpacing:"0.2em", textTransform:"uppercase", fontStyle:"italic" }}>{item}</span>
+              <span key={item} style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:10, color:"rgba(255,255,255,0.28)", letterSpacing:"0.2em", textTransform:"uppercase", fontStyle:"italic" }}>{item}</span>
             ))}
           </div>
         </div>

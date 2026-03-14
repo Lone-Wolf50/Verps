@@ -7,11 +7,11 @@ import Swal from "sweetalert2";
 /* ─── Sub-Components ─────────────────────────────────────────── */
 const Field = ({ label, icon, error, children }) => (
   <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-    <label style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.3em", display: "flex", alignItems: "center", gap: 6 }}>
+    <label style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.3em", display: "flex", alignItems: "center", gap: 6 }}>
       {icon && <span style={{ fontSize: 12 }}>{icon}</span>}{label}
     </label>
     {children}
-    {error && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "#f87171", letterSpacing: "0.15em" }}>{error}</p>}
+    {error && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "#f87171", letterSpacing: "0.15em" }}>{error}</p>}
   </div>
 );
 
@@ -25,8 +25,8 @@ const inputSx = {
 const DeliveryCard = ({ value, selected, onSelect, icon, title, desc }) => (
   <button type="button" onClick={() => onSelect(value)} style={{ flex: 1, padding: "16px 14px", borderRadius: 16, textAlign: "left", cursor: "pointer", transition: "all 200ms", background: selected ? "rgba(236,91,19,0.07)" : "rgba(255,255,255,0.02)", border: selected ? "1px solid rgba(236,91,19,0.35)" : "1px solid rgba(255,255,255,0.07)", boxShadow: selected ? "0 0 24px -10px rgba(236,91,19,0.35)" : "none" }}>
     <div style={{ fontSize: 22, marginBottom: 8 }}>{icon}</div>
-    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: selected ? "#ec5b13" : "rgba(255,255,255,0.55)", marginBottom: 4 }}>{title}</p>
-    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.25)", lineHeight: 1.5 }}>{desc}</p>
+    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: selected ? "#ec5b13" : "rgba(255,255,255,0.55)", marginBottom: 4 }}>{title}</p>
+    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.48)", lineHeight: 1.5 }}>{desc}</p>
     {selected && <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#ec5b13", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 10 }}><span style={{ fontFamily: "monospace", fontSize: 11, color: "#000", fontWeight: 900 }}>✓</span></div>}
   </button>
 );
@@ -35,11 +35,11 @@ const SummaryItem = ({ item }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
     <div style={{ position: "relative", flexShrink: 0 }}>
       <img src={item.image} alt={item.name} style={{ width: 54, height: 54, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)" }} />
-      <span style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#ec5b13", color: "#000", fontFamily: "'JetBrains Mono',monospace", fontSize: 8, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{item.quantity}</span>
+      <span style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#ec5b13", color: "#000", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{item.quantity}</span>
     </div>
     <div style={{ flex: 1, minWidth: 0 }}>
       <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</p>
-      <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>GH₵{Number(item.price).toLocaleString()} × {item.quantity}</p>
+      <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.55)", marginTop: 2 }}>GH₵{Number(item.price).toLocaleString()} × {item.quantity}</p>
     </div>
     <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontStyle: "italic", color: "#ec5b13", flexShrink: 0 }}>GH₵{(item.price * item.quantity).toLocaleString()}</p>
   </div>
@@ -280,7 +280,7 @@ const Checkout = () => {
           
           <div className="co-fade" style={{ marginBottom: 40 }}>
             <h1 style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: "clamp(40px,7vw,80px)", color: "white", margin: 0, lineHeight: 1 }}>Checkout</h1>
-            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginTop: 10 }}>SECURE VERP ACQUISITION</p>
+            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.42)", marginTop: 10 }}>SECURE VERP ACQUISITION</p>
           </div>
 
           <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
@@ -290,16 +290,16 @@ const Checkout = () => {
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 22, overflow: "hidden" }}>
                   <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 22, height: 22, borderRadius: 8, background: "rgba(236,91,19,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#ec5b13", fontWeight: 700 }}>01</div>
-                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>CLIENT INFORMATION</p>
+                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>CLIENT INFORMATION</p>
                   </div>
                   <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
                     {/* Account name — read only display */}
                     <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                      <label style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.3em" }}>ACCOUNT NAME</label>
-                      <div style={{ width:"100%", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.05)", borderRadius:14, padding:"14px 18px", fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.3)", boxSizing:"border-box", display:"flex", alignItems:"center", gap:8 }}>
+                      <label style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 10, fontWeight:700, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.3em" }}>ACCOUNT NAME</label>
+                      <div style={{ width:"100%", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.05)", borderRadius:14, padding:"14px 18px", fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.55)", boxSizing:"border-box", display:"flex", alignItems:"center", gap:8 }}>
                         <span style={{ fontSize:14 }}>👤</span>
                         <span>{formData.name || "—"}</span>
-                        <span style={{ marginLeft:"auto", fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.18)", letterSpacing:"0.15em" }}>NOT EDITABLE</span>
+                        <span style={{ marginLeft:"auto", fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.18)", letterSpacing:"0.15em" }}>NOT EDITABLE</span>
                       </div>
                     </div>
 
@@ -312,7 +312,7 @@ const Checkout = () => {
                         placeholder="Full name to use for delivery & calls"
                         autoComplete="off"
                       />
-                      <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.2)", letterSpacing:"0.12em", marginTop:6, lineHeight:1.6 }}>
+                      <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.42)", letterSpacing:"0.12em", marginTop:6, lineHeight:1.6 }}>
                         YOUR ACCOUNT NAME IS NOT USED FOR ORDERS — ENTER THE NAME OUR TEAM SHOULD ASK FOR WHEN THEY CONTACT YOU.
                       </p>
                     </Field>
@@ -341,18 +341,18 @@ const Checkout = () => {
                           <span style={{ fontSize:16 }}>📍</span>
                         </div>
                         <div>
-                          <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:8, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"#ec5b13", marginBottom:6 }}>LOCATION ACCURACY IS CRITICAL</p>
+                          <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"#ec5b13", marginBottom:6 }}>LOCATION ACCURACY IS CRITICAL</p>
                           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.7, marginBottom:10 }}>
                             An incorrect location will directly affect your delivery. Please fill both fields carefully.
                           </p>
                           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                             <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, padding:"5px 10px" }}>
-                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.35)", letterSpacing:"0.15em" }}>LOCATION — </span>
-                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.6)", letterSpacing:"0.1em" }}>City / Area (e.g. Accra)</span>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.58)", letterSpacing:"0.15em" }}>LOCATION — </span>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.6)", letterSpacing:"0.1em" }}>City / Area (e.g. Accra)</span>
                             </div>
                             <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, padding:"5px 10px" }}>
-                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.35)", letterSpacing:"0.15em" }}>ADDRESS — </span>
-                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, color:"rgba(255,255,255,0.6)", letterSpacing:"0.1em" }}>Specific place (e.g. Madina)</span>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.58)", letterSpacing:"0.15em" }}>ADDRESS — </span>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.6)", letterSpacing:"0.1em" }}>Specific place (e.g. Madina)</span>
                             </div>
                           </div>
                         </div>
@@ -371,7 +371,7 @@ const Checkout = () => {
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 22, overflow: "hidden" }}>
                   <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 22, height: 22, borderRadius: 8, background: "rgba(236,91,19,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#ec5b13", fontWeight: 700 }}>02</div>
-                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>DELIVERY METHOD</p>
+                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>DELIVERY METHOD</p>
                   </div>
                   <div style={{ padding: 24 }}>
                     <div style={{ display: "flex", gap: 12 }}>
@@ -396,7 +396,7 @@ const Checkout = () => {
             <div className="co-fade-d" style={{ flex: "1 1 300px", maxWidth: 380 }}>
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 22, overflow: "hidden", position: "sticky", top: 100 }}>
                 <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>ORDER SUMMARY</p>
+                  <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>ORDER SUMMARY</p>
                   <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#ec5b13" }}>{itemCount} {itemCount === 1 ? "item" : "items"}</span>
                 </div>
                 <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -406,33 +406,33 @@ const Checkout = () => {
                 <div style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
                   <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginBottom: 4 }} />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Subtotal</span>
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.48)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Subtotal</span>
                     <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>GH₵{cartTotal.toLocaleString()}</span>
                   </div>
                   
                   {/* Service Fee — with loader */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.48)", textTransform: "uppercase", letterSpacing: "0.2em", display: "flex", alignItems: "center", gap: 6 }}>
                       Service Fee
                       {feeLoading && <span style={{ width: 10, height: 10, borderRadius: "50%", border: "1.5px solid rgba(236,91,19,0.3)", borderTopColor: "#ec5b13", display: "inline-block", animation: "spinRing 0.8s linear infinite" }} />}
                     </span>
                     {feeLoading
                       ? <span className="fee-skeleton" />
                       : feeError
-                        ? <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,100,100,0.6)", letterSpacing: "0.1em" }}>—</span>
+                        ? <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,100,100,0.6)", letterSpacing: "0.1em" }}>—</span>
                         : <span className="fee-value" style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>+ GH₵{(feeData?.feeGHS || 0).toFixed(2)}</span>
                     }
                   </div>
 
                   {formData.deliveryMethod === "door" && (
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Delivery</span>
+                      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.48)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Delivery</span>
                       <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(236,91,19,0.6)", letterSpacing: "0.15em" }}>TBD</span>
                     </div>
                   )}
                   <div style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Total</span>
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.48)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Total</span>
                     {feeLoading
                       ? <span className="fee-skeleton" style={{ width: 90, height: 28 }} />
                       : <p className="fee-value" style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 28, color: "#ec5b13", margin: 0 }}>GH₵{(feeData?.chargeGHS || 0).toLocaleString()}</p>
@@ -443,8 +443,8 @@ const Checkout = () => {
                 <div style={{ margin: "0 16px 16px", padding: "12px 16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 18 }}>{formData.deliveryMethod === "pickup" ? "🏛️" : "🚚"}</span>
                   <div>
-                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(255,255,255,0.45)", marginBottom: 2 }}>{formData.deliveryMethod === "pickup" ? "Showroom Pickup" : "Door Delivery"}</p>
-                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.18)", letterSpacing: "0.12em" }}>{formData.deliveryMethod === "pickup" ? "Ready for collection" : "Team will contact you"}</p>
+                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(255,255,255,0.45)", marginBottom: 2 }}>{formData.deliveryMethod === "pickup" ? "Showroom Pickup" : "Door Delivery"}</p>
+                    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.18)", letterSpacing: "0.12em" }}>{formData.deliveryMethod === "pickup" ? "Ready for collection" : "Team will contact you"}</p>
                   </div>
                 </div>
               </div>

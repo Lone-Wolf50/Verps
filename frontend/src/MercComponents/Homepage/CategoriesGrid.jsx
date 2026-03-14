@@ -44,13 +44,13 @@ const Card = ({ cat, index, isHero = false }) => (
     <div className="absolute bottom-0 left-0 right-0 p-5">
       <span
         className="block mb-1 font-mono font-black"
-        style={{ fontSize: "10px", letterSpacing: "0.25em", color: "#ec5b13", opacity: 0.7 }}
+        style={{ fontSize: "12px", letterSpacing: "0.25em", color: "#ec5b13", opacity: 0.9 }}
       >
         {String(index + 1).padStart(2, "0")}
       </span>
       <h3
         className="font-black uppercase leading-none text-white transition-colors duration-300 group-hover:text-[#ec5b13]"
-        style={{ letterSpacing: "-0.03em", fontSize: isHero ? "28px" : "20px" }}
+        style={{ letterSpacing: "-0.03em", fontSize: isHero ? "30px" : "22px" }}
       >
         {cat.name}
       </h3>
@@ -91,10 +91,10 @@ const MobileCarousel = ({ categories }) => {
       {/* Header row */}
       <div className="flex items-end justify-between mb-4">
         <div>
-          <p className="font-black uppercase mb-1" style={{ fontSize: "10px", letterSpacing: "0.3em", color: "#ec5b13" }}>
+          <p className="font-black uppercase mb-1" style={{ fontSize: "12px", letterSpacing: "0.3em", color: "#ec5b13" }}>
             Featured Collection
           </p>
-          <h3 className="text-white font-black uppercase leading-none" style={{ fontSize: "20px", letterSpacing: "-0.03em" }}>
+          <h3 className="text-white font-black uppercase leading-none" style={{ fontSize: "22px", letterSpacing: "-0.03em" }}>
             {categories[current]?.name}
           </h3>
         </div>
@@ -151,7 +151,7 @@ const MobileCarousel = ({ categories }) => {
             }}
           />
         ))}
-        <span className="ml-auto font-mono" style={{ fontSize: "10px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.2em" }}>
+        <span className="ml-auto font-mono" style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", letterSpacing: "0.2em" }}>
           {String(current + 1).padStart(2, "0")} / {String(categories.length).padStart(2, "0")}
         </span>
       </div>
@@ -163,7 +163,7 @@ const MobileCarousel = ({ categories }) => {
 const MobileGrid = ({ categories }) => (
   <div>
     <div className="flex items-center gap-3 mb-4">
-      <span className="font-black uppercase" style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.3)" }}>
+      <span className="font-black uppercase" style={{ fontSize: "12px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.5)" }}>
         All Categories
       </span>
       <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.05)" }} />
@@ -189,7 +189,7 @@ const ViewAllBtn = ({ count }) => (
         border: "1px solid rgba(255,255,255,0.12)",
         borderRadius: "12px",
         color: "rgba(255,255,255,0.5)",
-        fontSize: "11px",
+        fontSize: "12px",
         letterSpacing: "0.2em",
         textDecoration: "none",
       }}
@@ -230,7 +230,7 @@ const CategoriesGrid = () => {
             className="mx-auto mb-3 animate-spin rounded-full"
             style={{ width: "28px", height: "28px", border: "2px solid #ec5b13", borderTopColor: "transparent" }}
           />
-          <p className="font-black uppercase tracking-widest" style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)" }}>
+          <p className="font-black uppercase tracking-widest" style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)" }}>
             Loading
           </p>
         </div>
@@ -247,7 +247,7 @@ const CategoriesGrid = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
           <div>
-            <p className="font-black uppercase mb-2" style={{ fontSize: "11px", letterSpacing: "0.3em", color: "#ec5b13" }}>
+            <p className="font-black uppercase mb-2" style={{ fontSize: "12px", letterSpacing: "0.3em", color: "#ec5b13" }}>
               Curated Selection
             </p>
             <h2
@@ -257,7 +257,7 @@ const CategoriesGrid = () => {
               Popular Categories
             </h2>
           </div>
-          <p className="uppercase leading-relaxed" style={{ fontSize: "11px", letterSpacing: "0.15em", color: "rgba(255,255,255,0.3)", maxWidth: "200px" }}>
+          <p className="uppercase leading-relaxed" style={{ fontSize: "11px", letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", maxWidth: "200px" }}>
             Where utility meets opulence.
           </p>
         </div>
