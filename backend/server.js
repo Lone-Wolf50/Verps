@@ -35,7 +35,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    console.error("🌐 [CORS] ❌ Blocked origin — request rejected");
+    console.error(" [CORS]  Blocked origin — request rejected");
     return callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
   methods: ["GET", "POST", "OPTIONS"],
@@ -107,7 +107,7 @@ const registerLimiter = rateLimit({
 const requireInternalSecret = (req, res, next) => {
   const secret = req.headers["x-internal-secret"];
   if (!secret || secret !== process.env.INTERNAL_SECRET) {
-    console.error("[auth] ❌ Invalid or missing x-internal-secret");
+    console.error("[auth]  Invalid or missing x-internal-secret");
     return res.status(403).json({ error: "Forbidden" });
   }
   next();
@@ -116,7 +116,7 @@ const requireInternalSecret = (req, res, next) => {
 const requireAdminHeader = (req, res, next) => {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith("Basic ")) {
-    console.error("[auth] ❌ Missing Authorization header");
+    console.error("[auth]  Missing Authorization header");
     return res.status(401).json({ error: "Unauthorized" });
   }
   try {
@@ -127,12 +127,12 @@ const requireAdminHeader = (req, res, next) => {
     const password = decoded.slice(colonIdx + 1);
     const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
     if (email !== adminEmail || password !== process.env.ADMIN_PASS) {
-      console.error("[auth] ❌ Admin credentials mismatch");
+      console.error("[auth]  Admin credentials mismatch");
       return res.status(403).json({ error: "Unauthorized" });
     }
     next();
   } catch (e) {
-    console.error("[auth] ❌ Authorization header parse error");
+    console.error("[auth]  Authorization header parse error");
     return res.status(401).json({ error: "Unauthorized" });
   }
 };
@@ -149,7 +149,7 @@ const transporter = nodemailer.createTransport({
 });
 
 transporter.verify((err) => {
-  if (err) console.error("❌ [SMTP] Email transporter error:", err.message);
+  if (err) console.error("[SMTP] Email transporter error:", err.message);
 });
 
 // ── HTML Email Wrapper ─────────────────────────────────────────
@@ -195,7 +195,7 @@ app.post("/api/staff-login", staffLoginLimiter, (req, res) => {
   if (em === assistantEmail && password === process.env.ASSISTANT_PASS) {
     return res.status(200).json({ success: true, role: "assistant", message: "Access Granted" });
   }
-  console.error("[staff-login] ❌ Invalid credentials");
+  console.error("[staff-login]  Invalid credentials");
   res.status(401).json({ success: false, error: "Invalid email or password" });
 });
 
@@ -232,7 +232,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       .maybeSingle();
 
     if (fetchErr) {
-      console.error("[send-otp] ❌ DB fetch failed:", fetchErr.message);
+      console.error("[send-otp]  DB fetch failed:", fetchErr.message);
       return res.status(500).json({ success: false, error: "Failed to prepare OTP" });
     }
 
@@ -299,7 +299,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
       .eq("email", cleanEmail);
 
     if (dbErr) {
-      console.error("[send-otp] ❌ DB save failed:", dbErr.message);
+      console.error("[send-otp]  DB save failed:", dbErr.message);
       return res.status(500).json({ success: false, error: "Failed to prepare OTP" });
     }
 
@@ -320,7 +320,7 @@ app.post("/api/send-otp", otpSendLimiter, async (req, res) => {
 
     res.status(200).json({ success: true });
   } catch (err) {
-    console.error("[send-otp] ❌ CAUGHT EXCEPTION:", err.message);
+    console.error("[send-otp]  CAUGHT EXCEPTION:", err.message);
     res.status(500).json({ success: false, error: "Failed to deliver OTP" });
   }
 });
@@ -339,7 +339,7 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      console.error("[verify-otp] ❌ Supabase error:", error.message);
+      console.error("[verify-otp]  Supabase error:", error.message);
       return res.status(500).json({ message: "Something went wrong. Please try again." });
     }
     if (!data) return res.status(404).json({ message: "No account found for this email." });
@@ -360,7 +360,7 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
         .from("verp_users")
         .update({ otp_code: null, otp_expiry: null, otp_attempts: 0 })
         .eq("id", data.id);
-      console.error("[verify-otp] ❌ OTP expired");
+      console.error("[verify-otp]  OTP expired");
       return res.status(400).json({ message: "Code expired — please request a new one." });
     }
 
@@ -371,7 +371,7 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
         .from("verp_users")
         .update({ otp_attempts: attempts + 1 })
         .eq("id", data.id);
-      console.error("[verify-otp] ❌ Code mismatch");
+      console.error("[verify-otp]  Code mismatch");
       return res.status(400).json({ message: "Incorrect code — please check and try again." });
     }
 
@@ -390,7 +390,7 @@ app.post("/api/verify-otp", otpVerifyLimiter, async (req, res) => {
     res.status(200).json({ success: true });
 
   } catch (e) {
-    console.error("[verify-otp] ❌ CAUGHT EXCEPTION:", e.message);
+    console.error("[verify-otp]  CAUGHT EXCEPTION:", e.message);
     res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 });
@@ -414,13 +414,13 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
       .maybeSingle();
 
     if (fetchErr) {
-      console.error("[reset-password] ❌ DB fetch error:", fetchErr.message);
+      console.error("[reset-password]  DB fetch error:", fetchErr.message);
       return res.status(500).json({ message: "Something went wrong. Please try again." });
     }
     if (!user) return res.status(404).json({ message: "No account found for this email." });
 
     if (!user.otp_verified) {
-      console.error("[reset-password] ❌ OTP verification step not completed");
+      console.error("[reset-password]  OTP verification step not completed");
       return res.status(400).json({ message: "Session expired — please verify your code first." });
     }
 
@@ -432,14 +432,14 @@ app.post("/api/reset-password", resetLimiter, async (req, res) => {
       .eq("id", user.id);
 
     if (updateErr) {
-      console.error("[reset-password] ❌ update failed:", updateErr.message);
+      console.error("[reset-password]  update failed:", updateErr.message);
       return res.status(500).json({ message: "Failed to save new password. Please try again." });
     }
 
     res.status(200).json({ success: true });
 
   } catch (e) {
-    console.error("[reset-password] ❌ CAUGHT EXCEPTION:", e.message);
+    console.error("[reset-password]  CAUGHT EXCEPTION:", e.message);
     res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 });
@@ -457,7 +457,7 @@ app.post("/api/verify-payment", async (req, res) => {
     const data = await response.json();
 
     if (!data.status || data.data.status !== "success") {
-      console.error("[verify-payment] ❌ Payment not verified by Paystack");
+      console.error("[verify-payment]  Payment not verified by Paystack");
       return res.status(400).json({ success: false, message: "Payment not verified" });
     }
 
@@ -465,7 +465,7 @@ app.post("/api/verify-payment", async (req, res) => {
       const paidEmail = (data.data.customer?.email || "").toLowerCase().trim();
       const wantEmail = expectedEmail.toLowerCase().trim();
       if (paidEmail !== wantEmail) {
-        console.error("[verify-payment] ❌ Email mismatch");
+        console.error("[verify-payment]  Email mismatch");
         return res.status(400).json({ success: false, message: "Payment email mismatch" });
       }
     }
@@ -474,7 +474,7 @@ app.post("/api/verify-payment", async (req, res) => {
       const paidGHS     = data.data.amount / 100;
       const expectedGHS = parseFloat(expectedAmount);
       if (Math.abs(paidGHS - expectedGHS) > 0.5) {
-        console.error("[verify-payment] ❌ Amount mismatch");
+        console.error("[verify-payment]  Amount mismatch");
         return res.status(400).json({ success: false, message: "Payment amount mismatch" });
       }
     }
@@ -482,7 +482,7 @@ app.post("/api/verify-payment", async (req, res) => {
     res.status(200).json({ success: true, data: data.data });
 
   } catch (err) {
-    console.error("[verify-payment] ❌ CAUGHT EXCEPTION:", err.message);
+    console.error("[verify-payment]  CAUGHT EXCEPTION:", err.message);
     res.status(500).json({ error: "Payment verification failed. Please try again." });
   }
 });
@@ -628,7 +628,7 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
     });
     res.status(200).json({ success: true, type, to });
   } catch (err) {
-    console.error(`[alert-staff] ❌ [${type}] failed:`, err.message);
+    console.error(`[alert-staff]  [${type}] failed:`, err.message);
     res.status(500).json({ error: "Failed to send alert. Please try again." });
   }
 });
@@ -642,12 +642,12 @@ app.get("/api/admin/return-requests", requireAdminHeader, async (req, res) => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[return-requests] ❌ DB error:", error.message);
+      console.error("[return-requests]  DB error:", error.message);
       return res.status(500).json({ error: "Failed to fetch return requests." });
     }
     res.status(200).json({ success: true, data });
   } catch (err) {
-    console.error("[return-requests] ❌ CAUGHT EXCEPTION:", err.message);
+    console.error("[return-requests]  CAUGHT EXCEPTION:", err.message);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });
@@ -680,15 +680,15 @@ app.post("/api/update-order-status", requireAdminHeader, async (req, res) => {
       .single();
 
     if (error) {
-      console.error("[update-order-status] ❌ DB error:", error.message);
+      console.error("[update-order-status]  DB error:", error.message);
       return res.status(500).json({ error: "Failed to update order status. Please try again." });
     }
 
-    console.log(`[update-order-status] ✅ Status updated → ${status}`);
+    console.log(`[update-order-status]  Status updated → ${status}`);
     res.status(200).json({ success: true, order: data });
 
   } catch (err) {
-    console.error("[update-order-status] ❌ CAUGHT EXCEPTION:", err.message);
+    console.error("[update-order-status]  CAUGHT EXCEPTION:", err.message);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });
@@ -718,10 +718,10 @@ app.post("/api/send-email", requireInternalSecret, async (req, res) => {
       // Plain-text fallback — strips tags so email clients that need it are covered
       text: html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim(),
     });
-    console.log("[send-email] ✅ Email delivered successfully");
+    console.log("[send-email]  Email delivered successfully");
     res.status(200).json({ success: true });
   } catch (err) {
-    console.error("[send-email] ❌", err.message);
+    console.error("[send-email] ", err.message);
     res.status(500).json({ success: false, error: "Failed to deliver email. Please try again." });
   }
 });
@@ -754,7 +754,7 @@ app.post("/api/update-return-status", requireInternalSecret, async (req, res) =>
       .maybeSingle();
 
     if (fetchErr || !req_) {
-      console.error("[update-return-status] ❌ Fetch error:", fetchErr?.message);
+      console.error("[update-return-status]  Fetch error:", fetchErr?.message);
       return res.status(404).json({ success: false, error: "Return request not found." });
     }
 
@@ -766,7 +766,7 @@ app.post("/api/update-return-status", requireInternalSecret, async (req, res) =>
       .eq("id", returnId);
 
     if (updateErr) {
-      console.error("[update-return-status] ❌ Update error:", updateErr.message);
+      console.error("[update-return-status]  Update error:", updateErr.message);
       return res.status(500).json({ success: false, error: "Failed to update return request." });
     }
 
@@ -903,19 +903,19 @@ app.post("/api/update-return-status", requireInternalSecret, async (req, res) =>
             html,
             text: html.replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim(),
           });
-          console.log(`[update-return-status] ✅ Client email sent for status: ${status}`);
+          console.log(`[update-return-status]  Client email sent for status: ${status}`);
         } catch (emailErr) {
           // Non-fatal — DB was already updated, log and continue
-          console.error(`[update-return-status] ⚠️ Email failed (non-fatal): ${emailErr.message}`);
+          console.error(`[update-return-status]  Email failed (non-fatal): ${emailErr.message}`);
         }
       }
     }
 
-    console.log(`[update-return-status] ✅ Status updated → ${status}`);
+    console.log(`[update-return-status]  Status updated → ${status}`);
     res.status(200).json({ success: true, returnId, status });
 
   } catch (err) {
-    console.error("[update-return-status] ❌ CAUGHT EXCEPTION:", err.message);
+    console.error("[update-return-status]  CAUGHT EXCEPTION:", err.message);
     res.status(500).json({ success: false, error: "Something went wrong. Please try again." });
   }
 });
@@ -980,7 +980,7 @@ app.post("/api/register", registerLimiter, async (req, res) => {
       .maybeSingle();
 
     if (lookupErr) {
-      console.error("[register] ❌ DB lookup error");
+      console.error("[register]  DB lookup error");
       return res.status(500).json({ success: false, error: "Something went wrong. Please try again." });
     }
 
@@ -1007,7 +1007,7 @@ app.post("/api/register", registerLimiter, async (req, res) => {
       );
 
     if (upsertErr) {
-      console.error("[register] ❌ DB upsert error");
+      console.error("[register]  DB upsert error");
       return res.status(500).json({ success: false, error: "Failed to create account. Please try again." });
     }
 
@@ -1030,7 +1030,7 @@ app.post("/api/register", registerLimiter, async (req, res) => {
       .eq("email", cleanEmail);
 
     if (otpErr) {
-      console.error("[register] ❌ OTP save error");
+      console.error("[register]  OTP save error");
       return res.status(500).json({ success: false, error: "Account created but failed to send verification code. Please use Resend." });
     }
 
@@ -1052,13 +1052,13 @@ app.post("/api/register", registerLimiter, async (req, res) => {
     } catch (mailErr) {
       // Non-fatal — account + OTP are already saved to DB.
       // User can request a resend from the OTP screen.
-      console.error("[register] ⚠️ Verification email failed (non-fatal):", mailErr.message);
+      console.error("[register] Verification email failed (non-fatal):", mailErr.message);
     }
 
     res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error("[register] ❌ CAUGHT EXCEPTION");
+    console.error("[register] CAUGHT EXCEPTION");
     res.status(500).json({ success: false, error: "Something went wrong. Please try again." });
   }
 });
@@ -1069,5 +1069,5 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.error(`🚀 Verp Server on port ${PORT}`));
+app.listen(PORT, () => console.error(` Verp Server on port ${PORT}`));
 module.exports = app;
