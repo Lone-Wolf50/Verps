@@ -269,12 +269,13 @@ const useTerminateAccount = () => {
     });
     if (!r1.isConfirmed) return;
     const r2 = await Swal.fire({
-      title: "ARE YOU ABSOLUTELY SURE?", input: "text", inputPlaceholder: 'Type "DELETE" to confirm',
-      background: "#0a0a0a", color: "#fff", showCancelButton: true,
-      confirmButtonColor: "#ef4444", cancelButtonColor: "#1c1c1c",
-      confirmButtonText: "PROCEED WITH DELETION", cancelButtonText: "CANCEL",
-      inputValidator: (v) => v !== "DELETE" ? "You must type DELETE to confirm" : null,
-    });
+  title: "ARE YOU ABSOLUTELY SURE?", input: "text", inputPlaceholder: 'Type "DELETE" to confirm',
+  background: "#0a0a0a", color: "#fff", showCancelButton: true,
+  confirmButtonColor: "#ef4444", cancelButtonColor: "#1c1c1c",
+  confirmButtonText: "PROCEED WITH DELETION", cancelButtonText: "CANCEL",
+  inputAttributes: { style: "color: #ffffff; caret-color: #ffffff;" },  // ← add this
+  inputValidator: (v) => v !== "DELETE" ? "You must type DELETE to confirm" : null,
+});
     if (!r2.isConfirmed) return;
     const email  = localStorage.getItem("userEmail");
     const userId = localStorage.getItem("userId");
