@@ -270,7 +270,7 @@ const useTerminateAccount = () => {
     if (!r1.isConfirmed) return;
     const r2 = await Swal.fire({
       title: "ARE YOU ABSOLUTELY SURE?", input: "text", inputPlaceholder: 'Type "DELETE" to confirm',
-      background: "#0a0a0a", color: "#0a0a0a", showCancelButton: true,
+      background: "#0a0a0a", color: "#fff", showCancelButton: true,
       confirmButtonColor: "#ef4444", cancelButtonColor: "#1c1c1c",
       confirmButtonText: "PROCEED WITH DELETION", cancelButtonText: "CANCEL",
       inputValidator: (v) => v !== "DELETE" ? "You must type DELETE to confirm" : null,

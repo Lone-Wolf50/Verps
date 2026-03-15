@@ -1034,20 +1034,26 @@ app.post("/api/register", registerLimiter, async (req, res) => {
       return res.status(500).json({ success: false, error: "Account created but failed to send verification code. Please use Resend." });
     }
 
-    await transporter.sendMail({
-      from: `"VERP Security" <${process.env.GMAIL_USER}>`,
-      to: cleanEmail,
-      subject: `[${otp}] Your Verp Verification Code`,
-      html: wrap(
-        "Verify Your Account",
-        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Welcome to Verp, <strong style="color:#ec5b13;">${cleanName}</strong>. Your verification code is:</p>
-         <div style="margin:20px 0;text-align:center;padding:20px;background:#111;border-radius:12px;border:1px solid rgba(236,91,19,0.2);">
-           <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#fff;font-family:monospace;">${otp}</span>
-         </div>
-         <p style="color:rgba(255,255,255,0.3);font-size:11px;">Expires in 10 minutes. Do not share this code.</p>`,
-        null, null,
-      ),
-    });
+    try {
+      await transporter.sendMail({
+        from: `"VERP Security" <${process.env.GMAIL_USER}>`,
+        to: cleanEmail,
+        subject: `[${otp}] Your Verp Verification Code`,
+        html: wrap(
+          "Verify Your Account",
+          `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">Welcome to Verp, <strong style="color:#ec5b13;">${cleanName}</strong>. Your verification code is:</p>
+           <div style="margin:20px 0;text-align:center;padding:20px;background:#111;border-radius:12px;border:1px solid rgba(236,91,19,0.2);">
+             <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#fff;font-family:monospace;">${otp}</span>
+           </div>
+           <p style="color:rgba(255,255,255,0.3);font-size:11px;">Expires in 10 minutes. Do not share this code.</p>`,
+          null, null,
+        ),
+      });
+    } catch (mailErr) {
+      // Non-fatal — account + OTP are already saved to DB.
+      // User can request a resend from the OTP screen.
+      console.error("[register] ⚠️ Verification email failed (non-fatal):", mailErr.message);
+    }
 
     res.status(200).json({ success: true });
 
