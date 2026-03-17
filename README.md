@@ -1,269 +1,253 @@
-# Verp 
+# Verp
 
-A full-stack e-commerce and client-support platform (“Verp”) with OTP-based authentication, Paystack payments, live assistant/admin chat, and staff dashboards. Built with React (Vite) and Node.js (Express), backed by Supabase.
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Environment Variables](#environment-variables)
-- [Installation & Setup](#installation--setup)
-- [Running Locally](#running-locally)
-- [Backend API](#backend-api)
-- [Frontend Routes & Features](#frontend-routes--features)
-- [Database (Supabase)](#database-supabase)
-- [Security](#security)
-- [Deployment](#deployment)
-- [Scripts Reference](#scripts-reference)
+Verp is a premium fashion and lifestyle store built for a high-end shopping experience. Customers browse a curated catalog of clothing and accessories, check out with secure payments, and get real support when they need it. Behind the scenes, a staff console gives the team full control over inventory, orders, promotions, and customer communication.
 
 ---
 
-## Overview
+## What the store offers
 
-**Verp** is a modern e-commerce and support system that includes:
-
-- **Customer-facing store**: Product categories (shirts, shoes, hoodies, jewelry, etc.), cart, checkout, and order tracking.
-- **OTP-based auth**: Email one-time codes for login, signup, and password reset (no traditional passwords for verification step).
-- **Paystack integration**: Payments in GHS with server-side verification and charge calculation.
-- **Live support**: Client chat with optional escalation to assistant and admin.
-- **Staff roles**: **Admin** (full dashboard, return requests, broadcasts, assistant inbox) and **Assistant** (terminal for live chat, queue, orders).
-- **Email notifications**: OTP delivery and staff alerts (new chat, escalation, new order, broadcast confirmation) via Gmail SMTP with branded “Vault” HTML templates.
-
-The backend exposes a single Express app with rate limiting, CORS, and internal/admin guards; the frontend is a React SPA with route guards and optional Vite proxy to the API.
+- A cinematic homepage with a full-screen hero, curated category sections, and a brand story.
+- A multi-category product catalog covering Boxers, Shoes, Slides, Shirts, Caps, Jewelry, Jackets, Glasses, Belts, Watches, Sneakers, Socks, Hoodies, Sweatshirts, and Bags.
+- Secure checkout powered by Paystack, with choices between showroom pickup and door delivery.
+- A customer support flow that starts with an automated assistant and escalates to a real team member if needed.
+- A product review system — customers review orders they've received, staff moderate what goes live.
+- A promotional banner system — the admin creates banners that appear between homepage sections, with optional countdowns, featured products, and flash sale strips.
+- A full staff console split between an Admin dashboard and an Assistant terminal.
 
 ---
 
-## Tech Stack
+## How the project is organised
 
-| Layer      | Technologies |
-|-----------|--------------|
-| **Frontend** | React 19, Vite 6, React Router 7, TanStack Query & Router, Tailwind CSS, Lucide React, SweetAlert2, Embla Carousel |
-| **Backend**  | Node.js, Express 5, Supabase (PostgreSQL + JS client), Nodemailer (Gmail SMTP), bcrypt, express-rate-limit |
-| **Payments** | Paystack (GHS) |
-| **Auth**     | Custom OTP flow + bcrypt password hashes, staff login via env credentials |
-| **Deploy**   | Vercel (backend + frontend) |
+The project has two parts that work together:
 
----
-
-## Project Structure
+- **`backend/`** — the server that handles emails, payments, and secure staff operations.
+- **`frontend/`** — the customer-facing store and staff console, built as a web app.
 
 ```
 Verp/
-├── backend/
-│   ├── server.js          # Express app: auth, OTP, Paystack, alerts, admin API
-│   ├── package.json
-│   ├── .env                # Not committed; see Environment Variables
-│   ├── .gitignore
-│   └── vercel.json         # Vercel serverless config for API
-├── frontend/
-│   ├── src/
-│   │   ├── main.jsx
-│   │   ├── App.jsx
-│   │   ├── config.js       # API base URL (VITE_SERVER_URL)
-│   │   ├── MercComponents/
-│   │   │   ├── Paths.jsx             # Route definitions, guards, ScrollToTop, CartProvider
-│   │   │   ├── supabaseClient.js     # Supabase client (if used from frontend)
-│   │   │   ├── Homepage/             # Homepage.jsx, Navbar.jsx, Footer.jsx, FloatingSupport.jsx, AllCategoriesPage.jsx
-│   │   │   ├── Cartoptions/          # CartContext.jsx, Cart.jsx
-│   │   │   ├── Cartpages/            # CategoryTemplate.jsx, Checkout.jsx; category pages: BoxerPage, ShoePages, ShirtPage, SlidesPage, CapPage, HoodiePage, SweatshirtPage, BagPage, Sockspage, WatchesPage, SneakersPage, JewelryPage, JacketPages, GlassesPage, BeltsPage
-│   │   │   ├── Navoptions/           # OrderPage.jsx (orders), StatusTracker.jsx, About.jsx, Reviews.jsx, Support.jsx
-│   │   │   ├── Messages/             # SupportPage.jsx, LiveAssistantChat.jsx, ChatBot.jsx
-│   │   │   ├── SecurityLogics/       # AuthPage.jsx, StaffLogin.jsx, ProfilePages.jsx, NotFoundPage.jsx, PremiumLoader.jsx, PremiumLoader2.jsx, PremmiumLoader3.jsx, RandomLoader.jsx
-│   │   │   ├── Administration/       # AdminDashBoard.jsx, InboxPage.jsx, AddProduct.jsx, ClientMessages.jsx
-│   │   │   └── Assistant/            # AssistantTerminal.jsx, InboxTabs.jsx
-│   │   └── index.css
-│   ├── index.html
-│   ├── vite.config.js      # React plugin, /api proxy to backend
-│   ├── tailwind.config.js
-│   ├── package.json
-│   └── vercel.json         # Rewrites: /api → backend; SPA fallback
-└── README.md               # This file
+  backend/
+    server.js          ← the server
+    package.json
+    .env               ← your private keys (never share this)
+    vercel.json        ← deployment config
+  frontend/
+    src/
+      main.jsx
+      App.jsx
+      config.js
+      MercComponents/
+        Paths.jsx          ← all page routes
+        supabaseClient.js  ← database connection
+    vite.config.js
+    vercel.json
 ```
 
 ---
 
-## Prerequisites
+## What you need before starting
 
-- **Node.js** 18+ (LTS recommended)
-- **npm** (or yarn/pnpm)
-- **Supabase** project ([supabase.com](https://supabase.com))
-- **Gmail** account (for SMTP; App Password recommended)
-- **Paystack** account (for GHS payments)
-- **Vercel** account (optional; for deployment)
-
----
-
-## Environment Variables
-
-### Backend (`backend/.env`)
-
-Create `backend/.env` with:
-
-| Variable | Description |
-|----------|-------------|
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server-only; never expose to frontend) |
-| `GMAIL_USER` | Gmail address used as sender (e.g. `your-app@gmail.com`) |
-| `GMAIL_PASS` | Gmail App Password (not main account password) |
-| `ADMIN_EMAIL` | Admin staff login email |
-| `ADMIN_PASS` | Admin staff login password |
-| `ASSISTANT_EMAIL` | (Optional) Assistant staff email |
-| `ASSISTANT_PASS` | (Optional) Assistant staff password |
-| `PAYSTACK_SECRET_KEY` | Paystack secret key for server-side verification |
-| `INTERNAL_SECRET` | Shared secret for `/api/alert-staff` (e.g. `verpvault2026secretkey`) |
-| `PORT` | Server port (default `5000`) |
-
-Startup logs print which of these are set (values are not printed).
-
-### Frontend (`frontend/.env`)
-
-| Variable | Description |
-|----------|-------------|
-| `VITE_SERVER_URL` | Backend base URL (e.g. `http://localhost:5000` for dev, or `https://verps-sever.vercel.app` for prod) |
-| `VITE_INTERNAL_SECRET` | Same value as backend `INTERNAL_SECRET` (used in `x-internal-secret` for alert-staff calls) |
-| `VITE_SUPABASE_URL` | Supabase project URL (if used from frontend) |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon key (if used from frontend) |
+- **Node.js 18 or newer** — download from nodejs.org if you don't have it.
+- **npm** — comes bundled with Node automatically.
+- A **Supabase** project (free tier works) with the tables listed at the bottom of this file.
+- A **Gmail account** set up with an App Password for sending emails.
+- A **Paystack** account with your secret key (only needed for payment processing).
 
 ---
 
-## Installation & Setup
+## Running the project locally
 
-1. **Clone and enter the project**
-   ```bash
-   cd Verp
-   ```
+You'll need two terminal windows open at the same time — one for the server, one for the store.
 
-2. **Backend**
-   ```bash
-   cd backend
-   npm install
-   cp .env.example .env   # if you have one; otherwise create .env from the table above
-   # Edit .env with your Supabase, Gmail, Paystack, and admin/assistant credentials
-   ```
+### Terminal 1 — start the server
 
-3. **Frontend**
-   ```bash
-   cd ../frontend
-   npm install
-   # Create .env with VITE_SERVER_URL (and optionally VITE_INTERNAL_SECRET, Supabase vars)
-   ```
+```bash
+cd backend
+npm install
+npm start
+```
 
-4. **Supabase**
-   - Create tables and RLS policies as required by the app (e.g. `verp_users`, `verp_return_requests`).
-   - For OTP rate limiting, ensure these columns exist on `verp_users`:
-     ```sql
-     ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_attempts    integer     DEFAULT 0;
-     ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_last_sent   timestamptz;
-     ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_send_count  integer     DEFAULT 0;
-     ALTER TABLE verp_users ADD COLUMN IF NOT EXISTS otp_locked_until timestamptz;
-     ```
+The server runs at `http://localhost:5000`.
+
+### Terminal 2 — start the store
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The store runs at `http://localhost:5173`. During development, any request the store makes to `/api/...` is automatically forwarded to the server — you don't need to configure this.
 
 ---
 
-## Running Locally
+## Setting up your private keys
 
-1. **Start the backend**
-   ```bash
-   cd backend
-   npm start
-   ```
-   Server runs at `http://localhost:5000` (or your `PORT`). Root `GET /` returns a health JSON.
+You need two `.env` files — one for each part of the project. These hold sensitive information and should **never** be committed to GitHub.
 
-2. **Start the frontend**
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-   App runs at `http://localhost:5173`. Vite proxies `/api/*` to `http://localhost:5000`, so set `VITE_SERVER_URL` to `http://localhost:5000` or leave unset to use the proxy.
+### `frontend/.env`
 
-3. **Staff login**
-   - Admin: `http://localhost:5173/sys/console/login` → use `ADMIN_EMAIL` / `ADMIN_PASS`.
-   - Assistant: same URL with `ASSISTANT_EMAIL` / `ASSISTANT_PASS` (if configured).
+```bash
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
----
+# Optional — only needed if you're calling the server directly from the frontend
+VITE_SERVER_URL=http://localhost:5000
+```
 
-## Backend API
+If either Supabase value is missing the app will fail to start and tell you clearly.
 
-Base URL: `http://localhost:5000` (dev) or your backend deployment (e.g. `https://verps-sever.vercel.app`).
+### `backend/.env`
 
-| Method | Endpoint | Protection | Description |
-|--------|----------|------------|-------------|
-| GET | `/` | — | Health check; returns `{ status, server, time }`. |
-| POST | `/api/staff-login` | `staffLoginLimiter` (10/15 min) | Body: `{ email, password }`. Returns `{ success, role, message }` (role: `admin` or `assistant`). |
-| POST | `/api/send-otp` | `otpSendLimiter` (3/10 min) + DB cooldown/lock | Body: `{ email, type? }`. Sends 6-digit OTP email; stores in `verp_users` with expiry and rate-limit fields. |
-| POST | `/api/verify-otp` | `otpVerifyLimiter` (10/10 min) + 5 attempts/user | Body: `{ email, otp }`. Verifies OTP and resets attempt counter. |
-| POST | `/api/reset-password` | `resetLimiter` (5/15 min) | Body: `{ email, password }`. Requires valid recent OTP session; hashes password and clears OTP. |
-| POST | `/api/verify-payment` | — | Body: `{ reference, expectedEmail?, expectedAmount? }`. Verifies with Paystack and optionally checks email/amount. |
-| POST | `/api/paystack-charge` | — | Body: `{ amountGHS }`. Returns `chargeGHS`, `feeGHS`, `chargePesewas` (1.95% fee formula). |
-| POST | `/api/alert-staff` | `requireInternalSecret` | Body: `type`, `clientId`, `note`, etc. Sends staff notification emails (new chat, escalation, new order, broadcast, etc.). Requires header `x-internal-secret`. |
-| GET | `/api/admin/return-requests` | `requireAdminHeader` | Returns list of return requests. Auth: `Authorization: Basic base64(ADMIN_EMAIL:ADMIN_PASS)`. |
-| POST | `/api/update-order-status` | `requireAdminHeader` | Body: `{ orderId, status }`. Valid `status`: `ordered`, `pending`, `processing`, `shipped`, `delivered`, `returned`, `cancelled`. Sets `delivered_at` when status is `delivered`. Auth: `Authorization: Basic base64(ADMIN_EMAIL:ADMIN_PASS)`. |
+```bash
+# Supabase — server side (this key has full database access, keep it secret)
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-All relevant routes are also behind a **global rate limiter** (120 requests per IP per minute).
+# A secret passphrase for internal communication between the store and server
+INTERNAL_SECRET=make_this_long_and_random
 
----
+# Staff login credentials
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASS=strong_password
+ASSISTANT_EMAIL=assistant@example.com
+ASSISTANT_PASS=strong_password
 
-## Frontend Routes & Features
+# Email sending (Gmail)
+GMAIL_USER=your_gmail_address@gmail.com
+GMAIL_PASS=your_gmail_app_password
 
-- **Public**: `/`, `/about`, `/categories`, `/reviews`, and category pages (see below).
-- **Auth (guest only)**: `/login`, `/signup`, `/verify-otp`, `/forgot-password`, `/reset-password`, `/loading` (RandomLoader).
-- **Staff**: `/sys/console/login`, `/sys/console/admin` (admin only), `/sys/console/terminal` (assistant only).
-- **Protected (logged-in user)**: `/orderpage`, `/cart`, `/checkout`, `/orderStatus`, `/inbox`, `/support`, `/reviews`, `/profile`.
-- **Support**: `/support` — support page with live chat; **FloatingSupport** widget appears on other pages when logged in (except homepage, support, auth, and staff routes).
-- **Category routes** (each has its own page component): `/category/boxers`, `/category/shoes`, `/category/slides`, `/category/shirts`, `/category/caps`, `/category/jewelry`, `/category/jackets`, `/category/glasses`, `/category/Belts`, `/category/watches`, `/category/sneakers`, `/category/socks`, `/category/hoodies`, `/category/sweatshirts`, `/category/bags`.
-- **404**: Unknown paths render `NotFoundPage`.
+# Payments
+PAYSTACK_SECRET_KEY=your_paystack_secret_key
 
-Route guards: `ProtectedRoute` (redirects to `/login` if no `userEmail` in localStorage), `StaffAdminRoute`, `StaffAssistantRoute`, `GuestRoute` for auth pages. Shell (Navbar + Footer) and floating support visibility are toggled by route.
+# Server port
+PORT=5000
+```
+
+> ⚠️ The `SUPABASE_SERVICE_ROLE_KEY` gives unrestricted access to your database. It lives only in the backend `.env` and must never appear in the frontend or be pushed to version control.
 
 ---
 
-## Database (Supabase)
+## Pages in the store
 
-The backend expects at least:
+### Public — anyone can visit
 
-- **`verp_users`**: User accounts; columns include `email`, `password_hash`, `otp_code`, `otp_expiry`, `otp_attempts`, `otp_last_sent`, `otp_send_count`, `otp_locked_until` (see server comments and migration above).
-- **`verp_return_requests`**: Return requests listed in the admin “return requests” API.
-- **`verp_orders`**: Orders; used by `POST /api/update-order-status`. Columns include `id`, `status`, `delivered_at` (set when status becomes `delivered`). Valid statuses: `ordered`, `pending`, `processing`, `shipped`, `delivered`, `returned`, `cancelled`.
+| Path | What it is |
+|------|-----------|
+| `/` | Homepage |
+| `/about` | About page |
+| `/categories` | All categories |
+| `/category/boxers` `/category/shoes` etc. | Individual category pages |
 
-Other tables may be used by the frontend (e.g. products, messages) via Supabase client; configure RLS and schema to match the app.
+### Account screens
+
+| Path | What it is |
+|------|-----------|
+| `/login` | Sign in |
+| `/signup` | Create account |
+| `/verify-otp` | Email verification |
+| `/forgot-password` | Request a reset |
+| `/reset-password` | Set a new password |
+
+### Logged-in customers only
+
+| Path | What it is |
+|------|-----------|
+| `/cart` | Shopping cart |
+| `/checkout` | Place an order |
+| `/orderpage` | View orders |
+| `/orderStatus` | Track a specific order |
+| `/inbox` | Messages from staff |
+| `/support` | Contact support |
+| `/reviews` | Leave a product review |
+| `/profile` | Account settings |
+
+### Staff console
+
+| Path | Who it's for |
+|------|-------------|
+| `/sys/console/login` | Staff sign-in |
+| `/sys/console/admin` | Admin only |
+| `/sys/console/terminal` | Assistant only |
 
 ---
 
-## Security
+## Server endpoints (for developers)
 
-- **Rate limiting**: Global (120 req/min), OTP send (3/10 min), OTP verify (10/10 min), staff login (10/15 min), password reset (5/15 min).
-- **OTP**: 6-digit code, 10-minute expiry; per-user 60s cooldown, max 3 sends per 10 min, 30-minute lock after exceeding; max 5 failed verify attempts before requiring a new code.
-- **Staff**: Admin endpoints use `Authorization: Basic` (never credentials in URL). Alert-staff uses `x-internal-secret`; keep `INTERNAL_SECRET` and `VITE_INTERNAL_SECRET` in sync and private.
-- **Paystack**: Server-side verification; optional `expectedEmail` and `expectedAmount` to prevent replay or spoofing.
-- **CORS**: Allowed origins are explicit (e.g. localhost:3000, 5173, 5000, and production frontend URL).
+All server routes start with `/api/`.
+
+### Customer auth & OTP
+
+- `POST /api/send-otp` — send a one-time code by email
+- `POST /api/verify-otp` — confirm the code
+- `POST /api/reset-password` — set a new password
+- `POST /api/register` — create a new account
+
+### Payments
+
+- `POST /api/verify-payment` — confirm a Paystack transaction
+- `POST /api/paystack-charge` — initiate a charge
+
+### Internal (requires `x-internal-secret` header)
+
+- `POST /api/alert-staff` — notify the team of a new event
+- `POST /api/send-email` — send a transactional email
+- `POST /api/update-return-status` — update a return request
+
+### Staff login & admin actions (requires staff credentials)
+
+- `POST /api/staff-login`
+- `GET /api/admin/return-requests`
+- `POST /api/update-order-status`
+
+### Health check
+
+- `GET /` — returns server status and timestamp
 
 ---
 
-## Deployment
+## Database tables (Supabase)
 
-- **Backend**: Deploy `backend/` to Vercel with `vercel.json` that builds `server.js` via `@vercel/node` and routes `/(.*)` to it. Set all backend env vars in the Vercel project. The server sets `trust proxy` to `1` so rate limiting works correctly behind Vercel’s reverse proxy.
-- **Frontend**: Deploy `frontend/` to Vercel with `vercel.json` that rewrites `/api/*` to the backend URL and `/(.*)` to `/index.html` for SPA routing. Set `VITE_SERVER_URL` (and other `VITE_*`) in the frontend project.
-- Production frontend URL is in backend CORS `allowedOrigins` (e.g. `https://verps-chi.vercel.app`); add or change as needed in `server.js`.
+These tables need to exist in your Supabase project. The app will not work without them.
+
+| Table | Purpose |
+|-------|---------|
+| `verp_users` | Customer accounts, OTPs, verification status |
+| `verp_products` | All products across all categories |
+| `verp_orders` | Customer orders and their status |
+| `verp_return_requests` | Return requests and their progress |
+| `verp_ads` | Promotional banners managed from the admin panel |
+| `verp_product_reviews` | Customer reviews, moderation status, and staff notes |
+
+You'll also need a **Supabase Storage bucket** called `verp-products` for product images and ad banner images.
 
 ---
 
-## Scripts Reference
+## Deploying to Vercel
 
-**Backend**
-- `npm start` — run `node server.js` (production).
-- For development with auto-restart you can use `nodemon server.js` if installed.
+The project deploys as two separate Vercel apps from the same repository.
 
-**Frontend**
-- `npm run dev` — Vite dev server (default port 5173).
-- `npm run build` — production build.
-- `npm run preview` — preview production build locally.
+**Backend:** `backend/vercel.json` deploys the server as a serverless Node function.
+
+**Frontend:** `frontend/vercel.json` serves the store as a single-page app and rewrites any `/api/*` request to your deployed backend URL. Update that URL in the config if your backend address ever changes.
+
+---
+
+## Common problems
+
+**"Missing Supabase environment variables!"**
+You haven't created `frontend/.env` or the values are wrong. Add them and restart the dev server.
+
+**Store can't reach the server**
+Your frontend origin isn't in the server's allowed list. Open `backend/server.js`, find the origins array, and add your frontend URL.
+
+**Emails aren't sending**
+Gmail requires an App Password — your regular Gmail password won't work. Generate one in your Google account security settings, then put it in `GMAIL_PASS`.
+
+**Payments failing**
+Double-check that `PAYSTACK_SECRET_KEY` is set in `backend/.env` and that the payment reference you're verifying matches what Paystack sent back.
 
 ---
 
 ## License
 
-ISC (see `backend/package.json`). Use and modify as needed for your project.
+Add a `LICENSE` file to the root of the `Verp/` folder if you'd like to specify usage terms.

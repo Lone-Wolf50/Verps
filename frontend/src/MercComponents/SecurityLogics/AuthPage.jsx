@@ -879,6 +879,9 @@ const AuthPage = ({ mode: propMode }) => {
     : "login";
   const mode = propMode || routeMode;
 
+  /* where to go after successful login — defaults to /loading which then redirects home */
+  const redirectTo = location.state?.redirect || null;
+
   const TITLES = {
     login:  { title: "Welcome Back",       sub: "Verify your credentials to proceed." },
     signup: { title: "Initialize Account", sub: "Create your identity in the VERP system." },
@@ -888,10 +891,10 @@ const AuthPage = ({ mode: propMode }) => {
   };
   const { title, sub } = TITLES[mode] || TITLES.login;
 
-  const handleSignupSuccess  = ()       => navigate("/verify-otp");
-  const handleLoginSuccess   = ()       => navigate("/loading");
-  const handleOtpSuccess     = (result) => { if (result === "reset") navigate("/reset-password"); else navigate("/loading"); };
-  const handleForgotSuccess  = ()       => navigate("/verify-otp");
+  const handleSignupSuccess  = ()       => navigate("/verify-otp", { state: location.state });
+  const handleLoginSuccess   = ()       => navigate(redirectTo || "/loading");
+  const handleOtpSuccess     = (result) => { if (result === "reset") navigate("/reset-password"); else navigate(redirectTo || "/loading"); };
+  const handleForgotSuccess  = ()       => navigate("/verify-otp", { state: location.state });
   const handleResetSuccess   = ()       => {
     Swal.fire({ title: "Password Updated!", icon: "success", timer: 1600, showConfirmButton: false, background: "#0a0a0a", color: "#fff" })
       .then(() => navigate("/login"));

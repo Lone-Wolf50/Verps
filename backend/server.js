@@ -611,6 +611,42 @@ app.post("/api/alert-staff", requireInternalSecret, async (req, res) => {
       );
       break;
 
+    // ── NEW_REVIEW: a client submitted a product rating ───────
+    // Fires once per review submission — no loop risk.
+    // DB write already happened client-side before this call.
+    // This endpoint only sends the notification email.
+    case "NEW_REVIEW": {
+      // Sanitise inputs — never trust the body directly in email HTML
+      const safeClient  = String(clientId  || "—").replace(/[<>"'&]/g, "");
+      const safeNote    = String(note       || "—").replace(/[<>"'&]/g, "");
+      const safeOrder   = String(orderNumber || "—").replace(/[<>"'&]/g, "");
+
+      to           = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
+      emailSubject = `⭐ New Product Review — ${safeOrder}`;
+      html = wrap(
+        "A New Review Has Been Submitted",
+        `<p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;">
+           A customer has rated a product. It is waiting in the moderation inbox.
+         </p>
+         ${row("Client",  safeClient, "#ec5b13")}
+         ${row("Detail",  safeNote,   "#38bdf8")}
+         ${row("Order",   safeOrder,  "#a78bfa")}
+         <div style="margin-top:16px;padding:14px;background:#111;border-radius:10px;border-left:3px solid #ec5b13;">
+           <p style="margin:0;color:rgba(255,255,255,0.35);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:6px;">
+             Next Steps
+           </p>
+           <p style="margin:0;color:rgba(255,255,255,0.6);font-size:12px;line-height:1.7;">
+             <strong style="color:#38bdf8;">Assistant:</strong> Open the Review Inbox and add your triage note.<br>
+             <strong style="color:#ec5b13;">Admin:</strong> Review the assistant note, then Accept or Decline.
+           </p>
+         </div>`,
+        DASH + "#reviews",
+        "OPEN REVIEW INBOX",
+      );
+      break;
+    }
+    // ── end NEW_REVIEW ─────────────────────────────────────────
+
     default:
       to = `${ADMIN_EMAIL}, ${ASSISTANT_EMAIL}`;
       emailSubject = `[VERP] ${type}`;

@@ -4,6 +4,7 @@ import CategoriesGrid from "./CategoriesGrid";
 import Bestsellers from "./Bestsellers";
 import BrandNarrative from "./BrandNarrative";
 import Newsletter from "./Newsletter";
+import AdBanner from "./AdBanner";
 
 const Homepage = () => {
 	const homeStyles = {
@@ -13,12 +14,15 @@ const Homepage = () => {
 		"--neutral-card": "#121212",
 	};
 	return (
-		<div  style={homeStyles}>
+		<div style={homeStyles}>
 			<main>
 				<Hero />
 				<CategoriesGrid />
+				<AdBanner position="after_categories" />
 				<Bestsellers />
+				<AdBanner position="after_bestsellers" />
 				<BrandNarrative />
+				<AdBanner position="after_narrative" />
 				<Newsletter />
 			</main>
 		</div>

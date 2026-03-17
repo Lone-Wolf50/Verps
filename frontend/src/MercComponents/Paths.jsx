@@ -48,6 +48,7 @@ import Cart           from "./Cartoptions/Cart.jsx";
 import Checkout       from "./Cartpages/Checkout.jsx";
 import InboxPage      from "./Administration/InboxPage.jsx";
 import SupportPage    from "./Messages/SupportPage.jsx";
+import ReviewPrompt   from "./Homepage/ReviewPrompt.jsx";
 
 /* ── Scroll to top on route change ── */
 function ScrollToTop() {
@@ -117,6 +118,26 @@ function useFloatVisible() {
   return isLoggedIn && isKnownPath && !isHomepage && !isSupportPage && !isAuthPath && !isStaffPath;
 }
 
+/* ── Review prompt visibility ────────────────────────────────────
+   Mount on any client-facing page once the user is logged in.
+   Staff paths and auth flows are excluded — no prompt there.
+── */
+function useReviewPromptEmail() {
+  const location = useLocation();
+  const [email, setEmail] = useState(localStorage.getItem("userEmail"));
+
+  useEffect(() => {
+    setEmail(localStorage.getItem("userEmail"));
+  }, [location]);
+
+  const isStaffPath = location.pathname.startsWith("/sys/console");
+  const AUTH_PATHS  = ["/login","/signup","/verify-otp","/forgot-password","/reset-password","/loading"];
+  const isAuthPath  = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
+
+  if (!email || isStaffPath || isAuthPath) return null;
+  return email;
+}
+
 function Paths() {
   const location        = useLocation();
   const isAdminPath     = location.pathname.startsWith("/sys/console/admin");
@@ -137,8 +158,9 @@ function Paths() {
     (p) => location.pathname === p || location.pathname.startsWith(p + "/")
   );
 
-  const showShell = !isAdminPath && !isAssistantPath && !isAuthPath && !is404;
-  const showFloat = useFloatVisible();
+  const showShell   = !isAdminPath && !isAssistantPath && !isAuthPath && !is404;
+  const showFloat   = useFloatVisible();
+  const reviewEmail = useReviewPromptEmail();
 
   return (
     <>
@@ -159,6 +181,7 @@ function Paths() {
 
       <CartProvider>
         {showFloat && <FloatingSupport />}
+        {reviewEmail && <ReviewPrompt userEmail={reviewEmail} />}
 
         <div className="flex flex-col min-h-screen">
           {showShell && <Navbar />}

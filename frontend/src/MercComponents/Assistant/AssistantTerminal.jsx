@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import OrderMessagesTab from "./OrderMessagesTab";
 
-import { T, NAV }    from "./Tokens";
+import { T, NAV, MOBILE_NAV } from "./Tokens";
 import Sidebar        from "./Sidebar";
 import InboxTabss     from "./InboxTabs";
 import QueueTab       from "./QueueTab";
@@ -12,6 +12,8 @@ import AnalyticsTab   from "./AnalyticsTab";
 import AdminChannel from "../Shared/AdminChannels.jsx"; // ← updated path
 import ChatHistoryTab from "./ChatHistoryTab";
 import PushModal      from "./PushModal";
+import ReviewInbox    from "../Shared/ReviewInbox";
+import ReviewAnalytics from "../Shared/ReviewAnalytics";
 
 /* ─── GLOBAL STYLES ──────────────────────────────────────────── */
 const STYLES = `
@@ -74,6 +76,31 @@ const AssistantTerminal = () => {
 	const liveSessions    = sessions.filter((s) => s.status === "live" || s.status === "escalated");
 	const waitingSessions = sessions.filter((s) => s.status === "waiting");
 
+	/* ── Review badge — persists across all tabs ── */
+	const [reviewCount, setReviewCount] = useState(0);
+
+	const fetchReviewCount = useCallback(async () => {
+		const { count } = await supabase
+			.from("verp_product_reviews")
+			.select("id", { count: "exact", head: true })
+			.eq("status", "pending");
+		if (count !== null) setReviewCount(count);
+	}, []);
+
+	useEffect(() => {
+		fetchReviewCount();
+		/* realtime — fires for assistant regardless of which tab is open */
+		const channel = supabase
+			.channel("at_review_badge")
+			.on(
+				"postgres_changes",
+				{ event: "*", schema: "public", table: "verp_product_reviews" },
+				() => { fetchReviewCount(); }
+			)
+			.subscribe();
+		return () => { supabase.removeChannel(channel); };
+	}, [fetchReviewCount]);
+
 	const handleStaffLogout = () => {
 		localStorage.removeItem("staffRole_assistant");
 		localStorage.removeItem("staffEmail_assistant");
@@ -123,7 +150,7 @@ const AssistantTerminal = () => {
 
 				{/* Sidebar */}
 				<div style={{ width: 220, flexShrink: 0, background: "#0a0a0a", borderRight: T.borderSub, position: isMobile ? "fixed" : "relative", top: 0, left: 0, height: "100vh", zIndex: 50, transform: isMobile ? (sidebarOpen ? "translateX(0)" : "translateX(-100%)") : "translateX(0)", transition: "transform 350ms cubic-bezier(0.16,1,0.3,1)" }}>
-					<Sidebar tab={tab} isMobile={isMobile} waitingCount={waitingCount} fullPushCount={fullPushCount} onTabSwitch={switchTab} onClose={() => setSidebarOpen(false)} onLogout={handleStaffLogout} />
+					<Sidebar tab={tab} isMobile={isMobile} waitingCount={waitingCount} fullPushCount={fullPushCount} reviewCount={reviewCount} onTabSwitch={switchTab} onClose={() => setSidebarOpen(false)} onLogout={handleStaffLogout} />
 				</div>
 
 				{/* Main */}
@@ -167,26 +194,47 @@ const AssistantTerminal = () => {
 					{tab === "analytics"      && <AnalyticsTab />}
 					{tab === "admin"          && <AdminChannel role="assistant" />} {/* ← role added */}
 					{tab === "history"        && <ChatHistoryTab />}
+					{tab === "reviews"        && <ReviewInbox role="assistant" />}
+					{tab === "review-analytics" && <ReviewAnalytics />}
 				</div>
 			</div>
 
-			{/* Mobile bottom nav */}
-			{isMobile && (
-				<nav className="at-bottom-nav">
-					{NAV.map((n) => {
-						const badge  = n.id === "queue" ? waitingCount : n.id === "inbox" ? fullPushCount : 0;
-						const active = tab === n.id;
-						return (
-							<button key={n.id} className={`at-nav-item${active ? " active" : ""}`} onClick={() => switchTab(n.id)}>
-								{badge > 0 && <span className="at-badge">{badge}</span>}
-								<span className="material-symbols-outlined at-nav-icon">{n.icon}</span>
-								<span className="at-nav-label">{n.label}</span>
-							</button>
-						);
-					})}
-				</nav>
-			)}
-		</>
+		{/* Mobile bottom nav */}
+		{isMobile && (
+			<nav className="at-bottom-nav">
+				{MOBILE_NAV.map((n) => {
+					const badge  = n.id === "queue" ? waitingCount : n.id === "inbox" ? fullPushCount : 0;
+					const active = tab === n.id;
+					return (
+						<button key={n.id} className={`at-nav-item${active ? " active" : ""}`} onClick={() => switchTab(n.id)}>
+							{badge > 0 && <span className="at-badge">{badge}</span>}
+							<span className="material-symbols-outlined at-nav-icon">{n.icon}</span>
+							<span className="at-nav-label">{n.label}</span>
+						</button>
+					);
+				})}
+				{/* More — opens the full sidebar drawer showing all secondary items.
+				    Active when the current tab is a secondary (non-bottom) item. */}
+				{(() => {
+					const isSecondaryActive = !MOBILE_NAV.some((n) => n.id === tab);
+					return (
+						<button
+							className={`at-nav-item${isSecondaryActive ? " active" : ""}`}
+							onClick={() => setSidebarOpen(true)}
+						>
+							{reviewCount > 0 && (
+								<span className="at-badge" style={{ background: "#ec5b13" }}>
+									{reviewCount}
+								</span>
+							)}
+							<span className="material-symbols-outlined at-nav-icon">more_horiz</span>
+							<span className="at-nav-label">More</span>
+						</button>
+					);
+				})()}
+			</nav>
+		)}
+	</>
 	);
 };
 

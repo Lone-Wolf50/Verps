@@ -14,7 +14,11 @@ import logo from "../../assets/V - 1.png";
 const Navbar_AuthPrompt = ({ isOpen, onClose, targetPath }) => {
   const navigate = useNavigate();
   if (!isOpen) return null;
-  const goTo = (path) => { onClose(); navigate(path, { state: { redirect: targetPath } }); };
+  const goTo = (path) => {
+    onClose();
+    /* pass the intended destination so AuthPage can redirect back after login */
+    navigate(path, { state: { redirect: targetPath || "/" } });
+  };
 
   return (
     <div
@@ -57,23 +61,54 @@ const Navbar_AuthPrompt = ({ isOpen, onClose, targetPath }) => {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <button onClick={() => goTo("/login")} style={{
             width: "100%", borderRadius: 14, padding: "14px 0",
-            background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
+            position: "relative", overflow: "hidden",
+            background: "linear-gradient(135deg, rgba(236,91,19,0.28) 0%, rgba(217,78,15,0.18) 50%, rgba(236,91,19,0.1) 100%)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(236,91,19,0.6)",
             color: "#fff", fontWeight: 800, fontSize: 10,
             letterSpacing: "0.22em", textTransform: "uppercase",
-            border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
-          }}>LOGIN</button>
+            cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
+            boxShadow: "0 0 24px rgba(236,91,19,0.25), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.2)",
+            transition: "all 200ms",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 0 36px rgba(236,91,19,0.5), inset 0 1px 0 rgba(255,255,255,0.2)"; e.currentTarget.style.borderColor = "rgba(236,91,19,0.9)"; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 0 24px rgba(236,91,19,0.25), inset 0 1px 0 rgba(255,255,255,0.14)"; e.currentTarget.style.borderColor = "rgba(236,91,19,0.6)"; }}
+          >
+            <span style={{
+              position: "absolute", top: 0, left: 0, width: "40%", height: "100%",
+              background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)",
+              animation: "authPromptShine 3s ease-in-out infinite",
+              pointerEvents: "none",
+            }} />
+            <style>{`@keyframes authPromptShine{0%{transform:translateX(-100%) skewX(-15deg)}100%{transform:translateX(350%) skewX(-15deg)}}`}</style>
+            LOGIN
+          </button>
           <button onClick={() => goTo("/signup")} style={{
             width: "100%", borderRadius: 14, padding: "14px 0",
-            background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
-            color: "rgba(255,255,255,0.72)", fontWeight: 700, fontSize: 10,
+            position: "relative", overflow: "hidden",
+            background: "linear-gradient(135deg, rgba(236,91,19,0.1) 0%, rgba(217,78,15,0.05) 50%, transparent 100%)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(236,91,19,0.3)",
+            color: "rgba(255,255,255,0.82)", fontWeight: 700, fontSize: 10,
             letterSpacing: "0.22em", textTransform: "uppercase",
             cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
-          }}>CREATE ACCOUNT</button>
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
+            transition: "all 200ms",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.55)"; e.currentTarget.style.color = "#ec5b13"; e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,91,19,0.16) 0%, rgba(217,78,15,0.08) 50%, transparent 100%)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.3)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,91,19,0.1) 0%, rgba(217,78,15,0.05) 50%, transparent 100%)"; }}
+          >CREATE ACCOUNT</button>
           <button onClick={onClose} style={{
             background: "none", border: "none", cursor: "pointer", marginTop: 4,
             fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase",
-            color: "rgba(255,255,255,0.18)", fontFamily: "'JetBrains Mono',monospace",
-          }}>CONTINUE BROWSING</button>
+            color: "rgba(255,255,255,0.22)", fontFamily: "'JetBrains Mono',monospace",
+            transition: "color 180ms",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.22)"; }}
+          >CONTINUE BROWSING</button>
         </div>
       </div>
     </div>
@@ -635,17 +670,46 @@ const Navbar = () => {
                 <Navbar_UserMenu userName={userName} avatarUrl={avatarUrl} onLogout={handleLogout} onTerminate={handleTerminate} />
               ) : (
                 <Link to="/login"
-                  className="flex items-center h-11 px-[22px] rounded-xl no-underline text-[10px] tracking-[0.22em] uppercase font-bold text-white transition-all duration-[200ms]"
+                  className="flex items-center h-11 px-[22px] rounded-xl no-underline text-[10px] tracking-[0.22em] uppercase font-bold transition-all duration-[200ms]"
                   style={{
                     fontFamily: "'JetBrains Mono',monospace",
-                    background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
-                    boxShadow: "0 4px 18px rgba(236,91,19,0.35)",
-                    border: "1px solid rgba(236,91,19,0.4)",
                     letterSpacing: "0.22em",
+                    position: "relative",
+                    overflow: "hidden",
+                    /* glass base */
+                    background: "linear-gradient(135deg, rgba(236,91,19,0.22) 0%, rgba(217,78,15,0.14) 50%, rgba(236,91,19,0.08) 100%)",
+                    backdropFilter: "blur(20px)",
+                    WebkitBackdropFilter: "blur(20px)",
+                    border: "1px solid rgba(236,91,19,0.55)",
+                    color: "#ec5b13",
+                    boxShadow: "0 0 18px rgba(236,91,19,0.2), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.2)",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 6px 26px rgba(236,91,19,0.55)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 4px 18px rgba(236,91,19,0.35)"; e.currentTarget.style.transform = "none"; }}
-                >LOGIN</Link>
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,91,19,0.45) 0%, rgba(217,78,15,0.32) 50%, rgba(236,91,19,0.22) 100%)";
+                    e.currentTarget.style.boxShadow = "0 0 28px rgba(236,91,19,0.45), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.2)";
+                    e.currentTarget.style.borderColor = "rgba(236,91,19,0.85)";
+                    e.currentTarget.style.color = "#fff";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,91,19,0.22) 0%, rgba(217,78,15,0.14) 50%, rgba(236,91,19,0.08) 100%)";
+                    e.currentTarget.style.boxShadow = "0 0 18px rgba(236,91,19,0.2), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.2)";
+                    e.currentTarget.style.borderColor = "rgba(236,91,19,0.55)";
+                    e.currentTarget.style.color = "#ec5b13";
+                    e.currentTarget.style.transform = "none";
+                  }}
+                >
+                  {/* shine sweep */}
+                  <span style={{
+                    position: "absolute", top: 0, left: 0,
+                    width: "40%", height: "100%",
+                    background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)",
+                    animation: "navLoginShine 3.5s ease-in-out infinite",
+                    pointerEvents: "none",
+                  }} />
+                  <style>{`@keyframes navLoginShine{0%{transform:translateX(-100%) skewX(-15deg)}100%{transform:translateX(350%) skewX(-15deg)}}`}</style>
+                  LOGIN
+                </Link>
               )}
             </div>
           </div>
@@ -655,11 +719,16 @@ const Navbar = () => {
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
       {/* ══════════════════════════════════════════════════════════
-          MOBILE BOTTOM DOCK
+          MOBILE BOTTOM DOCK — hidden on category pages
           ══════════════════════════════════════════════════════════ */}
       <div
         className="md:hidden fixed bottom-3 left-0 right-0 z-[200] flex justify-center px-4"
-        style={{ willChange: "transform", transform: "translateZ(0)" }}
+        style={{
+          willChange: "transform",
+          transform: "translateZ(0)",
+          /* hide on category template pages — they have their own full-screen layout */
+          display: location.pathname.startsWith("/category/") ? "none" : undefined,
+        }}
       >
         <nav
           className="rounded-[2.5rem] relative overflow-hidden w-full"

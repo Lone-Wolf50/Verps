@@ -41,12 +41,26 @@ export const ORDER_COLOR = {
 	cancelled:  T.cancelled,
 };
 
+/*
+ * NAV — full list used by the desktop Sidebar (all items visible).
+ *
+ * mobileBottom: true  → also appears in the mobile bottom bar (max 5 items).
+ * mobileBottom: false → sidebar drawer only on mobile.
+ *
+ * Primary items (mobileBottom: true) are the ones staff need most often.
+ * Secondary items live behind the "More" divider in the sidebar drawer.
+ */
 export const NAV = [
-	{ id: "inbox",          icon: "chat_bubble",          label: "Live Inbox"     },
-	{ id: "queue",          icon: "group_add",            label: "Queue"          },
-	{ id: "orders",         icon: "inventory_2",          label: "Orders"         },
-	{ id: "order-messages", icon: "mark_email_read",      label: "Order Messages" },
-	{ id: "analytics",      icon: "bar_chart",            label: "Analytics"      },
-	{ id: "admin",          icon: "admin_panel_settings", label: "Admin Channel"  },
-	{ id: "history",        icon: "history",              label: "Chat History"   },
+	{ id: "inbox",            icon: "chat_bubble",          label: "Live Inbox",       mobileBottom: true  },
+	{ id: "queue",            icon: "group_add",            label: "Queue",            mobileBottom: true  },
+	{ id: "orders",           icon: "inventory_2",          label: "Orders",           mobileBottom: true  },
+	{ id: "order-messages",   icon: "mark_email_read",      label: "Order Messages",   mobileBottom: false },
+	{ id: "analytics",        icon: "bar_chart",            label: "Analytics",        mobileBottom: true  },
+	{ id: "admin",            icon: "admin_panel_settings", label: "Admin Channel",    mobileBottom: true  },
+	{ id: "history",          icon: "history",              label: "Chat History",     mobileBottom: false },
+	{ id: "reviews",          icon: "rate_review",          label: "Reviews",          mobileBottom: false },
+	{ id: "review-analytics", icon: "insights",             label: "Review Analytics", mobileBottom: false },
 ];
+
+/** Items shown in the mobile bottom bar — keeps it to 5 max, no crowding. */
+export const MOBILE_NAV = NAV.filter((n) => n.mobileBottom);

@@ -9,6 +9,9 @@ import Analytics from "./Analytics";
 import ClientMessages from "./ClientMessages";
 import AdminChannel from "../Shared/AdminChannels.jsx"; // ← updated path
 import Broadcasts from "./Broadcasts";
+import ReviewInbox from "../Shared/ReviewInbox";
+import ReviewAnalytics from "../Shared/ReviewAnalytics";
+import AdsManager from "./AdsManager";
 import Swal from "sweetalert2";
 
 /* ─── HELPERS ────────────────────────────────────────────────── */
@@ -27,7 +30,7 @@ const PREMIUM_SWAL = {
 };
 
 /* Tabs that need 100vh flex layout (no page padding) */
-const FULLSCREEN_TABS = new Set(["messages", "channel", "inbox"]);
+const FULLSCREEN_TABS = new Set(["messages", "channel", "inbox", "reviews"]);
 
 /* ─── MAIN COMPONENT ─────────────────────────────────────────── */
 const AdminDashBoard = () => {
@@ -120,6 +123,9 @@ const AdminDashBoard = () => {
 		inbox: "Supervisor Inbox",
 		broadcasts: "Broadcasts",
 		analytics: "Analytics & Broadcast",
+		reviews: "Review Inbox",
+		"review-analytics": "Review Analytics",
+		ads: "Ad Manager",
 	};
 
 	/* ── Content renderer ── */
@@ -161,6 +167,12 @@ const AdminDashBoard = () => {
 				return <Analytics />;
 			case "broadcasts":
 				return <Broadcasts />;
+			case "reviews":
+				return <ReviewInbox role="admin" />;
+			case "review-analytics":
+				return <ReviewAnalytics />;
+			case "ads":
+				return <AdsManager />;
 			default:
 				return <Inventory products={products} />;
 		}

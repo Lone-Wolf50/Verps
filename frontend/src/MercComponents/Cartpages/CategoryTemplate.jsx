@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useCart } from "../Cartoptions/CartContext";
 import { supabase } from "../supabaseClient";
+import PopularBadge from "../Shared/PopularBadge";
+import usePopularProducts from "../Shared/usePopularProducts";
 
 /* ══════════════════════════════════════════════════════════════
    PREMIUM TOAST — floating, material-design-inspired
@@ -305,8 +307,29 @@ const CategoryTemplate = ({
 
 	const closeQuickView = () => {
 		setSelectedProduct(null);
+		setProductReviews([]);
 		document.body.style.overflow = "unset";
 	};
+
+	/* ── Reviews for quick-view ── */
+	const [productReviews, setProductReviews] = useState([]);
+	const [reviewsLoading, setReviewsLoading] = useState(false);
+
+	useEffect(() => {
+		if (!selectedProduct) return;
+		setReviewsLoading(true);
+		supabase
+			.from("verp_product_reviews")
+			.select("rating, review_text, customer_email, created_at")
+			.eq("status", "accepted")
+			.ilike("product_name", selectedProduct.name) // case-insensitive match
+			.order("created_at", { ascending: false })
+			.limit(4)
+			.then(({ data }) => {
+				setProductReviews(data || []);
+				setReviewsLoading(false);
+			});
+	}, [selectedProduct?.id]);
 
 	// Wrapped add-to-cart that fires the toast
 	const handleAddToCart = (product) => {
@@ -317,6 +340,8 @@ const CategoryTemplate = ({
 	const relatedItems = products
 		.filter((p) => p.id !== selectedProduct?.id)
 		.slice(0, 6);
+
+	const popularIds = usePopularProducts();
 
 	return (
 		<div className="bg-[#050505] text-white min-h-screen font-sans">
@@ -404,6 +429,7 @@ const CategoryTemplate = ({
 											</span>
 										</div>
 									)}
+									{popularIds.has(p.id) && <PopularBadge />}
 								</div>
 								<div className="p-3 md:p-5 flex flex-col flex-grow bg-gradient-to-b from-transparent to-black/20">
 									<div className="mb-2">
@@ -547,6 +573,72 @@ const CategoryTemplate = ({
 										</div>
 									</div>
 								)}
+
+								{/* ── CUSTOMER REVIEWS ── */}
+								<div className="pt-4 border-t border-white/5">
+									<div className="flex items-center justify-between mb-3">
+										<h4 className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30">
+											Customer Reviews
+										</h4>
+										{productReviews.length > 0 && (
+											<span style={{
+												fontFamily: "'JetBrains Mono',monospace",
+												fontSize: 8,
+												color: "#ec5b13",
+												letterSpacing: "0.1em",
+											}}>
+												{(productReviews.reduce((a, r) => a + r.rating, 0) / productReviews.length).toFixed(1)} ★ avg
+											</span>
+										)}
+									</div>
+
+									{reviewsLoading ? (
+										<div style={{ display: "flex", justifyContent: "center", padding: "16px 0" }}>
+											<div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #ec5b13", borderTopColor: "transparent", animation: "ct-spin 0.7s linear infinite" }} />
+											<style>{`@keyframes ct-spin{to{transform:rotate(360deg)}}`}</style>
+										</div>
+									) : productReviews.length === 0 ? (
+										<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.2)", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+											No reviews yet — be the first
+										</p>
+									) : (
+										<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+											{productReviews.map((r, i) => (
+												<div
+													key={i}
+													style={{
+														padding: "11px 14px",
+														background: "rgba(255,255,255,0.02)",
+														border: "1px solid rgba(255,255,255,0.05)",
+														borderLeft: "2px solid rgba(236,91,19,0.4)",
+														borderRadius: 10,
+													}}
+												>
+													{/* stars + date */}
+													<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+														<span style={{ color: "#ec5b13", fontSize: 11, letterSpacing: 2 }}>
+															{"★".repeat(r.rating)}
+															<span style={{ color: "rgba(255,255,255,0.1)" }}>{"★".repeat(5 - r.rating)}</span>
+														</span>
+														<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em" }}>
+															{new Date(r.created_at).toLocaleDateString("en", { day: "numeric", month: "short" })}
+														</span>
+													</div>
+													{/* text */}
+													{r.review_text && (
+														<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+															"{r.review_text}"
+														</p>
+													)}
+													{/* masked email */}
+													<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.18)", marginTop: 5, letterSpacing: "0.1em" }}>
+														{r.customer_email?.split("@")[0].slice(0, 3)}***
+													</p>
+												</div>
+											))}
+										</div>
+									)}
+								</div>
 							</div>
 
 							<div className="p-5 md:p-7 pt-3 md:pt-4 bg-[#0a0a0a] border-t border-white/5 flex-shrink-0">

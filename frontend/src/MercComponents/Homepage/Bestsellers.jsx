@@ -3,6 +3,8 @@ import { supabase } from "../supabaseClient";
 import { Link } from "react-router-dom";
 import { useCart } from "../Cartoptions/CartContext";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import PopularBadge from "../Shared/PopularBadge";
+import usePopularProducts from "../Shared/usePopularProducts";
 
 /* ─── constants ─────────────────────────────────────────────── */
 const VISIBLE    = 4;
@@ -51,6 +53,7 @@ const Bestsellers = () => {
   const isMobileRef  = useRef(isMobile);
 
   const { addToCart } = useCart();
+  const popularIds    = usePopularProducts();
 
   /* ── keep refs in sync ── */
   useEffect(() => { poolRef.current      = pool;        }, [pool]);
@@ -262,6 +265,8 @@ const Bestsellers = () => {
             className="bs-img"
             onError={e => { e.currentTarget.style.display = "none"; }}
           />
+          {/* popular badge — top right corner */}
+          {popularIds.has(product.id) && <PopularBadge />}
           <div style={{ position: "absolute", top: 12, left: 12, zIndex: 3 }}>
             <span style={{
               fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 800,

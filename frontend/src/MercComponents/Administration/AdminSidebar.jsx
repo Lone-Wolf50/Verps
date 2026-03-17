@@ -3,13 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 const NAV = [
-	{ id: "inventory",   icon: "inventory_2",         label: "Inventory"       },
-	{ id: "add-product", icon: "add_circle",           label: "Add Product"     },
-	{ id: "requests",    icon: "receipt_long",         label: "Order Flow"      },
-	{ id: "messages",    icon: "forum",                label: "Client Messages" },
-	{ id: "channel",     icon: "mark_unread_chat_alt", label: "Assistant Inbox" },
-	{ id: "analytics",   icon: "bar_chart",            label: "Analytics"       },
-	{ id: "broadcasts",  icon: "campaign",             label: "Broadcasts"      },
+	{ id: "inventory",        icon: "inventory_2",         label: "Inventory"         },
+	{ id: "add-product",      icon: "add_circle",           label: "Add Product"       },
+	{ id: "requests",         icon: "receipt_long",         label: "Order Flow"        },
+	{ id: "messages",         icon: "forum",                label: "Client Messages"   },
+	{ id: "channel",          icon: "mark_unread_chat_alt", label: "Assistant Inbox"   },
+	{ id: "reviews",          icon: "rate_review",          label: "Reviews"           },
+	{ id: "review-analytics", icon: "insights",             label: "Review Analytics"  },
+	{ id: "ads",              icon: "campaign",             label: "Ad Manager"        },
+	{ id: "analytics",        icon: "bar_chart",            label: "Analytics"         },
+	{ id: "broadcasts",       icon: "tv",                   label: "Broadcasts"        },
 ];
 
 // Export so AdminLayout can read the collapsed width for its margin
@@ -22,6 +25,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 	const [mobileOpen, setMobileOpen]         = useState(false);
 	const [channelBadge, setChannelBadge]     = useState(0);
 	const [escalatedBadge, setEscalatedBadge] = useState(0);
+	const [reviewBadge, setReviewBadge]       = useState(0);
 
 	const handleStaffLogout = () => {
 		localStorage.removeItem("staffRole");
@@ -43,14 +47,20 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 				.select("id", { count: "exact", head: true })
 				.in("status", ["escalated", "full_push"]);
 			if (ec !== null) setEscalatedBadge(ec);
+
+			const { count: rc } = await supabase
+				.from("verp_product_reviews")
+				.select("id", { count: "exact", head: true })
+				.eq("status", "pending");
+			if (rc !== null) setReviewBadge(rc);
 		};
 		fetchBadges();
 		const iv = setInterval(fetchBadges, 10000);
 		return () => clearInterval(iv);
 	}, []);
 
-	const getBadge      = (id) => id === "channel" ? channelBadge : id === "messages" ? escalatedBadge : 0;
-	const getBadgeColor = (id) => id === "channel" ? "#38bdf8" : "#ef4444";
+	const getBadge      = (id) => id === "channel" ? channelBadge : id === "messages" ? escalatedBadge : id === "reviews" ? reviewBadge : 0;
+	const getBadgeColor = (id) => id === "channel" ? "#38bdf8" : id === "reviews" ? "#ec5b13" : "#ef4444";
 
 	/* ── Sidebar inner content — used by both rail & mobile drawer ── */
 	const SidebarInner = ({ showLabels = false, onClose }) => (
