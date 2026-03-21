@@ -590,6 +590,18 @@ const Navbar = () => {
               boxShadow: "0 4px 14px rgba(236,91,19,0.35)",
               border: "1px solid rgba(236,91,19,0.4)",
             }}>LOGIN</Link>
+          ) : location.pathname === "/cart" ? (
+            /* On the cart page: show a Home shortcut instead of a duplicate cart icon */
+            <Link to="/" style={{
+              position: "relative", width: 40, height: 40,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              borderRadius: 10, textDecoration: "none",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              color: "rgba(255,255,255,0.72)",
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>home</span>
+            </Link>
           ) : (
             <Link to="/cart" style={{
               position: "relative", width: 40, height: 40,
@@ -627,7 +639,7 @@ const Navbar = () => {
                 { name: `Cart${isLoggedIn && itemCount > 0 ? ` (${itemCount})` : ""}`, path: "/cart", protected: true, isCart: true },
                 { name: "Inbox",   path: "/inbox",     protected: true, isInbox: true },
                 { name: "Reviews", path: "/reviews",   protected: true },
-              ].map((link) => (
+              ].filter(link => !(link.isCart && location.pathname === "/cart")).map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -657,14 +669,17 @@ const Navbar = () => {
               className="w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/50 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms]">
               <span className="material-symbols-outlined text-xl">search</span>
             </button>
-            <Link to="/cart" onClick={(e) => handleNavClick(e, "/cart")}
-              className="relative w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/50 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms] no-underline">
-              <span className="material-symbols-outlined text-xl">shopping_cart</span>
-              {isLoggedIn && itemCount > 0 && (
-                <span className="absolute top-1 right-1 w-[15px] h-[15px] rounded-full bg-[#ec5b13] text-white flex items-center justify-center font-black border-[1.5px] border-black/90"
-                  style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }}>{itemCount}</span>
-              )}
-            </Link>
+            {/* Cart icon — hidden on /cart page to avoid duplicate with the page itself */}
+            {location.pathname !== "/cart" && (
+              <Link to="/cart" onClick={(e) => handleNavClick(e, "/cart")}
+                className="relative w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/50 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms] no-underline">
+                <span className="material-symbols-outlined text-xl">shopping_cart</span>
+                {isLoggedIn && itemCount > 0 && (
+                  <span className="absolute top-1 right-1 w-[15px] h-[15px] rounded-full bg-[#ec5b13] text-white flex items-center justify-center font-black border-[1.5px] border-black/90"
+                    style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }}>{itemCount}</span>
+                )}
+              </Link>
+            )}
             <div className="ml-1">
               {isLoggedIn ? (
                 <Navbar_UserMenu userName={userName} avatarUrl={avatarUrl} onLogout={handleLogout} onTerminate={handleTerminate} />
@@ -726,8 +741,8 @@ const Navbar = () => {
         style={{
           willChange: "transform",
           transform: "translateZ(0)",
-          /* hide on category template pages — they have their own full-screen layout */
-          display: location.pathname.startsWith("/category/") ? "none" : undefined,
+          /* hide on category template pages and the cart page — they have their own layout / back nav */
+          display: (location.pathname.startsWith("/category/") || location.pathname === "/cart") ? "none" : undefined,
         }}
       >
         <nav
@@ -749,7 +764,7 @@ const Navbar = () => {
           }} />
 
           <div style={{ display: "flex", alignItems: "stretch", padding: "8px 4px 8px" }}>
-            {bottomNavItems.map((item) => {
+            {bottomNavItems.filter(item => !(item.isCart && location.pathname === "/cart")).map((item) => {
               const active   = item.path ? isActive(item.path) : false;
               const isLocked = !isLoggedIn && item.protected;
 

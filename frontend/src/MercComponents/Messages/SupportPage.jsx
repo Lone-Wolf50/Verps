@@ -5,6 +5,95 @@ import ChatBot from "./ChatBot";
 import LiveAssistantChat from "./LiveAssistantChat";
 import Swal from "sweetalert2";
 
+/* ══════════════════════════════════════════════════════
+   BOT HINT BANNER
+   Shown once at the top of the bot chat so users know
+   this is a scripted assistant, not a real AI or person.
+   Dismissible. Has a direct "talk to a person" CTA.
+   ══════════════════════════════════════════════════════ */
+const BotHintBanner = ({ onEscalate }) => {
+  const [visible, setVisible] = useState(true);
+  if (!visible) return null;
+  return (
+    <div style={{
+      marginBottom: 10,
+      borderRadius: 16,
+      background: "rgba(236,91,19,0.06)",
+      border: "1px solid rgba(236,91,19,0.16)",
+      padding: "12px 14px",
+      animation: "hintIn 0.35s cubic-bezier(0.16,1,0.3,1) both",
+      position: "relative",
+      flexShrink: 0,
+    }}>
+      <style>{`
+        @keyframes hintIn {
+          from { opacity:0; transform:translateY(-8px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+      `}</style>
+
+      {/* Top row: label + dismiss */}
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:7 }}>
+        <span className="material-symbols-outlined" style={{ fontSize:15, color:"#ec5b13", flexShrink:0 }}>smart_toy</span>
+        <span style={{
+          fontFamily:"'JetBrains Mono',monospace",
+          fontSize:8, letterSpacing:"0.22em",
+          textTransform:"uppercase", color:"#ec5b13", fontWeight:700,
+        }}>Scripted Bot — Not AI</span>
+        <button
+          onClick={() => setVisible(false)}
+          style={{
+            marginLeft:"auto", background:"none", border:"none",
+            cursor:"pointer", padding:0, color:"rgba(255,255,255,0.2)",
+            display:"flex", alignItems:"center", lineHeight:1,
+            transition:"color 150ms",
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = "rgba(255,255,255,0.5)"}
+          onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.2)"}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize:15 }}>close</span>
+        </button>
+      </div>
+
+      {/* Message */}
+      <p style={{
+        fontFamily:"'DM Sans',sans-serif",
+        fontSize:12, lineHeight:1.6,
+        color:"rgba(255,255,255,0.45)",
+        margin:"0 0 10px",
+      }}>
+        This assistant follows a <strong style={{ color:"rgba(255,255,255,0.65)", fontWeight:600 }}>fixed script</strong> — it can handle orders, sizing and returns, but it won't understand open-ended questions the way a real person would. If it can't help you, connect to the team directly.
+      </p>
+
+      {/* CTA */}
+      <button
+        onClick={onEscalate}
+        style={{
+          display:"inline-flex", alignItems:"center", gap:6,
+          padding:"6px 13px", borderRadius:8,
+          background:"transparent",
+          border:"1px solid rgba(236,91,19,0.28)",
+          cursor:"pointer", transition:"all 180ms",
+          fontFamily:"'JetBrains Mono',monospace",
+          fontSize:8, letterSpacing:"0.18em",
+          textTransform:"uppercase", color:"#ec5b13",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = "rgba(236,91,19,0.1)";
+          e.currentTarget.style.borderColor = "rgba(236,91,19,0.5)";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "transparent";
+          e.currentTarget.style.borderColor = "rgba(236,91,19,0.28)";
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize:13 }}>support_agent</span>
+        Talk to Support
+      </button>
+    </div>
+  );
+};
+
 const SupportPage = () => {
   const navigate = useNavigate();
   const [sessionStatus, setSessionStatus] = useState("bot");
@@ -114,7 +203,7 @@ const SupportPage = () => {
           WebkitBackdropFilter:"blur(20px)",
         }}>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             style={{
               display:"flex",
               alignItems:"center",
@@ -193,7 +282,12 @@ const SupportPage = () => {
         }}>
           <div style={{width:"100%", maxWidth:480, height:"100%", maxHeight:640, display:"flex", flexDirection:"column"}}>
 
-            {sessionStatus === "bot" && <ChatBot onEscalate={handleEscalate} chatId={chatId}/>}
+            {sessionStatus === "bot" && (
+              <>
+                <BotHintBanner onEscalate={handleEscalate} />
+                <ChatBot onEscalate={handleEscalate} chatId={chatId}/>
+              </>
+            )}
 
             {sessionStatus === "waiting" && (
               <div style={{height:"100%",background:"#0d0d0d",border:"1px solid rgba(255,255,255,0.06)",borderRadius:28,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:28}}>
