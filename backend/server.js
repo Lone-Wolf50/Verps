@@ -26,7 +26,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5000",
-  "https://verps-chi.vercel.app",
+  "https://verpembodiments.com",
+
   "http://192.168.0.3:5173",
 ];
 
