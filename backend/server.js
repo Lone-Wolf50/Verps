@@ -26,7 +26,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5000",
-  "https://verpembodiments.com",
+   "https://verpembodiments.com",
 
   "http://192.168.0.3:5173",
 ];
@@ -179,6 +179,34 @@ const row = (label, value, color) =>
     <span style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.15em;">${label}</span>
     <span style="font-size:11px;font-weight:600;color:${color || "#fff"};">${value || "—"}</span>
   </div>`;
+
+  
+app.get('/sitemap.xml', async (req, res) => {
+  const staticPaths = ['/', '/about', '/categories'];
+  let allPaths = [...staticPaths];
+
+  try {
+    const { data, error } = await supabase
+      .from('verp_categories')
+      .select('name');
+
+    if (!error && data) {
+      const categoryPaths = data.map(({ name }) =>`/category/${name}`);
+      allPaths = [...allPaths, ...categoryPaths];
+    }
+  } catch (_) {}
+
+  const baseUrl = 'https://verpembodiments.com';
+  const urls = allPaths
+    .map(path =>   <url><loc>${baseUrl}${path}</loc></url>)
+    .join('\n');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>;`
+
+  res.set('Content-Type', 'application/xml; charset=utf-8');
+  res.set('Cache-Control', 'no-store');
+  res.send(xml);
+});
 
 // ── 1. Staff Login ─────────────────────────────────────────────
 app.post("/api/staff-login", staffLoginLimiter, (req, res) => {

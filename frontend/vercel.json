@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://verps-sever.vercel.app/sitemap.xml"
+    },
+    {
       "source": "/api/:path*",
-      "destination": "https://verps-sever.vercel.app*"
+      "destination": "https://verps-sever.vercel.app/api/:path*"
     },
     {
       "source": "/(.*)",
