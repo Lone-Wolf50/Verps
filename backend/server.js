@@ -182,7 +182,7 @@ const row = (label, value, color) =>
 
   
 app.get('/sitemap.xml', async (req, res) => {
-  const staticPaths = ['/', '/about', '/categories'];
+  const staticPaths = ['/', '/about'];
   let allPaths = [...staticPaths];
 
   try {

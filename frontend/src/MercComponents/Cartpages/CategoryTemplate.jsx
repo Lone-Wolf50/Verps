@@ -217,7 +217,7 @@ const ToastStack = ({ toasts, onDismiss }) => {
 									"linear-gradient(90deg, #ec5b13, rgba(236,91,19,0.4))",
 								borderRadius: "0 0 16px 16px",
 								animation: `progressBar ${t.duration}ms linear forwards`,
-								animationDelay: "50ms",
+						animationDelay: "50ms",
 							}}
 						/>
 					</div>
@@ -298,6 +298,17 @@ const CategoryTemplate = ({
 		};
 		if (categoryName) fetchProducts();
 	}, [categoryName]);
+	useEffect(() => {
+  let link = document.querySelector("link[rel='canonical']");
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "canonical";
+    document.head.appendChild(link);
+  }
+  link.href = `https://verpembodiments.com/category/${categoryName}`;
+
+  return () => link.remove();
+}, [categoryName]);
 
 	const openQuickView = (product) => {
 		setSelectedProduct(product);
