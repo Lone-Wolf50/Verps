@@ -21,12 +21,32 @@ if (typeof document !== "undefined" && !document.getElementById("_hero_kf")) {
     .hero-text-in     { animation: heroTextIn   0.8s cubic-bezier(0.16,1,0.3,1) both; }
     .scroll-indicator { animation: scrollBounce 2.6s ease-in-out infinite; }
 
-    /* Mobile: compact hero — 85svh, never taller than 680px */
-    @media (max-width: 768px) {
+    /* ── Responsive hero heights ─────────────────────────────
+       Mobile  (<768px):  85svh, capped at 680px
+       Tablet  (768–1023px): 70vh, capped at 640px
+       Desktop (≥1024px): 78vh, capped at 760px
+       This keeps the hero proportionate at every breakpoint
+       without dominating the viewport on large screens.
+    ─────────────────────────────────────────────────────── */
+    @media (max-width: 767px) {
       .hero-root {
         height: 85svh !important;
         min-height: 520px !important;
         max-height: 680px !important;
+      }
+    }
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .hero-root {
+        height: 70vh !important;
+        min-height: 460px !important;
+        max-height: 640px !important;
+      }
+    }
+    @media (min-width: 1024px) {
+      .hero-root {
+        height: 78vh !important;
+        min-height: 560px !important;
+        max-height: 760px !important;
       }
     }
   `;
@@ -66,7 +86,7 @@ const Hero = () => {
   const slide = slides[current];
 
   return (
-    <header className="hero-root relative w-full bg-[#080808]" style={{ height: "100vh", minHeight: 600 }}>
+    <header className="hero-root relative w-full bg-[#080808]" style={{ minHeight: 520 }}>
 
       {/* Stacked images */}
       {slides.map((s, i) => (
@@ -85,7 +105,7 @@ const Hero = () => {
         </div>
       ))}
 
-      {/* ── Slide dots — top right (desktop) ── */}
+      {/* ── Slide dots — top right (tablet + desktop) ── */}
       <div className="absolute z-30 hidden md:flex flex-col items-end gap-1" style={{ top: NAVBAR_H + 20, right: 40 }}>
         <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase" }}>
           {slide.index} / 0{slides.length}
@@ -102,17 +122,17 @@ const Hero = () => {
       {/* ── Main content ── */}
       <div
         className="absolute inset-0 z-20 flex flex-col justify-end px-6 md:px-16 max-w-5xl"
-        style={{ paddingTop: NAVBAR_H + 20, paddingBottom: "clamp(80px, 12vh, 120px)" }}
+        style={{ paddingTop: NAVBAR_H + 20, paddingBottom: "clamp(60px, 9vh, 100px)" }}
       >
         {/* Label */}
-        <div key={`label-${current}`} className="hero-text-in flex items-center gap-3 mb-4" style={{ animationDelay: "0.1s" }}>
+        <div key={`label-${current}`} className="hero-text-in flex items-center gap-3 mb-3 md:mb-4" style={{ animationDelay: "0.1s" }}>
           <div style={{ width: 24, height: 1, background: "#ec5b13" }} />
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.4em", color: "#ec5b13", textTransform: "uppercase", fontWeight: 700 }}>
             {slide.label}
           </span>
         </div>
 
-        {/* Headline */}
+        {/* Headline — tighter on tablet/desktop */}
         <div key={`headline-${current}`}>
           {slide.headline.map((line, i) => (
             <h1
@@ -120,7 +140,8 @@ const Hero = () => {
               className="hero-text-in"
               style={{
                 fontFamily: "'DM Sans',sans-serif",
-                fontSize: "clamp(32px, 6vw, 90px)",
+                /* clamp: 28px mobile → 52px tablet → 72px desktop (was 90px) */
+                fontSize: "clamp(28px, 5.5vw, 72px)",
                 fontWeight: 900,
                 letterSpacing: "-0.03em",
                 lineHeight: 0.95,
@@ -134,19 +155,19 @@ const Hero = () => {
           ))}
         </div>
 
-        {/* Subtext — shorter on mobile */}
+        {/* Subtext */}
         <p
           key={`sub-${current}`}
-          className="hero-text-in mt-4 max-w-xs md:max-w-sm"
+          className="hero-text-in mt-3 md:mt-4 max-w-xs md:max-w-sm"
           style={{
             fontFamily: "'DM Sans',sans-serif",
-            fontSize: "clamp(11px, 1.4vw, 13px)",
+            fontSize: "clamp(11px, 1.3vw, 13px)",
             fontWeight: 400,
             lineHeight: 1.7,
             color: "rgba(255,255,255,0.62)",
             animationDelay: "0.35s",
             display: "-webkit-box",
-            WebkitLineClamp: 2,          /* max 2 lines on mobile to save space */
+            WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
           }}
@@ -158,12 +179,12 @@ const Hero = () => {
         {slide.hasButtons && (
           <div
             key={`cta-${current}`}
-            className="hero-text-in flex flex-col sm:flex-row gap-3 mt-6"
+            className="hero-text-in flex flex-col sm:flex-row gap-3 mt-5 md:mt-6"
             style={{ animationDelay: "0.45s" }}
           >
             <Link
               to="/categories"
-              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#ec5b13", color: "#000", padding: "13px 26px", borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", textDecoration: "none", boxShadow: "0 8px 28px rgba(236,91,19,0.35)", whiteSpace: "nowrap" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#ec5b13", color: "#000", padding: "12px 24px", borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", textDecoration: "none", boxShadow: "0 8px 28px rgba(236,91,19,0.35)", whiteSpace: "nowrap" }}
               onMouseEnter={e => e.currentTarget.style.boxShadow = "0 12px 40px rgba(236,91,19,0.55)"}
               onMouseLeave={e => e.currentTarget.style.boxShadow = "0 8px 28px rgba(236,91,19,0.35)"}
             >
@@ -174,7 +195,7 @@ const Hero = () => {
             <Link
               to="/categories"
               state={{ scrollTo: "bestsellers" }}
-              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.05)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", padding: "13px 26px", borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", textDecoration: "none", whiteSpace: "nowrap" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.05)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", padding: "12px 24px", borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", textDecoration: "none", whiteSpace: "nowrap" }}
               onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
             >
@@ -187,9 +208,9 @@ const Hero = () => {
       {/* ── Bottom bar: dots (mobile) + nav arrows ── */}
       <div
         className="absolute z-30 flex items-center justify-between w-full px-6 md:px-12"
-        style={{ bottom: 28 }}
+        style={{ bottom: 22 }}
       >
-        {/* Mobile dots — left side */}
+        {/* Mobile dots */}
         <div className="flex items-center gap-3 md:hidden">
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", color: "rgba(255,255,255,0.5)" }}>
             {slide.index} / 0{slides.length}
@@ -199,42 +220,29 @@ const Hero = () => {
               <button
                 key={i}
                 onClick={() => goTo(i)}
-                style={{
-                  height: 2,
-                  width: i === current ? 22 : 8,
-                  background: i === current ? "#ec5b13" : "rgba(255,255,255,0.2)",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.5s ease",
-                  borderRadius: 2,
-                  padding: 0,
-                }}
+                style={{ height: 2, width: i === current ? 22 : 8, background: i === current ? "#ec5b13" : "rgba(255,255,255,0.2)", border: "none", cursor: "pointer", transition: "all 0.5s ease", borderRadius: 2, padding: 0 }}
               />
             ))}
           </div>
         </div>
 
-        {/* Spacer on desktop (dots are top-right) */}
         <div className="hidden md:block" />
 
-        {/* Nav arrows — right side, both mobile & desktop */}
+        {/* Nav arrows */}
         <div className="flex gap-2">
           {[{ fn: back, icon: "arrow_back" }, { fn: next, icon: "arrow_forward" }].map(({ fn, icon }, i) => (
             <button
               key={i}
               onClick={fn}
               style={{
-                width: 42,
-                height: 42,
+                width: 38, height: 38,
                 borderRadius: "50%",
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,255,255,0.12)",
                 backdropFilter: "blur(12px)",
                 color: "rgba(255,255,255,0.6)",
                 cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 200ms",
               }}
               onMouseEnter={e => { e.currentTarget.style.background = "rgba(236,91,19,0.2)"; e.currentTarget.style.borderColor = "#ec5b13"; e.currentTarget.style.color = "white"; }}
@@ -246,12 +254,12 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Scroll indicator — desktop only so it doesn't crowd mobile */}
+      {/* Scroll indicator — desktop only */}
       <div
         className="scroll-indicator absolute z-30 hidden md:flex flex-col items-center gap-1"
-        style={{ bottom: 30, left: "50%" }}
+        style={{ bottom: 24, left: "50%" }}
       >
-        <div style={{ width: 1, height: 24, background: "linear-gradient(to bottom,transparent,rgba(255,255,255,0.3))" }} />
+        <div style={{ width: 1, height: 20, background: "linear-gradient(to bottom,transparent,rgba(255,255,255,0.3))" }} />
         <svg width="16" height="10" viewBox="0 0 16 10" fill="none">
           <path d="M1.5 1.5L8 8L14.5 1.5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
