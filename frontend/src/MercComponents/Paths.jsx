@@ -7,6 +7,9 @@ import Footer            from "./Homepage/Footer.jsx";
 import FloatingSupport   from "./Homepage/FloatingSupport.jsx";
 import { CartProvider }  from "./Cartoptions/CartContext";
 
+/* ── PWA install banner ── */
+import VerpInstallBanner from "./Homepage/VerpInstallBanner.jsx";
+
 /* ── Auth & loading ── */
 import AuthPage       from "./SecurityLogics/AuthPage.jsx";
 import RandomLoader   from "./SecurityLogics/RandomLoader.jsx";
@@ -138,6 +141,17 @@ function useReviewPromptEmail() {
   return email;
 }
 
+/* ── Install banner visibility ───────────────────────────────────
+   Show on all client-facing pages — staff and auth flows excluded.
+── */
+function useShowInstallBanner() {
+  const location = useLocation();
+  const isStaffPath = location.pathname.startsWith("/sys/console");
+  const AUTH_PATHS  = ["/login","/signup","/verify-otp","/forgot-password","/reset-password","/loading"];
+  const isAuthPath  = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
+  return !isStaffPath && !isAuthPath;
+}
+
 function Paths() {
   const location        = useLocation();
   const isAdminPath     = location.pathname.startsWith("/sys/console/admin");
@@ -158,9 +172,10 @@ function Paths() {
     (p) => location.pathname === p || location.pathname.startsWith(p + "/")
   );
 
-  const showShell   = !isAdminPath && !isAssistantPath && !isAuthPath && !is404;
-  const showFloat   = useFloatVisible();
-  const reviewEmail = useReviewPromptEmail();
+  const showShell        = !isAdminPath && !isAssistantPath && !isAuthPath && !is404;
+  const showFloat        = useFloatVisible();
+  const reviewEmail      = useReviewPromptEmail();
+  const showInstallBanner = useShowInstallBanner();
 
   return (
     <>
@@ -182,6 +197,7 @@ function Paths() {
       <CartProvider>
         {showFloat && <FloatingSupport />}
         {reviewEmail && <ReviewPrompt userEmail={reviewEmail} />}
+        {showInstallBanner && <VerpInstallBanner />}
 
         <div className="flex flex-col min-h-screen">
           {showShell && <Navbar />}
