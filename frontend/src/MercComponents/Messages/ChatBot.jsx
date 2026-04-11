@@ -130,35 +130,57 @@ const Bubble = ({ msg, animate }) => {
 };
 
 /* ─── OPTION CHIP ───────────────────────────────────────────── */
-const OptionChip = ({ opt, onClick }) => {
+const OptionChip = ({ opt, onClick, supportOnline }) => {
   const [hov,setHov]=useState(false);
   const isLive = opt.id==="live";
+  /* Offline styling for the live button */
+  const liveOffline = isLive && !supportOnline;
   return (
     <button onClick={()=>onClick(opt)}
       onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{display:"flex",alignItems:"center",gap:7,
         padding:isLive?"10px 18px":"8px 13px",
-        background:isLive?(hov?"rgba(236,91,19,0.15)":"rgba(236,91,19,0.06)")
+        background:liveOffline?(hov?"rgba(239,68,68,0.1)":"rgba(239,68,68,0.05)")
+                 :isLive?(hov?"rgba(236,91,19,0.15)":"rgba(236,91,19,0.06)")
                         :(hov?"rgba(255,255,255,0.05)":"#111"),
-        border:isLive?(hov?"1px solid rgba(236,91,19,0.6)":"1px solid rgba(236,91,19,0.25)")
+        border:liveOffline?(hov?"1px solid rgba(239,68,68,0.45)":"1px solid rgba(239,68,68,0.22)")
+              :isLive?(hov?"1px solid rgba(236,91,19,0.6)":"1px solid rgba(236,91,19,0.25)")
                      :(hov?"1px solid rgba(236,91,19,0.35)":"1px solid rgba(255,255,255,0.08)"),
         borderRadius:999,fontFamily:"'DM Sans',sans-serif",fontSize:9,fontWeight:600,
         letterSpacing:"0.16em",textTransform:"uppercase",
-        color:isLive?"#ec5b13":(hov?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.45)"),
+        color:liveOffline?"rgba(239,68,68,0.65)":isLive?"#ec5b13":(hov?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.45)"),
         cursor:"pointer",transition:"all 200ms",
         width:isLive?"100%":"auto",justifyContent:isLive?"center":"flex-start"}}>
       <span className="material-symbols-outlined"
-        style={{fontSize:13,color:isLive?"#ec5b13":(hov?"#ec5b13":"rgba(255,255,255,0.3)")}}>
+        style={{fontSize:13,color:liveOffline?"rgba(239,68,68,0.6)":isLive?"#ec5b13":(hov?"#ec5b13":"rgba(255,255,255,0.3)")}}>
         {opt.icon}
       </span>
       {opt.label}
-      {isLive&&<span className="material-symbols-outlined" style={{fontSize:12,marginLeft:"auto"}}>chevron_right</span>}
+      {isLive && !liveOffline && <span className="material-symbols-outlined" style={{fontSize:12,marginLeft:"auto"}}>chevron_right</span>}
+      {/* Offline badge on the live button */}
+      {liveOffline && (
+        <span style={{
+          marginLeft:"auto",
+          display:"inline-flex",alignItems:"center",gap:4,
+          padding:"2px 8px",
+          background:"rgba(239,68,68,0.1)",
+          border:"1px solid rgba(239,68,68,0.2)",
+          borderRadius:999,
+          fontFamily:"'JetBrains Mono',monospace",
+          fontSize:6,letterSpacing:"0.2em",
+          color:"rgba(239,68,68,0.6)",
+          textTransform:"uppercase",
+        }}>
+          <span style={{width:5,height:5,borderRadius:"50%",background:"rgba(239,68,68,0.5)",display:"inline-block"}}/>
+          Offline
+        </span>
+      )}
     </button>
   );
 };
 
 /* ─── MAIN CHATBOT ──────────────────────────────────────────── */
-const ChatBot = ({ onEscalate, mode, chatId, onFinishedRating }) => {
+const ChatBot = ({ onEscalate, onEscalateFailed, mode, chatId, onFinishedRating, supportOnline = true }) => {
   const [messages,       setMessages]       = useState([]);
   const [isTyping,       setIsTyping]       = useState(false);
   const [showOptions,    setShowOptions]    = useState(false);
@@ -256,7 +278,13 @@ const ChatBot = ({ onEscalate, mode, chatId, onFinishedRating }) => {
       await addBotMsg("PLEASE ENTER YOUR ORDER ID. FORMAT: ORD-XXXXXXXX");
       setAwaitingOrder(true);
     } else if (opt.id === "live") {
-      onEscalate();
+      if (!supportOnline) {
+        // Support is offline — show the offline modal but restore options immediately
+        onEscalate();
+        setShowOptions(true);
+      } else {
+        onEscalate();
+      }
     } else if (BOT_ANSWERS[opt.id]) {
       await addBotMsg(BOT_ANSWERS[opt.id]);
       // Done with FAQ — clear storage, show options fresh
@@ -356,10 +384,10 @@ const ChatBot = ({ onEscalate, mode, chatId, onFinishedRating }) => {
           <div style={{display:"flex",flexDirection:"column",gap:6}}>
             <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
               {BOT_OPTIONS.filter(o=>o.id!=="live").map(opt=>(
-                <OptionChip key={opt.id} opt={opt} onClick={handleOption}/>
+                <OptionChip key={opt.id} opt={opt} onClick={handleOption} supportOnline={supportOnline}/>
               ))}
             </div>
-            <OptionChip opt={BOT_OPTIONS.find(o=>o.id==="live")} onClick={handleOption}/>
+            <OptionChip opt={BOT_OPTIONS.find(o=>o.id==="live")} onClick={handleOption} supportOnline={supportOnline}/>
           </div>
         )}
         <form onSubmit={handleSend} style={{display:"flex",gap:8}}>
