@@ -299,16 +299,29 @@ const CategoryTemplate = ({
 		if (categoryName) fetchProducts();
 	}, [categoryName]);
 	useEffect(() => {
+  // Tell Google not to index category pages
+  const metaRobots = document.createElement("meta");
+  metaRobots.name = "robots";
+  metaRobots.content = "noindex, nofollow";
+  document.head.appendChild(metaRobots);
+
+  // Point canonical back to homepage
   let link = document.querySelector("link[rel='canonical']");
-  if (!link) {
+  const createdCanonical = !link;
+  if (createdCanonical) {
     link = document.createElement("link");
     link.rel = "canonical";
     document.head.appendChild(link);
   }
-  link.href = `https://verpembodiments.com/category/${categoryName}`;
+  const prevCanonical = link.href;
+  link.href = "https://verpembodiments.com";
 
-  return () => link.remove();
-}, [categoryName]);
+  return () => {
+    document.head.removeChild(metaRobots);
+    if (createdCanonical) document.head.removeChild(link);
+    else link.href = prevCanonical;
+  };
+}, []);
 
 	const openQuickView = (product) => {
 		setSelectedProduct(product);
