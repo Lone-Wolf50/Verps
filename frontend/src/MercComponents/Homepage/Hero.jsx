@@ -161,15 +161,11 @@ const Hero = () => {
           className="hero-text-in mt-3 md:mt-4 max-w-xs md:max-w-sm"
           style={{
             fontFamily: "'DM Sans',sans-serif",
-            fontSize: "clamp(11px, 1.3vw, 13px)",
+            fontSize: "clamp(13px, 1.6vw, 16px)",
             fontWeight: 400,
             lineHeight: 1.7,
-            color: "rgba(255,255,255,0.62)",
+            color: "rgba(255,255,255,0.78)",
             animationDelay: "0.35s",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
           }}
         >
           {slide.sub}

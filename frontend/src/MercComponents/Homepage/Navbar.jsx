@@ -16,7 +16,6 @@ const Navbar_AuthPrompt = ({ isOpen, onClose, targetPath }) => {
   if (!isOpen) return null;
   const goTo = (path) => {
     onClose();
-    /* pass the intended destination so AuthPage can redirect back after login */
     navigate(path, { state: { redirect: targetPath || "/" } });
   };
 
@@ -56,7 +55,7 @@ const Navbar_AuthPrompt = ({ isOpen, onClose, targetPath }) => {
             <span className="material-symbols-outlined" style={{ color: "#ec5b13", fontSize: 24 }}>lock</span>
           </div>
           <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, color: "#fff", margin: "0 0 6px" }}>Members Only</h2>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.36)", lineHeight: 1.65, margin: 0 }}>Sign in to access this area of Verp.</p>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, margin: 0 }}>Sign in to access this area of Verp.</p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <button onClick={() => goTo("/login")} style={{
@@ -66,7 +65,7 @@ const Navbar_AuthPrompt = ({ isOpen, onClose, targetPath }) => {
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             border: "1px solid rgba(236,91,19,0.6)",
-            color: "#fff", fontWeight: 800, fontSize: 10,
+            color: "#fff", fontWeight: 800, fontSize: 11,
             letterSpacing: "0.22em", textTransform: "uppercase",
             cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
             boxShadow: "0 0 24px rgba(236,91,19,0.25), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.2)",
@@ -91,23 +90,23 @@ const Navbar_AuthPrompt = ({ isOpen, onClose, targetPath }) => {
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
             border: "1px solid rgba(236,91,19,0.3)",
-            color: "rgba(255,255,255,0.82)", fontWeight: 700, fontSize: 10,
+            color: "rgba(255,255,255,0.9)", fontWeight: 700, fontSize: 11,
             letterSpacing: "0.22em", textTransform: "uppercase",
             cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
             transition: "all 200ms",
           }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.55)"; e.currentTarget.style.color = "#ec5b13"; e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,91,19,0.16) 0%, rgba(217,78,15,0.08) 50%, transparent 100%)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.3)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,91,19,0.1) 0%, rgba(217,78,15,0.05) 50%, transparent 100%)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.3)"; e.currentTarget.style.color = "rgba(255,255,255,0.9)"; e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,91,19,0.1) 0%, rgba(217,78,15,0.05) 50%, transparent 100%)"; }}
           >CREATE ACCOUNT</button>
           <button onClick={onClose} style={{
             background: "none", border: "none", cursor: "pointer", marginTop: 4,
-            fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase",
-            color: "rgba(255,255,255,0.22)", fontFamily: "'JetBrains Mono',monospace",
+            fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase",
+            color: "rgba(255,255,255,0.45)", fontFamily: "'JetBrains Mono',monospace",
             transition: "color 180ms",
           }}
-            onMouseEnter={e => { e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.22)"; }}
+            onMouseEnter={e => { e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}
           >CONTINUE BROWSING</button>
         </div>
       </div>
@@ -166,8 +165,8 @@ const ProfileTray = ({ userName, avatarUrl, onLogout, onTerminate, isOpen, onClo
               }
             </div>
             <div style={{ overflow: "hidden" }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</p>
-              <p style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>VAULT MEMBER</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</p>
+              <p style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>VAULT MEMBER</p>
             </div>
           </div>
         </div>
@@ -180,10 +179,10 @@ const ProfileTray = ({ userName, avatarUrl, onLogout, onTerminate, isOpen, onClo
             <Link key={item.path} to={item.path} onClick={onClose} style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "9px 10px", borderRadius: 10, textDecoration: "none",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(255,255,255,0.75)",
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{item.icon}</span>
-              <span style={{ fontSize: 12, fontWeight: 600 }}>{item.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{item.label}</span>
             </Link>
           ))}
         </div>
@@ -191,20 +190,20 @@ const ProfileTray = ({ userName, avatarUrl, onLogout, onTerminate, isOpen, onClo
           <button onClick={() => { onClose(); onLogout(); }} style={{
             display: "flex", alignItems: "center", gap: 10, width: "100%",
             padding: "9px 10px", borderRadius: 10, border: "none",
-            background: "transparent", cursor: "pointer", color: "rgba(239,68,68,0.72)",
+            background: "transparent", cursor: "pointer", color: "rgba(239,68,68,0.85)",
             fontFamily: "'DM Sans',sans-serif", marginTop: 4,
           }}>
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>logout</span>
-            <span style={{ fontSize: 12, fontWeight: 600 }}>Sign Out</span>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Sign Out</span>
           </button>
           <button onClick={async () => { onClose(); if (onTerminate) await onTerminate(); }} style={{
             display: "flex", alignItems: "center", gap: 10, width: "100%",
             padding: "9px 10px", borderRadius: 10, border: "none",
-            background: "transparent", cursor: "pointer", color: "rgba(239,68,68,0.4)",
+            background: "transparent", cursor: "pointer", color: "rgba(239,68,68,0.6)",
             fontFamily: "'DM Sans',sans-serif",
           }}>
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete_forever</span>
-            <span style={{ fontSize: 12, fontWeight: 600 }}>Terminate Account</span>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Terminate Account</span>
           </button>
         </div>
       </div>
@@ -256,8 +255,8 @@ const Navbar_UserMenu = ({ userName, avatarUrl, onLogout, onTerminate }) => {
                 }
               </div>
               <div className="overflow-hidden">
-                <p className="text-sm font-semibold truncate text-white/85" style={{ margin: 0 }}>{userName}</p>
-                <p className="text-[7px] tracking-[0.2em] uppercase mt-0.5 text-white/20" style={{ fontFamily: "'JetBrains Mono',monospace", margin: 0 }}>VAULT MEMBER</p>
+                <p className="text-sm font-semibold truncate" style={{ margin: 0, color: "#fff" }}>{userName}</p>
+                <p className="text-[9px] tracking-[0.2em] uppercase mt-0.5" style={{ fontFamily: "'JetBrains Mono',monospace", margin: 0, color: "rgba(255,255,255,0.4)" }}>VAULT MEMBER</p>
               </div>
             </div>
             {[
@@ -266,19 +265,22 @@ const Navbar_UserMenu = ({ userName, avatarUrl, onLogout, onTerminate }) => {
               { label: "Inbox",   icon: "mail",        path: "/inbox"     },
             ].map((item) => (
               <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
-                className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg no-underline text-white/60 hover:bg-white/[0.05] transition-colors duration-150">
+                className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg no-underline hover:bg-white/[0.05] transition-colors duration-150"
+                style={{ color: "rgba(255,255,255,0.75)" }}>
                 <span className="material-symbols-outlined text-base">{item.icon}</span>
                 <span className="text-sm font-semibold">{item.label}</span>
               </Link>
             ))}
             <div className="mt-1 pt-1 border-t border-white/[0.05]">
               <button onClick={() => { setOpen(false); onLogout(); }}
-                className="flex items-center gap-2.5 w-full px-3.5 py-2 rounded-lg border-0 bg-transparent cursor-pointer text-left text-red-500/70 hover:bg-red-500/[0.06] transition-colors">
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 rounded-lg border-0 bg-transparent cursor-pointer text-left hover:bg-red-500/[0.06] transition-colors"
+                style={{ color: "rgba(239,68,68,0.85)" }}>
                 <span className="material-symbols-outlined text-base">logout</span>
                 <span className="text-sm font-semibold">Sign Out</span>
               </button>
               <button onClick={async () => { setOpen(false); if (onTerminate) await onTerminate(); }}
-                className="flex items-center gap-2.5 w-full px-3.5 py-2 rounded-lg border-0 bg-transparent cursor-pointer text-left mt-0.5 text-red-500/45 hover:bg-red-500/[0.06] transition-colors">
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 rounded-lg border-0 bg-transparent cursor-pointer text-left mt-0.5 hover:bg-red-500/[0.06] transition-colors"
+                style={{ color: "rgba(239,68,68,0.6)" }}>
                 <span className="material-symbols-outlined text-base">delete_forever</span>
                 <span className="text-sm font-semibold">Terminate Account</span>
               </button>
@@ -304,13 +306,13 @@ const useTerminateAccount = () => {
     });
     if (!r1.isConfirmed) return;
     const r2 = await Swal.fire({
-  title: "ARE YOU ABSOLUTELY SURE?", input: "text", inputPlaceholder: 'Type "DELETE" to confirm',
-  background: "#0a0a0a", color: "#fff", showCancelButton: true,
-  confirmButtonColor: "#ef4444", cancelButtonColor: "#1c1c1c",
-  confirmButtonText: "PROCEED WITH DELETION", cancelButtonText: "CANCEL",
-  inputAttributes: { style: "color: #ffffff; caret-color: #ffffff;" },  // ← add this
-  inputValidator: (v) => v !== "DELETE" ? "You must type DELETE to confirm" : null,
-});
+      title: "ARE YOU ABSOLUTELY SURE?", input: "text", inputPlaceholder: 'Type "DELETE" to confirm',
+      background: "#0a0a0a", color: "#fff", showCancelButton: true,
+      confirmButtonColor: "#ef4444", cancelButtonColor: "#1c1c1c",
+      confirmButtonText: "PROCEED WITH DELETION", cancelButtonText: "CANCEL",
+      inputAttributes: { style: "color: #ffffff; caret-color: #ffffff;" },
+      inputValidator: (v) => v !== "DELETE" ? "You must type DELETE to confirm" : null,
+    });
     if (!r2.isConfirmed) return;
     const email  = localStorage.getItem("userEmail");
     const userId = localStorage.getItem("userId");
@@ -353,31 +355,22 @@ const Navbar = () => {
     ? cart.reduce((t, i) => t + i.quantity, 0)
     : 0;
 
-  /* ── Sync auth state on route change ── */
   useEffect(() => {
     const loggedIn = !!localStorage.getItem("userEmail");
     setIsLoggedIn(loggedIn);
     setUserName(localStorage.getItem("userName") || "");
   }, [location]);
 
-  /* ── Listen for name/avatar changes from ProfilePage (same tab) ── */
   useEffect(() => {
     const onStorage = (e) => {
-      if (e.key === "userName" && e.newValue) {
-        setUserName(e.newValue);
-      }
-      if (e.key === "userAvatarUrl") {
-        setAvatarUrl(e.newValue || null);
-      }
-      if (e.key === "userEmail" && !e.newValue) {
-        setIsLoggedIn(false);
-      }
+      if (e.key === "userName" && e.newValue) setUserName(e.newValue);
+      if (e.key === "userAvatarUrl") setAvatarUrl(e.newValue || null);
+      if (e.key === "userEmail" && !e.newValue) setIsLoggedIn(false);
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  /* ── Load avatar from verp_users_details ── */
   useEffect(() => {
     if (!isLoggedIn) { setAvatarUrl(null); return; }
     const userId = localStorage.getItem("userId");
@@ -397,14 +390,12 @@ const Navbar = () => {
       });
   }, [isLoggedIn, location.pathname]);
 
-  /* ── Scroll detection ── */
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* ── Session hijack guard ── */
   useEffect(() => {
     if (!isLoggedIn) return;
     const check = async () => {
@@ -425,7 +416,6 @@ const Navbar = () => {
     return () => clearInterval(id);
   }, [isLoggedIn, navigate]);
 
-  /* ── Unread inbox polling ── */
   useEffect(() => {
     const fetchUnread = async () => {
       const email = localStorage.getItem("userEmail");
@@ -443,7 +433,6 @@ const Navbar = () => {
     return () => clearInterval(id);
   }, [isLoggedIn]);
 
-  /* ── Body scroll lock for search overlay ── */
   useEffect(() => {
     if (isSearchOpen) {
       const sw = window.innerWidth - document.documentElement.clientWidth;
@@ -459,12 +448,10 @@ const Navbar = () => {
     };
   }, [isSearchOpen]);
 
-  /* ── Session lifetime guard ── */
   useEffect(() => {
     const vrpAlive    = sessionStorage.getItem("vrp_alive");
     const staffRoleLS = localStorage.getItem("staffRole");
     const staffRoleSS = sessionStorage.getItem("staffRole");
-
     if (!vrpAlive) {
       const isStaffSession = staffRoleLS || staffRoleSS;
       if (!isStaffSession) {
@@ -485,7 +472,6 @@ const Navbar = () => {
     return () => window.removeEventListener("pagehide", onPageHide);
   }, []);
 
-  /* ── Cart guard ── */
   useEffect(() => {
     window.__vaultAddToCartGuard = () => {
       if (!isLoggedIn) { setAuthPrompt({ open: true, path: "/cart" }); return false; }
@@ -533,14 +519,9 @@ const Navbar = () => {
         targetPath={authPrompt.path}
       />
 
-      {/* ══════════════════════════════════════════════════
-          PERMANENT SPACER
-          ══════════════════════════════════════════════════ */}
       <div className="h-[68px] md:h-[82px] w-full shrink-0" aria-hidden="true" />
 
-      {/* ══════════════════════════════════════════════════
-          TOP NAV
-          ══════════════════════════════════════════════════ */}
+      {/* TOP NAV */}
       <nav
         className="fixed top-0 left-0 right-0 z-[100] h-[68px] md:h-[82px]"
         style={{
@@ -556,7 +537,7 @@ const Navbar = () => {
           transform: "translateZ(0)",
         }}
       >
-        {/* ── MOBILE TOP BAR ── */}
+        {/* MOBILE TOP BAR */}
         <div className="md:hidden h-full px-5 flex items-center justify-between">
           <Link to="/" className="flex items-center shrink-0 no-underline">
             <img src={logo} alt="Vault" className="h-9 object-contain" style={{ filter: "invert(1) brightness(2)" }} />
@@ -569,13 +550,13 @@ const Navbar = () => {
                 flex: 1, maxWidth: 200, margin: "0 12px",
                 display: "flex", alignItems: "center", gap: 8,
                 padding: "9px 14px", borderRadius: 12,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                cursor: "pointer", color: "rgba(255,255,255,0.52)",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                cursor: "pointer", color: "rgba(255,255,255,0.7)",
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>search</span>
-              <span style={{ fontSize: 11, letterSpacing: "0.05em", fontFamily: "'DM Sans',sans-serif" }}>Search...</span>
+              <span style={{ fontSize: 12, letterSpacing: "0.05em", fontFamily: "'DM Sans',sans-serif" }}>Search...</span>
             </button>
           )}
 
@@ -583,7 +564,7 @@ const Navbar = () => {
             <Link to="/login" style={{
               display: "flex", alignItems: "center", height: 36,
               padding: "0 18px", borderRadius: 10, textDecoration: "none",
-              fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase",
+              fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
               fontWeight: 800, color: "#fff",
               background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
               fontFamily: "'JetBrains Mono',monospace",
@@ -591,14 +572,13 @@ const Navbar = () => {
               border: "1px solid rgba(236,91,19,0.4)",
             }}>LOGIN</Link>
           ) : location.pathname === "/cart" ? (
-            /* On the cart page: show a Home shortcut instead of a duplicate cart icon */
             <Link to="/" style={{
               position: "relative", width: 40, height: 40,
               display: "flex", alignItems: "center", justifyContent: "center",
               borderRadius: 10, textDecoration: "none",
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              color: "rgba(255,255,255,0.72)",
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.85)",
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>home</span>
             </Link>
@@ -607,9 +587,9 @@ const Navbar = () => {
               position: "relative", width: 40, height: 40,
               display: "flex", alignItems: "center", justifyContent: "center",
               borderRadius: 10, textDecoration: "none",
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              color: "rgba(255,255,255,0.72)",
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.85)",
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>shopping_cart</span>
               {itemCount > 0 && (
@@ -626,7 +606,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* ── DESKTOP TOP BAR ── */}
+        {/* DESKTOP TOP BAR */}
         <div className="hidden md:flex h-full px-10 items-center justify-between">
           <div className="flex items-center gap-12">
             <Link to="/" className="flex items-center shrink-0">
@@ -647,7 +627,7 @@ const Navbar = () => {
                   className={`relative no-underline text-[12.5px] font-bold tracking-[0.16em] uppercase pb-0.5
                     after:absolute after:bottom-[-4px] after:left-0 after:h-px after:bg-[#ec5b13]
                     after:transition-[width] after:duration-[250ms]
-                    ${isActive(link.path) ? "text-[#ec5b13] after:w-full" : "text-white/52 after:w-0 hover:after:w-full"}`}
+                    ${isActive(link.path) ? "text-[#ec5b13] after:w-full" : "text-white/70 after:w-0 hover:after:w-full"}`}
                   style={{ fontFamily: "'DM Sans',sans-serif" }}
                 >
                   {link.name}
@@ -666,13 +646,12 @@ const Navbar = () => {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setIsSearchOpen(true)}
-              className="w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/50 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms]">
+              className="w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/70 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms]">
               <span className="material-symbols-outlined text-xl">search</span>
             </button>
-            {/* Cart icon — hidden on /cart page to avoid duplicate with the page itself */}
             {location.pathname !== "/cart" && (
               <Link to="/cart" onClick={(e) => handleNavClick(e, "/cart")}
-                className="relative w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/50 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms] no-underline">
+                className="relative w-11 h-11 flex items-center justify-center rounded-xl border border-white/[0.07] cursor-pointer text-white/70 bg-white/[0.04] hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/30 hover:text-[#ec5b13] transition-all duration-[180ms] no-underline">
                 <span className="material-symbols-outlined text-xl">shopping_cart</span>
                 {isLoggedIn && itemCount > 0 && (
                   <span className="absolute top-1 right-1 w-[15px] h-[15px] rounded-full bg-[#ec5b13] text-white flex items-center justify-center font-black border-[1.5px] border-black/90"
@@ -691,7 +670,6 @@ const Navbar = () => {
                     letterSpacing: "0.22em",
                     position: "relative",
                     overflow: "hidden",
-                    /* glass base */
                     background: "linear-gradient(135deg, rgba(236,91,19,0.22) 0%, rgba(217,78,15,0.14) 50%, rgba(236,91,19,0.08) 100%)",
                     backdropFilter: "blur(20px)",
                     WebkitBackdropFilter: "blur(20px)",
@@ -714,7 +692,6 @@ const Navbar = () => {
                     e.currentTarget.style.transform = "none";
                   }}
                 >
-                  {/* shine sweep */}
                   <span style={{
                     position: "absolute", top: 0, left: 0,
                     width: "40%", height: "100%",
@@ -733,15 +710,12 @@ const Navbar = () => {
 
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-      {/* ══════════════════════════════════════════════════════════
-          MOBILE BOTTOM DOCK — hidden on category pages
-          ══════════════════════════════════════════════════════════ */}
+      {/* MOBILE BOTTOM DOCK */}
       <div
         className="md:hidden fixed bottom-3 left-0 right-0 z-[200] flex justify-center px-4"
         style={{
           willChange: "transform",
           transform: "translateZ(0)",
-          /* hide on category template pages and the cart page — they have their own layout / back nav */
           display: (location.pathname.startsWith("/category/") || location.pathname === "/cart") ? "none" : undefined,
         }}
       >
@@ -749,10 +723,10 @@ const Navbar = () => {
           className="rounded-[2.5rem] relative overflow-hidden w-full"
           style={{
             maxWidth: 420,
-            background: "rgba(8,8,8,0.92)",
+            background: "rgba(8,8,8,0.95)",
             backdropFilter: "blur(40px)",
             WebkitBackdropFilter: "blur(40px)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.1)",
             boxShadow: "0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
             paddingBottom: "env(safe-area-inset-bottom, 0px)",
           }}
@@ -786,7 +760,7 @@ const Navbar = () => {
                       background: avatarUrl ? "transparent" : "linear-gradient(135deg,#ec5b13,#d94e0f)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontFamily: "'Playfair Display',serif", color: "#fff", fontSize: 13, fontStyle: "italic",
-                      border: profileTrayOpen ? "2px solid rgba(236,91,19,0.7)" : "2px solid rgba(236,91,19,0.3)",
+                      border: profileTrayOpen ? "2px solid rgba(236,91,19,0.7)" : "2px solid rgba(236,91,19,0.4)",
                       boxShadow: profileTrayOpen ? "0 0 14px rgba(236,91,19,0.4)" : "none",
                       transition: "border-color 0.18s ease, box-shadow 0.18s ease",
                       overflow: "hidden",
@@ -797,9 +771,9 @@ const Navbar = () => {
                       }
                     </div>
                     <span style={{
-                      fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase",
+                      fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase",
                       fontFamily: "'JetBrains Mono',monospace",
-                      color: profileTrayOpen ? "#ec5b13" : "rgba(255,255,255,0.52)",
+                      color: profileTrayOpen ? "#ec5b13" : "rgba(255,255,255,0.65)",
                       transition: "color 0.18s ease",
                     }}>You</span>
                   </button>
@@ -819,19 +793,19 @@ const Navbar = () => {
                     }}
                   >
                     <div className="lock-shimmer" style={{ position: "relative" }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 21, color: "rgba(255,255,255,0.15)", display: "block" }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 21, color: "rgba(255,255,255,0.35)", display: "block" }}>
                         {item.icon}
                       </span>
                       <span className="material-symbols-outlined" style={{
                         position: "absolute", bottom: -3, right: -6,
-                        fontSize: 9, color: "rgba(236,91,19,0.45)",
+                        fontSize: 9, color: "rgba(236,91,19,0.6)",
                         background: "rgba(8,8,8,0.95)", borderRadius: 3, padding: "0 1px",
                       }}>lock</span>
                     </div>
                     <span style={{
-                      fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase",
+                      fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase",
                       fontFamily: "'JetBrains Mono',monospace",
-                      color: "rgba(255,255,255,0.15)",
+                      color: "rgba(255,255,255,0.35)",
                     }}>{item.label}</span>
                   </button>
                 );
@@ -860,8 +834,8 @@ const Navbar = () => {
                   )}
                   <div style={{ position: "relative", zIndex: 1 }}>
                     <span className="material-symbols-outlined" style={{
-                      fontSize: 21,
-                      color: active ? "#ec5b13" : "rgba(255,255,255,0.35)",
+                      fontSize: 22,
+                      color: active ? "#ec5b13" : "rgba(255,255,255,0.65)",
                       transition: "color 0.18s ease",
                       display: "block",
                       ...(active ? { filter: "drop-shadow(0 0 4px rgba(236,91,19,0.5))" } : {}),
@@ -888,9 +862,9 @@ const Navbar = () => {
                     )}
                   </div>
                   <span style={{
-                    fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase",
+                    fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase",
                     fontFamily: "'JetBrains Mono',monospace", zIndex: 1,
-                    color: active ? "#ec5b13" : "rgba(255,255,255,0.35)",
+                    color: active ? "#ec5b13" : "rgba(255,255,255,0.65)",
                     transition: "color 0.18s ease",
                   }}>{item.label}</span>
                 </Link>

@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../public/footer.jpg";
 
-/* ─────────────────────────────────────────────
-   FOOTER LINKS  — all 5 cols in "The Craft"
-───────────────────────────────────────────── */
 const footerLinks = {
   "The Craft": [
     { label: "Thread & Tension",    icon: "spool",              to: null, info: "Every Verp stitch is tension-tested at 180 N/m² — the same standard used by heritage European fashion houses. Consistency isn't optional; it's the baseline." },
@@ -29,9 +26,6 @@ const footerLinks = {
   ],
 };
 
-/* ─────────────────────────────────────────────
-   TRUST BADGES — horizontal, centered, large
-───────────────────────────────────────────── */
 const trustBadges = [
   { icon: "verified",        label: "Premium Quality",      sub: "Certified Mills" },
   { icon: "local_shipping",  label: "Free Delivery",        sub: "Orders Over GH₵500" },
@@ -39,9 +33,6 @@ const trustBadges = [
   { icon: "lock",            label: "Secure Checkout",      sub: "256-bit Encrypted" },
 ];
 
-/* ─────────────────────────────────────────────
-   INFO MODAL
-───────────────────────────────────────────── */
 const InfoModal = ({ message, onClose }) => (
   <div
     onClick={onClose}
@@ -62,15 +53,15 @@ const InfoModal = ({ message, onClose }) => (
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#ec5b13" }} />
-        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", color: "#ec5b13", textTransform: "uppercase", fontWeight: 700 }}>Verp Info</span>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.3em", color: "#ec5b13", textTransform: "uppercase", fontWeight: 700 }}>Verp Info</span>
       </div>
-      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, lineHeight: 1.75, color: "rgba(255,255,255,0.82)" }}>{message}</p>
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, lineHeight: 1.75, color: "rgba(255,255,255,0.9)" }}>{message}</p>
       <button
         onClick={onClose}
         style={{
           marginTop: 24, padding: "10px 24px", background: "transparent",
           border: "1px solid rgba(236,91,19,0.3)", borderRadius: 999,
-          fontFamily: "'JetBrains Mono',monospace", fontSize: 8,
+          fontFamily: "'JetBrains Mono',monospace", fontSize: 9,
           letterSpacing: "0.2em", textTransform: "uppercase", color: "#ec5b13",
           cursor: "pointer", transition: "all 200ms",
         }}
@@ -83,18 +74,15 @@ const InfoModal = ({ message, onClose }) => (
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   MOBILE ACCORDION
-───────────────────────────────────────────── */
 const AccordionItem = ({ title, links, open, onToggle, onInfo }) => (
-  <div style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+  <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
     <button
       type="button"
       onClick={onToggle}
       style={{ width: "100%", padding: "18px 0", display: "flex", alignItems: "center", justifyContent: "space-between", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
     >
-      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: open ? "#ec5b13" : "rgba(255,255,255,0.7)", transition: "color 200ms" }}>{title}</span>
-      <span className="material-symbols-outlined" style={{ fontSize: 18, color: "rgba(255,255,255,0.25)", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 300ms" }}>expand_more</span>
+      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: open ? "#ec5b13" : "rgba(255,255,255,0.85)", transition: "color 200ms" }}>{title}</span>
+      <span className="material-symbols-outlined" style={{ fontSize: 18, color: "rgba(255,255,255,0.45)", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 300ms" }}>expand_more</span>
     </button>
     <div style={{ overflow: "hidden", maxHeight: open ? 500 : 0, opacity: open ? 1 : 0, transition: "max-height 0.3s ease, opacity 0.3s ease" }}>
       <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -102,23 +90,23 @@ const AccordionItem = ({ title, links, open, onToggle, onInfo }) => (
           <li key={link.label}>
             {link.to ? (
               <Link to={link.to}
-                style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.35)", textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}
+                style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.65)", textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}
                 onMouseEnter={e => e.currentTarget.style.color = "#ec5b13"}
-                onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}
+                onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.65)"}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 14, opacity: 0.5 }}>{link.icon}</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 14, opacity: 0.65 }}>{link.icon}</span>
                 {link.label}
               </Link>
             ) : (
               <button
                 onClick={() => onInfo(link.info)}
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.35)", textAlign: "left", display: "flex", alignItems: "center", gap: 8 }}
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.65)", textAlign: "left", display: "flex", alignItems: "center", gap: 8 }}
                 onMouseEnter={e => e.currentTarget.style.color = "#ec5b13"}
-                onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}
+                onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.65)"}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 14, opacity: 0.5 }}>{link.icon}</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 14, opacity: 0.65 }}>{link.icon}</span>
                 {link.label}
-                <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(236,91,19,0.5)" }}>ⓘ</span>
+                <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(236,91,19,0.65)" }}>ⓘ</span>
               </button>
             )}
           </li>
@@ -128,9 +116,6 @@ const AccordionItem = ({ title, links, open, onToggle, onInfo }) => (
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   MAIN FOOTER
-───────────────────────────────────────────── */
 const Footer = () => {
   const [openKey, setOpenKey] = useState(null);
   const [modalMsg, setModalMsg] = useState(null);
@@ -142,7 +127,6 @@ const Footer = () => {
         @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
         .footer-col { animation: footerFadeIn 0.5s ease both; }
 
-        /* ── Trust badge strip ── */
         .trust-strip {
           display: flex;
           justify-content: center;
@@ -171,23 +155,22 @@ const Footer = () => {
         .tb-icon-wrap {
           width: 52px; height: 52px; border-radius: 14px;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
           transition: all 250ms;
         }
         .tb-icon {
           font-size: 26px !important;
-          color: rgba(255,255,255,0.55) !important;
+          color: rgba(255,255,255,0.75) !important;
           transition: color 250ms;
         }
 
-        /* ── Link rows ── */
         .footer-link-row { display:flex; align-items:center; gap:10px; }
         .footer-link-row .f-icon {
           width: 28px; height: 28px; border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.06);
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.08);
           transition: all 200ms;
           flex-shrink: 0;
         }
@@ -196,14 +179,12 @@ const Footer = () => {
           border-color: rgba(236,91,19,0.3);
         }
 
-        /* ── Brand column alignment fix ── */
         .brand-col {
           display: flex;
           flex-direction: column;
           justify-content: flex-start;
         }
 
-        /* ── Responsive ── */
         @media(max-width:1023px){
           .footer-main-grid { grid-template-columns: 1fr 1fr !important; }
         }
@@ -218,7 +199,7 @@ const Footer = () => {
 
       {modalMsg && <InfoModal message={modalMsg} onClose={() => setModalMsg(null)} />}
 
-      {/* ── TRUST BADGE STRIP ── */}
+      {/* TRUST BADGE STRIP */}
       <div className="trust-strip">
         {trustBadges.map(({ icon, label, sub }) => (
           <div key={icon} className="trust-badge">
@@ -226,14 +207,14 @@ const Footer = () => {
               <span className="material-symbols-outlined tb-icon">{icon}</span>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)", letterSpacing: "-0.01em" }}>{label}</div>
-              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 3 }}>{sub}</div>
+              <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.92)", letterSpacing: "-0.01em" }}>{label}</div>
+              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.5)", letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 3 }}>{sub}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ── MAIN CONTENT ── */}
+      {/* MAIN CONTENT */}
       <div style={{ padding: "80px 48px 48px", maxWidth: 1400, margin: "0 auto" }}>
 
         {/* Desktop grid */}
@@ -245,13 +226,13 @@ const Footer = () => {
               <img src={logo} alt="Verp" style={{ height: 56, width: 56, objectFit: "contain", borderRadius: 10 }} />
               <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 28, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "white" }}>Verp</span>
             </div>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.8, marginBottom: 0, maxWidth: 270 }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.7)", lineHeight: 1.8, marginBottom: 0, maxWidth: 270 }}>
               Premium streetwear built for those who set the standard. Not the trend — the standard. Every piece ships from Accra, made to last a decade.
             </p>
 
             <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: 8 }}>Got Something to Say?</p>
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, marginBottom: 14 }}>
+              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 8 }}>Got Something to Say?</p>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, marginBottom: 14 }}>
                 Orders, collabs, press, or just a thought — tap below and your message lands directly with the Verp team.
               </p>
               <a
@@ -278,9 +259,9 @@ const Footer = () => {
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 15 }}>mail</span>
                 <span>Verpembodiments@gmail.com</span>
-                <span className="material-symbols-outlined" style={{ fontSize: 13, opacity: 0.5 }}>arrow_outward</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 13, opacity: 0.6 }}>arrow_outward</span>
               </a>
-              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: 10 }}>
+              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: 10 }}>
                 ↳ Opens your email app · We reply within 48 hrs
               </p>
             </div>
@@ -289,19 +270,19 @@ const Footer = () => {
           {/* 3 link columns */}
           {Object.entries(footerLinks).map(([title, links], idx) => (
             <div key={title} className="footer-col" style={{ animationDelay: `${(idx + 1) * 0.07}s` }}>
-              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>{title}</p>
+              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", marginBottom: 20 }}>{title}</p>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                 {links.map(link => (
                   <li key={link.label}>
                     {link.to ? (
                       <Link to={link.to}
                         className="footer-link-row"
-                        style={{ textDecoration: "none", color: "rgba(255,255,255,0.5)", transition: "color 200ms" }}
+                        style={{ textDecoration: "none", color: "rgba(255,255,255,0.7)", transition: "color 200ms" }}
                         onMouseEnter={e => e.currentTarget.style.color = "#ec5b13"}
-                        onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.5)"}
+                        onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
                       >
                         <span className="f-icon">
-                          <span className="material-symbols-outlined" style={{ fontSize: 13, color: "rgba(255,255,255,0.25)" }}>{link.icon}</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>{link.icon}</span>
                         </span>
                         <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14 }}>{link.label}</span>
                       </Link>
@@ -309,15 +290,15 @@ const Footer = () => {
                       <button
                         onClick={() => setModalMsg(link.info)}
                         className="footer-link-row"
-                        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "rgba(255,255,255,0.5)", transition: "color 200ms", textAlign: "left", width: "100%" }}
+                        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "rgba(255,255,255,0.7)", transition: "color 200ms", textAlign: "left", width: "100%" }}
                         onMouseEnter={e => e.currentTarget.style.color = "#ec5b13"}
-                        onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.5)"}
+                        onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
                       >
                         <span className="f-icon">
-                          <span className="material-symbols-outlined" style={{ fontSize: 13, color: "rgba(255,255,255,0.25)" }}>{link.icon}</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>{link.icon}</span>
                         </span>
                         <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14 }}>{link.label}</span>
-                        <span style={{ marginLeft: 2, fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(236,91,19,0.45)" }}>ⓘ</span>
+                        <span style={{ marginLeft: 2, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(236,91,19,0.6)" }}>ⓘ</span>
                       </button>
                     )}
                   </li>
@@ -334,10 +315,9 @@ const Footer = () => {
             <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 24, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "white" }}>Verp</span>
           </div>
 
-          {/* Mobile email block */}
-          <div style={{ marginBottom: 32, paddingBottom: 28, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: 8 }}>Got Something to Say?</p>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, marginBottom: 14 }}>
+          <div style={{ marginBottom: 32, paddingBottom: 28, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 8 }}>Got Something to Say?</p>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, marginBottom: 14 }}>
               Orders, collabs, press, or just a thought — tap below and your message lands directly with the Verp team.
             </p>
             <a
@@ -354,9 +334,9 @@ const Footer = () => {
                 <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#ec5b13" }}>mail</span>
                 <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#ec5b13" }}>Verpembodiments@gmail.com</span>
               </div>
-              <span className="material-symbols-outlined" style={{ fontSize: 16, color: "rgba(236,91,19,0.5)" }}>arrow_outward</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: "rgba(236,91,19,0.6)" }}>arrow_outward</span>
             </a>
-            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: 10 }}>
+            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: 10 }}>
               ↳ Opens your email app · We reply within 48 hrs
             </p>
           </div>
@@ -370,13 +350,13 @@ const Footer = () => {
         </div>
 
         {/* Bottom bar */}
-        <div style={{ paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-          <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.25em", textTransform: "uppercase" }}>
+        <div style={{ paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+          <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: "0.25em", textTransform: "uppercase" }}>
             © {new Date().getFullYear()} Verp Collective. All Rights Reserved.
           </p>
           <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
             {["Free Delivery Over GH₵500", "48-Hour Returns", "Proudly Accra-Built"].map(item => (
-              <span key={item} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.22)", letterSpacing: "0.2em", textTransform: "uppercase", fontStyle: "italic" }}>{item}</span>
+              <span key={item} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.38)", letterSpacing: "0.2em", textTransform: "uppercase", fontStyle: "italic" }}>{item}</span>
             ))}
           </div>
         </div>
