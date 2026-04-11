@@ -227,12 +227,26 @@ const AssistantTerminal = () => {
 		return () => window.removeEventListener("resize", h);
 	}, []);
 
+	const prevWaitingCountRef = React.useRef(0);
+
 	const fetchSessions = useCallback(async () => {
 		const { data } = await supabase
 			.from("verp_support_sessions")
 			.select("*")
 			.order("updated_at", { ascending: false });
-		if (data) setSessions(data);
+		if (data) {
+			const newWaiting = data.filter(s => s.status === "waiting").length;
+			// 👤 Play sound if a new client joined the queue
+			if (newWaiting > prevWaitingCountRef.current) {
+				try {
+					const audio = new Audio("/notify.mp3");
+					audio.volume = 0.5;
+					audio.play().catch(() => {});
+				} catch (_) {}
+			}
+			prevWaitingCountRef.current = newWaiting;
+			setSessions(data);
+		}
 	}, []);
 
 	useEffect(() => {

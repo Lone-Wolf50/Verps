@@ -404,6 +404,16 @@ const AgentOnlineBanner = ({ onConnect, onDismiss }) => {
 /* ══════════════════════════════════════════════════════
    SUPPORT PAGE
    ══════════════════════════════════════════════════════ */
+
+/* ── tiny sound helper — silently fails if browser blocks autoplay ── */
+const playSound = () => {
+  try {
+    const audio = new Audio("/notify.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
+  } catch (_) {}
+};
+
 const SupportPage = () => {
   const navigate = useNavigate();
   const [sessionStatus,   setSessionStatus]   = useState("bot");
@@ -413,7 +423,8 @@ const SupportPage = () => {
   const [showOffline,     setShowOffline]     = useState(false);
   const [agentJustOnline, setAgentJustOnline] = useState(false);
   const channelRef    = useRef(null);
-  const prevOnlineRef = useRef(null); // null = not yet initialised
+  const prevOnlineRef = useRef(null);
+  const prevStatusRef = useRef("bot");
 
   useEffect(() => {
     const check = async () => {
@@ -461,6 +472,7 @@ const SupportPage = () => {
           // Only show banner if we transition false → true (and client is still on bot screen)
           if (prevOnlineRef.current === false && newOnline === true) {
             setAgentJustOnline(true);
+            playSound(); // 🔔 client hears agent come online
           }
           prevOnlineRef.current = newOnline;
           setSupportOnline(newOnline);
@@ -478,7 +490,14 @@ const SupportPage = () => {
       .on("postgres_changes", {
         event: "UPDATE", schema: "public",
         table: "verp_support_sessions", filter: `id=eq.${chatId}`,
-      }, (payload) => { setSessionStatus(payload.new.status); })
+      }, (payload) => {
+          const newStatus = payload.new.status;
+          if (prevStatusRef.current !== "live" && newStatus === "live") {
+            playSound(); // ✅ client hears session connected
+          }
+          prevStatusRef.current = newStatus;
+          setSessionStatus(newStatus);
+        })
       .subscribe();
     channelRef.current = channel;
     return () => { supabase.removeChannel(channel); channelRef.current = null; };
@@ -506,6 +525,7 @@ const SupportPage = () => {
         const newOnline = data.is_online ?? false;
         if (prevOnlineRef.current === false && newOnline === true && sessionStatus === "bot") {
           setAgentJustOnline(true);
+          playSound(); // 🔔 fallback: client hears agent come online
         }
         if (prevOnlineRef.current !== newOnline) {
           prevOnlineRef.current = newOnline;
