@@ -392,6 +392,14 @@ const AuthPage_LoginForm = ({ onSuccess }) => {
       localStorage.setItem("userName", user.full_name);
       localStorage.setItem("deviceFingerprint", fingerprint);
 
+      if (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true
+      ) {
+        localStorage.setItem("vrp_session_type", "pwa");
+        localStorage.setItem("vrp_last_seen", Date.now().toString());
+      }
+
       // ✅ FIX: CartContext is already mounted and won't remount after login.
       // We must explicitly call syncFromDB here so it picks up any guest_cart
       // items the user added before logging in, and merges them with their DB cart.
@@ -591,6 +599,14 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
       localStorage.setItem("userId", newUser.id);
       localStorage.setItem("userName", newUser.full_name);
       localStorage.setItem("deviceFingerprint", fingerprint);
+
+      if (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true
+      ) {
+        localStorage.setItem("vrp_session_type", "pwa");
+        localStorage.setItem("vrp_last_seen", Date.now().toString());
+      }
     }
 
     clearPending();

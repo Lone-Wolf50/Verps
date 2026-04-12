@@ -10,6 +10,9 @@ import { CartProvider }  from "./Cartoptions/CartContext";
 /* ── PWA install banner ── */
 import VerpInstallBanner from "./Homepage/VerpInstallBanner.jsx";
 
+/* ── Supabase (for pagehide session cleanup) ── */
+import { supabase } from "../supabaseClient";
+
 /* ── Auth & loading ── */
 import AuthPage       from "./SecurityLogics/AuthPage.jsx";
 import RandomLoader   from "./SecurityLogics/RandomLoader.jsx";
@@ -172,10 +175,63 @@ function Paths() {
     (p) => location.pathname === p || location.pathname.startsWith(p + "/")
   );
 
-  const showShell        = !isAdminPath && !isAssistantPath && !isAuthPath && !is404;
-  const showFloat        = useFloatVisible();
-  const reviewEmail      = useReviewPromptEmail();
+  const showShell         = !isAdminPath && !isAssistantPath && !isAuthPath && !is404;
+  const showFloat         = useFloatVisible();
+  const reviewEmail       = useReviewPromptEmail();
   const showInstallBanner = useShowInstallBanner();
+
+  /* ── PWA vs browser session logic ── */
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("userEmail"));
+
+  useEffect(() => {
+    const staffRoleLS    = localStorage.getItem("staffRole");
+    const staffRoleSS    = sessionStorage.getItem("staffRole");
+    const isStaffSession = staffRoleLS || staffRoleSS;
+
+    const isPWA = window.matchMedia("(display-mode: standalone)").matches
+                  || window.navigator.standalone === true;
+
+    if (isPWA) {
+      /* PWA users — grace period based, not sessionStorage based */
+      const lastSeen    = localStorage.getItem("vrp_last_seen");
+      const gracePeriod = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
+      const expired     = lastSeen && (Date.now() - parseInt(lastSeen)) > gracePeriod;
+
+      if (expired && !isStaffSession) {
+        ["userEmail","userId","userName","deviceFingerprint","luxury_cart","vrp_last_seen","vrp_session_type"]
+          .forEach((k) => localStorage.removeItem(k));
+        localStorage.removeItem("guest_cart");
+        setIsLoggedIn(false);
+      }
+
+      /* Update last seen timestamp every time the PWA opens */
+      localStorage.setItem("vrp_last_seen", Date.now().toString());
+
+    } else {
+      /* Browser/web users — keep original vrp_alive behavior unchanged */
+      const vrpAlive = sessionStorage.getItem("vrp_alive");
+      if (!vrpAlive && !isStaffSession) {
+        ["userEmail","userId","userName","deviceFingerprint","luxury_cart"]
+          .forEach((k) => localStorage.removeItem(k));
+        localStorage.removeItem("guest_cart");
+        setIsLoggedIn(false);
+      }
+    }
+
+    /* Always set vrp_alive for tab tracking */
+    sessionStorage.setItem("vrp_alive", "1");
+
+    /* pagehide — delete Supabase session row on tab/app close */
+    const onPageHide = (e) => {
+      if (!e.persisted) {
+        const fp  = localStorage.getItem("deviceFingerprint");
+        const uid = localStorage.getItem("userId");
+        if (fp && uid) supabase.from("verp_sessions").delete().match({ user_id: uid, device_fingerprint: fp });
+      }
+    };
+    window.addEventListener("pagehide", onPageHide);
+    return () => window.removeEventListener("pagehide", onPageHide);
+  }, []);
 
   return (
     <>
