@@ -97,7 +97,7 @@ const AuthSwitch = ({ mode }) => (
   <p style={{ textAlign: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>
     {mode === "login" ? "NEW OPERATIVE? " : "ALREADY REGISTERED? "}
     <Link to={mode === "login" ? "/signup" : "/login"} style={{ color: T.ember, fontWeight: 700, textDecoration: "none" }}>
-      {mode === "login" ? "JOIN VERP" : "LOGIN IN"}
+      {mode === "login" ? "REGISTER" : "LOGIN IN"}
     </Link>
   </p>
 );
@@ -418,7 +418,7 @@ const AuthPage_LoginForm = ({ onSuccess }) => {
         <EyeBtn visible={show} onToggle={() => setShow(s => !s)} />
       </Field>
       <div style={{ textAlign: "right" }}>
-        <Link to="/forgot-password" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: T.ember, textDecoration: "none", opacity: 0.9 }}>FORGOT ACCESS KEY?</Link>
+        <Link to="/forgot-password" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: T.ember, textDecoration: "none", opacity: 0.9 }}>FORGOT PASSWORD?</Link>
       </div>
       <SubmitButton loading={loading} label="ACCESS VERP" />
       <AuthSwitch mode="login" />

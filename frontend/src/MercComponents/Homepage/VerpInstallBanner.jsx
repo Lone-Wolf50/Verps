@@ -2,23 +2,31 @@ import { useState, useEffect } from "react";
 
 const VerpInstallBanner = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [show, setShow]                     = useState(false);
-  const [dismissed, setDismissed]           = useState(false);
+  const [show,           setShow]           = useState(false);
+  const [dismissed,      setDismissed]      = useState(false);
+
+  /* ── Detect device type once ── */
+  const isIOS        = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true ||
+                       window.matchMedia("(display-mode: standalone)").matches;
+  const isMobile     = window.innerWidth < 768;
 
   useEffect(() => {
-    // Don't show if already installed or permanently dismissed
-    if (
-      window.matchMedia("(display-mode: standalone)").matches ||
-      localStorage.getItem("vrp_install_dismissed") === "permanent"
-    ) return;
+    /* Already installed or permanently dismissed — do nothing */
+    if (isStandalone || localStorage.getItem("vrp_install_dismissed") === "permanent") return;
 
+    /* ── iOS: no beforeinstallprompt — just show instructions banner ── */
+    if (isIOS) {
+      setTimeout(() => setShow(true), 3000);
+      return;
+    }
+
+    /* ── Android / Desktop: wait for browser prompt event ── */
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Small delay so it doesn't flash on page load
       setTimeout(() => setShow(true), 3000);
     };
-
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
@@ -41,50 +49,154 @@ const VerpInstallBanner = () => {
 
   if (!show || dismissed) return null;
 
-  const isMobile = window.innerWidth < 768;
+  /* ════════════════════════════════════════
+     iOS — step-by-step instruction banner
+  ════════════════════════════════════════ */
+  if (isIOS) {
+    return (
+      <>
+        <div
+          onClick={() => handleDismiss(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 700,
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+            animation: "vrpFadeIn 0.25s ease both",
+          }}
+        />
+        <div style={{
+          position: "fixed", bottom: 80, left: 12, right: 12,
+          zIndex: 800, fontFamily: "'DM Sans', sans-serif",
+          background: "rgba(10,10,10,0.98)",
+          backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 24, padding: 20, overflow: "hidden",
+          animation: "vrpSlideUp 0.3s cubic-bezier(0.16,1,0.3,1) both",
+        }}>
+          <style>{`
+            @keyframes vrpFadeIn  { from{opacity:0} to{opacity:1} }
+            @keyframes vrpSlideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+            @keyframes vrpSlideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+          `}</style>
 
+          {/* Orange top line */}
+          <div style={{
+            position: "absolute", top: 0, left: "20%", right: "20%", height: 1,
+            background: "linear-gradient(90deg,transparent,rgba(236,91,19,0.55),transparent)",
+            pointerEvents: "none",
+          }} />
+
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <div style={{
+              width: 46, height: 46, borderRadius: 13, flexShrink: 0,
+              background: "linear-gradient(135deg,#ec5b13,#c94400)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: "'Playfair Display',serif", fontStyle: "italic",
+              fontSize: 22, color: "#fff",
+            }}>V</div>
+            <div>
+              <p style={{ margin: 0, fontWeight: 700, color: "#fff", fontSize: 15, fontFamily: "'Playfair Display',serif", fontStyle: "italic" }}>Install Verp</p>
+              <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "'JetBrains Mono',monospace" }}>Add to home screen</p>
+            </div>
+            <button
+              onClick={() => handleDismiss(true)}
+              style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 22, cursor: "pointer", lineHeight: 1, padding: "2px 6px" }}
+            >×</button>
+          </div>
+
+          <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>
+            Get the full Verp experience — faster access, online browsing, and no browser bar.
+          </p>
+
+          {/* Steps */}
+          {[
+            <span>Tap the <span style={{ color: "#ec5b13", fontWeight: 700 }}>Share ↑</span> button at the bottom of Safari</span>,
+            <span>Scroll down and tap <span style={{ color: "#ec5b13", fontWeight: 700 }}>"Add to Home Screen"</span></span>,
+            <span>Tap <span style={{ color: "#ec5b13", fontWeight: 700 }}>"Add"</span> in the top right corner</span>,
+          ].map((text, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                border: "1px solid rgba(236,91,19,0.5)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 10, fontWeight: 700, color: "#ec5b13",
+                fontFamily: "'JetBrains Mono',monospace", marginTop: 1,
+              }}>{i + 1}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.55 }}>{text}</div>
+            </div>
+          ))}
+
+          {/* In-app browser warning */}
+          <div style={{
+            display: "flex", gap: 8, alignItems: "flex-start",
+            background: "rgba(236,91,19,0.07)",
+            border: "1px solid rgba(236,91,19,0.15)",
+            borderRadius: 10, padding: "10px 12px",
+            margin: "14px 0",
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#ec5b13", flexShrink: 0, marginTop: 5 }} />
+            <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+              Not seeing the Share button? You may be in an{" "}
+              <span style={{ color: "rgba(236,91,19,0.85)" }}>in-app browser</span>{" "}
+              (WhatsApp, Instagram). Tap{" "}
+              <span style={{ color: "rgba(236,91,19,0.85)" }}>"Open in Safari"</span>{" "}
+              first.
+            </p>
+          </div>
+
+          <button
+            onClick={() => handleDismiss(false)}
+            style={{
+              width: "100%", padding: "12px 0", borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "transparent", color: "rgba(255,255,255,0.4)",
+              fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase",
+              fontFamily: "'JetBrains Mono',monospace", cursor: "pointer",
+            }}
+          >Maybe later</button>
+        </div>
+      </>
+    );
+  }
+
+  /* ════════════════════════════════════════
+     Android mobile — bottom sheet with install button
+     Desktop — top-right toast
+  ════════════════════════════════════════ */
   return (
     <>
-      {/* Backdrop (mobile only) */}
       {isMobile && (
         <div
           onClick={() => handleDismiss(false)}
           style={{
             position: "fixed", inset: 0, zIndex: 700,
             background: "rgba(0,0,0,0.6)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
+            backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
             animation: "vrpFadeIn 0.25s ease both",
           }}
         />
       )}
 
-      <div
-        style={{
-          position: "fixed",
-          zIndex: 800,
-          fontFamily: "'DM Sans', sans-serif",
-
-          // Mobile: bottom sheet
-          ...(isMobile ? {
-            bottom: 80, left: 12, right: 12,
-            animation: "vrpSlideUp 0.3s cubic-bezier(0.16,1,0.3,1) both",
-          } : {
-            // Desktop: top-right toast
-            top: 96, right: 20, width: 340,
-            animation: "vrpSlideIn 0.3s cubic-bezier(0.16,1,0.3,1) both",
-          }),
-
-          background: "rgba(10,10,10,0.98)",
-          backdropFilter: "blur(32px)",
-          WebkitBackdropFilter: "blur(32px)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: isMobile ? 24 : 16,
-          boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
-          padding: isMobile ? "20px" : "14px 16px",
-          overflow: "hidden",
-        }}
-      >
+      <div style={{
+        position: "fixed",
+        zIndex: 800,
+        fontFamily: "'DM Sans', sans-serif",
+        ...(isMobile ? {
+          bottom: 80, left: 12, right: 12,
+          animation: "vrpSlideUp 0.3s cubic-bezier(0.16,1,0.3,1) both",
+        } : {
+          top: 96, right: 20, width: 340,
+          animation: "vrpSlideIn 0.3s cubic-bezier(0.16,1,0.3,1) both",
+        }),
+        background: "rgba(10,10,10,0.98)",
+        backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: isMobile ? 24 : 16,
+        boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
+        padding: isMobile ? "20px" : "14px 16px",
+        overflow: "hidden",
+      }}>
         <style>{`
           @keyframes vrpFadeIn  { from{opacity:0} to{opacity:1} }
           @keyframes vrpSlideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -99,7 +211,7 @@ const VerpInstallBanner = () => {
         }} />
 
         {isMobile ? (
-          /* ── Mobile layout ── */
+          /* ── Android mobile layout ── */
           <>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
               <div style={{
@@ -107,7 +219,7 @@ const VerpInstallBanner = () => {
                 background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 22, color: "#fff",
-                fontFamily: "'Playfair Display', serif", fontStyle: "italic",
+                fontFamily: "'Playfair Display',serif", fontStyle: "italic",
               }}>V</div>
               <div>
                 <p style={{ margin: 0, fontWeight: 700, color: "#fff", fontSize: 15, fontFamily: "'Playfair Display',serif", fontStyle: "italic" }}>Verp</p>
@@ -149,7 +261,7 @@ const VerpInstallBanner = () => {
             </div>
           </>
         ) : (
-          /* ── Desktop layout ── */
+          /* ── Desktop toast layout ── */
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
               width: 40, height: 40, borderRadius: 10, flexShrink: 0,
