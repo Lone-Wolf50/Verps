@@ -903,7 +903,7 @@ const AuthPage = ({ mode: propMode }) => {
     signup: { title: "Initialize Account", sub: "Create your identity in the VERP system." },
     otp:    { title: "Verify Identity",    sub: "Enter the 6-digit code sent to your email." },
     forgot: { title: "Recover Access",     sub: "We'll get you back in." },
-    reset:  { title: "New Passphrase",     sub: "Set your new access key." },
+    reset:  { title: "New Passphrase",     sub: "Set your new Password." },
   };
   const { title, sub } = TITLES[mode] || TITLES.login;
 
