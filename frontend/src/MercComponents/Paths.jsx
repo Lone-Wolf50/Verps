@@ -184,55 +184,57 @@ function Paths() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("userEmail"));
 
   useEffect(() => {
-    const staffRoleLS    = localStorage.getItem("staffRole");
-    const staffRoleSS    = sessionStorage.getItem("staffRole");
-    const isStaffSession = staffRoleLS || staffRoleSS;
+  const staffRoleLS = localStorage.getItem("staffRole");
+  const staffRoleSS = sessionStorage.getItem("staffRole");
+  const isStaffSession = staffRoleLS || staffRoleSS;
 
-    const isPWA = window.matchMedia("(display-mode: standalone)").matches
-                  || window.navigator.standalone === true;
+  const isPWA =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
 
-    if (isPWA) {
-      /* PWA users — grace period based, not sessionStorage based */
-      const lastSeen    = localStorage.getItem("vrp_last_seen");
-      const gracePeriod = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
-      const expired     = lastSeen && (Date.now() - parseInt(lastSeen)) > gracePeriod;
+  // Stamp a persistent flag the first time we detect PWA mode
+  if (isPWA) localStorage.setItem("vrp_is_pwa", "1");
+  const wasPWA = !!localStorage.getItem("vrp_is_pwa"); // survives app restarts
 
-      if (expired && !isStaffSession) {
-        ["userEmail","userId","userName","deviceFingerprint","luxury_cart","vrp_last_seen","vrp_session_type"]
-          .forEach((k) => localStorage.removeItem(k));
-        localStorage.removeItem("guest_cart");
-        setIsLoggedIn(false);
-      }
+  if (wasPWA) {
+    /* PWA users — grace period logic, untouched */
+    const lastSeen    = localStorage.getItem("vrp_last_seen");
+    const gracePeriod = 7 * 24 * 60 * 60 * 1000;
+    const expired     = lastSeen && (Date.now() - parseInt(lastSeen)) > gracePeriod;
 
-      /* Update last seen timestamp every time the PWA opens */
-      localStorage.setItem("vrp_last_seen", Date.now().toString());
-
-    } else {
-      /* Browser/web users — keep original vrp_alive behavior unchanged */
-      const vrpAlive = sessionStorage.getItem("vrp_alive");
-      if (!vrpAlive && !isStaffSession) {
-        ["userEmail","userId","userName","deviceFingerprint","luxury_cart"]
-          .forEach((k) => localStorage.removeItem(k));
-        localStorage.removeItem("guest_cart");
-        setIsLoggedIn(false);
-      }
+    if (expired && !isStaffSession) {
+      ["userEmail","userId","userName","deviceFingerprint","luxury_cart","vrp_last_seen","vrp_session_type"]
+        .forEach((k) => localStorage.removeItem(k));
+      localStorage.removeItem("guest_cart");
+      setIsLoggedIn(false);
     }
 
-    /* Always set vrp_alive for tab tracking */
-    sessionStorage.setItem("vrp_alive", "1");
+    localStorage.setItem("vrp_last_seen", Date.now().toString());
 
-    /* pagehide — delete Supabase session row on tab/app close */
-    const onPageHide = (e) => {
-      if (!e.persisted) {
-        const fp  = localStorage.getItem("deviceFingerprint");
-        const uid = localStorage.getItem("userId");
-        if (fp && uid) supabase.from("verp_sessions").delete().match({ user_id: uid, device_fingerprint: fp });
-      }
-    };
-    window.addEventListener("pagehide", onPageHide);
-    return () => window.removeEventListener("pagehide", onPageHide);
-  }, []);
+  } else {
+    /* Browser/web users — sessionStorage tab-tracking, untouched */
+    const vrpAlive = sessionStorage.getItem("vrp_alive");
+    if (!vrpAlive && !isStaffSession) {
+      ["userEmail","userId","userName","deviceFingerprint","luxury_cart"]
+        .forEach((k) => localStorage.removeItem(k));
+      localStorage.removeItem("guest_cart");
+      setIsLoggedIn(false);
+    }
+  }
 
+  sessionStorage.setItem("vrp_alive", "1");
+
+  const onPageHide = (e) => {
+    if (!e.persisted) {
+      const fp  = localStorage.getItem("deviceFingerprint");
+      const uid = localStorage.getItem("userId");
+      if (fp && uid)
+        supabase.from("verp_sessions").delete().match({ user_id: uid, device_fingerprint: fp });
+    }
+  };
+  window.addEventListener("pagehide", onPageHide);
+  return () => window.removeEventListener("pagehide", onPageHide);
+}, []);
   return (
     <>
       <ScrollToTop />
