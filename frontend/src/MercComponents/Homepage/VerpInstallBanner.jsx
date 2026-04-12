@@ -120,7 +120,7 @@ const VerpInstallBanner = () => {
             </div>
 
             <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}>
-              Install the Verp app for faster access, offline browsing, and a seamless full-screen experience.
+              Install the Verp app for faster access, online browsing, and a seamless full-screen experience.
             </p>
 
             <div style={{ display: "flex", gap: 10 }}>
