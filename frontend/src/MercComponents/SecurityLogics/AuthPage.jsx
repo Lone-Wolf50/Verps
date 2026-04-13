@@ -386,35 +386,80 @@ const AuthPage_LoginForm = ({ onSuccess }) => {
       const match = await bcrypt.compare(form.password, user.password_hash);
       if (!match) { setErrors({ password: "INCORRECT PASSWORD" }); setLoading(false); return; }
       const fingerprint = getFingerprint();
-      console.log("🔐 Creating session with fingerprint:", fingerprint);
+      console.log("🔐 Creating session for login - fingerprint:", fingerprint, "userId:", user.id);
       
-      /* ✅ FIXED: Use device_fingerprint as conflict key, not user_id */
-      /* This ensures each device has its own session row */
-      const { data: sessionResult, error: sessionError } = await supabase
+      console.log("📤 Attempting upsert with device_fingerprint conflict...");
+      /* ✅ Try device_fingerprint conflict first */
+      let { data: sessionResult, error: sessionError } = await supabase
         .from("verp_sessions")
         .upsert(
           { user_id: user.id, device_fingerprint: fingerprint, last_active_path: "/", updated_at: new Date().toISOString() },
-          { onConflict: "device_fingerprint" }  /* ← KEY FIX: use fingerprint, not user_id */
+          { onConflict: "device_fingerprint" }
         );
       
+      console.log("📥 Upsert result:", { data: sessionResult, error: sessionError });
+      
+      /* If device_fingerprint conflict fails, try deleting old sessions for this user and inserting new one */
       if (sessionError) {
-        console.error("❌ Failed to create session:", sessionError);
+        console.warn("⚠️ device_fingerprint conflict failed, error:", sessionError);
+        console.log("🔄 Trying fallback: delete old sessions + insert new...");
+        try {
+          /* Delete old sessions for this user */
+          const delRes = await supabase.from("verp_sessions").delete().eq("user_id", user.id);
+          console.log("🗑️ Delete result:", delRes);
+          
+          /* Insert new session */
+          console.log("📝 Inserting session:", { user_id: user.id, device_fingerprint: fingerprint });
+          const { data: newSession, error: insertError } = await supabase
+            .from("verp_sessions")
+            .insert({
+              user_id: user.id,
+              device_fingerprint: fingerprint,
+              last_active_path: "/",
+              updated_at: new Date().toISOString()
+            })
+            .select();
+          
+          console.log("📥 Insert result:", { data: newSession, error: insertError });
+          
+          if (insertError) {
+            console.error("❌ Failed to insert session:", insertError);
+          } else {
+            console.log("✅ Session created via insert:", newSession);
+            sessionResult = newSession;
+          }
+        } catch (err) {
+          console.error("❌ Session creation fallback failed:", err);
+        }
       } else {
-        console.log("✅ Session created:", sessionResult);
+        console.log("✅ Session created with device_fingerprint conflict:", sessionResult);
       }
       
+      console.log("💾 Saving user data to localStorage...");
       localStorage.setItem("userEmail", user.email);
       localStorage.setItem("userId", user.id);
       localStorage.setItem("userName", user.full_name);
       localStorage.setItem("deviceFingerprint", fingerprint);
+      console.log("✅ LocalStorage updated:", { email: user.email, userId: user.id, fingerprint });
+      
+      /* ✅ Verify session was actually saved to DB */
+      console.log("🔍 Verifying session in DB...");
+      const { data: verifySession } = await supabase
+        .from("verp_sessions")
+        .select("user_id, device_fingerprint")
+        .eq("device_fingerprint", fingerprint)
+        .maybeSingle();
+      console.log("✅ Session verification - found in DB:", verifySession);
 
       if (
         window.matchMedia("(display-mode: standalone)").matches ||
         window.navigator.standalone === true
       ) {
+        console.log("📱 PWA detected - setting PWA flags");
         localStorage.setItem("vrp_is_pwa", "1");
         localStorage.setItem("vrp_session_type", "pwa");
         localStorage.setItem("vrp_last_seen", Date.now().toString());
+        console.log("✅ PWA flags set, timestamp:", Date.now().toString());
       }
 
       // ✅ FIX: CartContext is already mounted and won't remount after login.
@@ -429,6 +474,7 @@ const AuthPage_LoginForm = ({ onSuccess }) => {
       }
       await syncFromDB();
 
+      console.log("🎯 Login successful! Calling onSuccess with user:", { email: user.email, id: user.id });
       onSuccess(user);
     } catch (err) {
       Swal.fire({ title: "Error", text: err.message, icon: "error", background: "#0a0a0a", color: "#fff", confirmButtonColor: T.ember });
@@ -583,7 +629,10 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
       return;
     }
 
+    console.log("🎯 OTP verified. Purpose:", purpose);
+
     if (purpose === "RESET") {
+      console.log("🔄 Handling RESET purpose");
       localStorage.removeItem("pendingOtp");
       onSuccess("reset");
       setLoading(false);
@@ -592,6 +641,7 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
 
     // SIGNUP: OTP verified — mark account as verified in DB
     if (purpose === "SIGNUP") {
+      console.log("📝 Handling SIGNUP purpose - Creating session...");
       const { data: newUser, error: verifyErr } = await supabase
         .from("verp_users")
         .update({ is_verified: true })
@@ -608,25 +658,60 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
       }
 
       const fingerprint = getFingerprint();
-      console.log("🔐 Creating session for new user with fingerprint:", fingerprint);
+      console.log("🔐 Creating session for new user - fingerprint:", fingerprint, "userId:", newUser.id);
       
-      const { data: sessionResult, error: sessionError } = await supabase
+      console.log("📤 Attempting upsert with device_fingerprint conflict...");
+      let { data: sessionResult, error: sessionError } = await supabase
         .from("verp_sessions")
         .upsert(
           { user_id: newUser.id, device_fingerprint: fingerprint, last_active_path: "/", updated_at: new Date().toISOString() },
-          { onConflict: "device_fingerprint" }  /* ← KEY FIX: use fingerprint, not user_id */
+          { onConflict: "device_fingerprint" }
         );
       
+      console.log("📥 Upsert result:", { data: sessionResult, error: sessionError });
+      
+      /* If device_fingerprint conflict fails, try deleting old sessions and inserting new one */
       if (sessionError) {
-        console.error("❌ Failed to create session:", sessionError);
+        console.warn("⚠️ device_fingerprint conflict failed, error:", sessionError);
+        console.log("🔄 Trying fallback: delete old sessions + insert new...");
+        try {
+          /* Delete old sessions for this user */
+          const delRes = await supabase.from("verp_sessions").delete().eq("user_id", newUser.id);
+          console.log("🗑️ Delete result:", delRes);
+          
+          /* Insert new session */
+          console.log("📝 Inserting session (OTP):", { user_id: newUser.id, device_fingerprint: fingerprint });
+          const { data: newSession, error: insertError } = await supabase
+            .from("verp_sessions")
+            .insert({
+              user_id: newUser.id,
+              device_fingerprint: fingerprint,
+              last_active_path: "/",
+              updated_at: new Date().toISOString()
+            })
+            .select();
+          
+          console.log("📥 Insert result:", { data: newSession, error: insertError });
+          
+          if (insertError) {
+            console.error("❌ Failed to insert session:", insertError);
+          } else {
+            console.log("✅ Session created via insert:", newSession);
+            sessionResult = newSession;
+          }
+        } catch (err) {
+          console.error("❌ Session creation fallback failed:", err);
+        }
       } else {
-        console.log("✅ Session created:", sessionResult);
+        console.log("✅ Session created with device_fingerprint conflict:", sessionResult);
       }
       
+      // Store user data immediately before navigating to /loading
       localStorage.setItem("userEmail", newUser.email);
       localStorage.setItem("userId", newUser.id);
       localStorage.setItem("userName", newUser.full_name);
       localStorage.setItem("deviceFingerprint", fingerprint);
+      console.log("✅ User data stored in localStorage - ready for app");
 
       if (
         window.matchMedia("(display-mode: standalone)").matches ||
@@ -635,6 +720,7 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
         localStorage.setItem("vrp_is_pwa", "1");
         localStorage.setItem("vrp_session_type", "pwa");
         localStorage.setItem("vrp_last_seen", Date.now().toString());
+        console.log("✅ PWA mode detected and flagged");
       }
     }
 

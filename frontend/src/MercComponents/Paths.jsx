@@ -238,16 +238,23 @@ function Paths() {
                 try {
                   /* Generate device fingerprint to match against stored session */
                   const fingerprint = getFingerprint();
-                  console.log("🔐 Device fingerprint:", fingerprint);
+                  console.log("🔐 Device fingerprint for restoration:", fingerprint);
 
                   /* Query sessions by THIS device's fingerprint */
-                  const { data: session } = await supabase
+                  const { data: session, error: queryErr } = await supabase
                     .from("verp_sessions")
                     .select("user_id, device_fingerprint")
                     .eq("device_fingerprint", fingerprint)
                     .maybeSingle();
 
+                  console.log("📊 Query error:", queryErr);
                   console.log("📊 Session from DB:", session);
+                  
+                  if (!session && !queryErr) {
+                    console.log("⚠️ No session found, showing all sessions for debug:");
+                    const { data: allSessions } = await supabase.from("verp_sessions").select("*");
+                    console.log("📋 All sessions in DB:", allSessions);
+                  }
 
                   if (session && session.user_id) {
                     // ✅ Found an active session for THIS device
