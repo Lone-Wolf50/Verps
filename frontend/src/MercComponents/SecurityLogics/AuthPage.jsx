@@ -386,7 +386,23 @@ const AuthPage_LoginForm = ({ onSuccess }) => {
       const match = await bcrypt.compare(form.password, user.password_hash);
       if (!match) { setErrors({ password: "INCORRECT PASSWORD" }); setLoading(false); return; }
       const fingerprint = getFingerprint();
-      await supabase.from("verp_sessions").upsert({ user_id: user.id, device_fingerprint: fingerprint, last_active_path: "/", updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+      console.log("🔐 Creating session with fingerprint:", fingerprint);
+      
+      /* ✅ FIXED: Use device_fingerprint as conflict key, not user_id */
+      /* This ensures each device has its own session row */
+      const { data: sessionResult, error: sessionError } = await supabase
+        .from("verp_sessions")
+        .upsert(
+          { user_id: user.id, device_fingerprint: fingerprint, last_active_path: "/", updated_at: new Date().toISOString() },
+          { onConflict: "device_fingerprint" }  /* ← KEY FIX: use fingerprint, not user_id */
+        );
+      
+      if (sessionError) {
+        console.error("❌ Failed to create session:", sessionError);
+      } else {
+        console.log("✅ Session created:", sessionResult);
+      }
+      
       localStorage.setItem("userEmail", user.email);
       localStorage.setItem("userId", user.id);
       localStorage.setItem("userName", user.full_name);
@@ -592,10 +608,21 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
       }
 
       const fingerprint = getFingerprint();
-      await supabase.from("verp_sessions").upsert(
-        { user_id: newUser.id, device_fingerprint: fingerprint, last_active_path: "/", updated_at: new Date().toISOString() },
-        { onConflict: "user_id" }
-      );
+      console.log("🔐 Creating session for new user with fingerprint:", fingerprint);
+      
+      const { data: sessionResult, error: sessionError } = await supabase
+        .from("verp_sessions")
+        .upsert(
+          { user_id: newUser.id, device_fingerprint: fingerprint, last_active_path: "/", updated_at: new Date().toISOString() },
+          { onConflict: "device_fingerprint" }  /* ← KEY FIX: use fingerprint, not user_id */
+        );
+      
+      if (sessionError) {
+        console.error("❌ Failed to create session:", sessionError);
+      } else {
+        console.log("✅ Session created:", sessionResult);
+      }
+      
       localStorage.setItem("userEmail", newUser.email);
       localStorage.setItem("userId", newUser.id);
       localStorage.setItem("userName", newUser.full_name);
