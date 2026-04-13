@@ -194,28 +194,10 @@ function Paths() {
   const reviewEmail       = useReviewPromptEmail();
   const showInstallBanner = useShowInstallBanner();
 
-  // ✅ NEW: Show loading while session is being restored for PWA users
-  if (!sessionRestored) {
-    return (
-      <>
-        <ScrollToTop />
-        <div className="flex items-center justify-center min-h-screen bg-[#050505]">
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 rounded-full border-2 border-[#ec5b13] border-t-transparent animate-spin" />
-            </div>
-            <p className="text-xs tracking-widest uppercase text-[rgba(255,255,255,0.5)] font-mono">
-              Restoring Session...
-            </p>
-          </div>
-        </div>
-      </>
-    );
-  }
-
   useEffect(() => {
     const initializeSession = async () => {
       try {
+        console.log("🔄 Session initialization starting...");
         const staffRoleLS = localStorage.getItem("staffRole");
         const staffRoleSS = sessionStorage.getItem("staffRole");
         const isStaffSession = staffRoleLS || staffRoleSS;
@@ -225,11 +207,14 @@ function Paths() {
           window.matchMedia("(display-mode: standalone)").matches ||
           window.navigator.standalone === true;
 
+        console.log("📱 Is PWA?", isPWA);
+
         if (isPWA) {
           localStorage.setItem("vrp_is_pwa", "1");
         }
 
         const wasPWA = wasUserInPWAMode();
+        console.log("📱 Was PWA?", wasPWA);
 
         if (wasPWA) {
           /* ── PWA users — Check Supabase session if localStorage is missing ── */
@@ -237,28 +222,32 @@ function Paths() {
           const gracePeriod = 7 * 24 * 60 * 60 * 1000;
           const expired     = lastSeen && (Date.now() - parseInt(lastSeen, 10)) > gracePeriod;
 
+          console.log("⏱️ Last seen:", lastSeen, "Expired?", expired);
+
           if (expired && !isStaffSession) {
+            console.log("❌ Session expired");
             // Grace period expired — clear auth
             ["userEmail","userId","userName","deviceFingerprint","luxury_cart","vrp_last_seen","vrp_session_type"]
               .forEach((k) => localStorage.removeItem(k));
             localStorage.removeItem("guest_cart");
             setIsLoggedIn(false);
           } else if (!localStorage.getItem("userEmail")) {
-            // ✅ localStorage is empty (app cleared) but they're a PWA user
-            // Try to restore session from Supabase using device fingerprint
-            // WITH TIMEOUT: 5 second max wait
+            console.log("🔍 Restoring session from Supabase...");
             await Promise.race([
               (async () => {
                 try {
                   /* Generate device fingerprint to match against stored session */
                   const fingerprint = getFingerprint();
-                  
+                  console.log("🔐 Device fingerprint:", fingerprint);
+
                   /* Query sessions by THIS device's fingerprint */
                   const { data: session } = await supabase
                     .from("verp_sessions")
                     .select("user_id, device_fingerprint")
                     .eq("device_fingerprint", fingerprint)
                     .maybeSingle();
+
+                  console.log("📊 Session from DB:", session);
 
                   if (session && session.user_id) {
                     // ✅ Found an active session for THIS device
@@ -268,7 +257,10 @@ function Paths() {
                       .eq("id", session.user_id)
                       .maybeSingle();
 
+                    console.log("👤 User from DB:", user);
+
                     if (user && user.email) {
+                      console.log("✅ Restoring user:", user.email);
                       // ✅ Restore the session to localStorage
                       localStorage.setItem("userEmail", user.email);
                       localStorage.setItem("userId", user.id);
@@ -278,24 +270,26 @@ function Paths() {
                       localStorage.setItem("vrp_last_seen", Date.now().toString());
                       setIsLoggedIn(true);
                     }
+                  } else {
+                    console.log("❌ No session found for this device");
                   }
                 } catch (err) {
                   // Session restore failed — user will need to login again
-                  console.warn("Could not restore PWA session:", err);
+                  console.warn("❌ Could not restore PWA session:", err);
                 }
               })(),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error("Session restore timeout")), 5000)
+              new Promise((resolve) =>
+                setTimeout(resolve, 1500)
               ),
-            ]).catch(err => {
-              // Timeout or error - just proceed
-              console.warn("Session restoration timed out or failed:", err.message);
-            });
+            ]);
+          } else {
+            console.log("👤 User already logged in");
           }
 
           /* ✅ Update last_seen on every app open for PWA users */
           updatePWALastSeen();
         } else {
+          console.log("🌐 Web user - checking session");
           /* ── Browser/web users — sessionStorage tab-tracking ── */
           if (shouldLogoutUser()) {
             if (!isStaffSession) {
@@ -308,9 +302,10 @@ function Paths() {
           markWebSessionAlive();
         }
       } catch (err) {
-        console.error("Session initialization error:", err);
+        console.error("❌ Session initialization error:", err);
       } finally {
         // ✅ ALWAYS set this to true, even if restoration fails
+        console.log("✅ Session restoration complete, showing app");
         setSessionRestored(true);
       }
     };
@@ -335,6 +330,26 @@ function Paths() {
     window.addEventListener("pagehide", onPageHide);
     return () => window.removeEventListener("pagehide", onPageHide);
   }, []);
+
+  // ✅ Show loading while session is being restored for PWA users
+  if (!sessionRestored) {
+    return (
+      <>
+        <ScrollToTop />
+        <div className="flex items-center justify-center min-h-screen bg-[#050505]">
+          <div className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full border-2 border-[#ec5b13] border-t-transparent animate-spin" />
+            </div>
+            <p className="text-xs tracking-widest uppercase text-[rgba(255,255,255,0.5)] font-mono">
+              Restoring Session...
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <ScrollToTop />
@@ -401,7 +416,7 @@ function Paths() {
               <Route path="/checkout"    element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/orderStatus" element={<ProtectedRoute><StatusTracker /></ProtectedRoute>} />
               <Route path="/inbox"       element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
-              <Route path="/support"     element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+              <Route path="/support"     elements={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
               <Route path="/reviews"     element={<ProtectedRoute><Reviews /></ProtectedRoute>} />
               <Route path="/profile"     element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
