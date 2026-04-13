@@ -5,6 +5,13 @@ import SearchOverlay from "./SearchOverlay";
 import { supabase } from "../supabaseClient";
 import Swal from "sweetalert2";
 import logo from "../../assets/V - 1.png";
+import {
+  wasUserInPWAMode,
+  isPWASessionExpired,
+  updatePWALastSeen,
+  shouldLogoutUser,
+  markWebSessionAlive,
+} from "../../utils/sessionManager";
 
 
 
@@ -448,40 +455,68 @@ const Navbar = () => {
     };
   }, [isSearchOpen]);
 
+  /* ── Session management: PWA vs Web ── */
   useEffect(() => {
+    const wasPWA = wasUserInPWAMode();
     const staffRoleLS = localStorage.getItem("staffRole");
     const staffRoleSS = sessionStorage.getItem("staffRole");
     const isStaffSession = staffRoleLS || staffRoleSS;
 
-    const isPWA = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    if (isPWA) localStorage.setItem("vrp_is_pwa", "1");
-    const wasPWA = !!localStorage.getItem("vrp_is_pwa");
-
-    if (!wasPWA) {
-      // Browser users only — clear on new tab if no sessionStorage alive flag
-      const vrpAlive = sessionStorage.getItem("vrp_alive");
-      if (!vrpAlive && !isStaffSession) {
-        ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
+    /* Check if user should be logged out */
+    if (shouldLogoutUser()) {
+      if (!isStaffSession) {
+        ["userEmail", "userId", "userName", "deviceFingerprint", "luxury_cart"].forEach((k) => localStorage.removeItem(k));
         localStorage.removeItem("guest_cart");
         setIsLoggedIn(false);
       }
     }
-    // PWA users skip the sessionStorage check entirely — Paths.jsx handles their grace period
 
-    sessionStorage.setItem("vrp_alive", "1");
+    /* Update PWA last_seen timestamp (for 7-day grace period) */
+    updatePWALastSeen();
 
+    /* Web users: mark session as alive in sessionStorage */
+    if (!wasPWA) {
+      markWebSessionAlive();
+    }
+  }, []);
+
+  /* ── Cleanup on page hide: Only for web users ── */
+  useEffect(() => {
     const onPageHide = (e) => {
-      if (!e.persisted && !wasPWA) {
-        // Browser users only — delete session row on tab close
-        const fp  = localStorage.getItem("deviceFingerprint");
-        const uid = localStorage.getItem("userId");
-        if (fp && uid) supabase.from("verp_sessions").delete().match({ user_id: uid, device_fingerprint: fp });
+      if (!e.persisted) {
+        const wasPWA = wasUserInPWAMode();
+        /* Only delete session for web users, not PWA */
+        if (!wasPWA) {
+          const fp = localStorage.getItem("deviceFingerprint");
+          const uid = localStorage.getItem("userId");
+          if (fp && uid) {
+            supabase.from("verp_sessions").delete().match({ user_id: uid, device_fingerprint: fp });
+          }
+        }
       }
-      // PWA users: session stays in DB, 7-day grace period in Paths.jsx handles expiry
     };
     window.addEventListener("pagehide", onPageHide);
     return () => window.removeEventListener("pagehide", onPageHide);
   }, []);
+
+  /* ── Update PWA last_seen on user interaction (keeps session alive) ── */
+  useEffect(() => {
+    const wasPWA = wasUserInPWAMode();
+    if (!wasPWA || !isLoggedIn) return;
+
+    const updateLastSeen = () => {
+      updatePWALastSeen();
+    };
+
+    /* Update on user interaction */
+    document.addEventListener("click", updateLastSeen);
+    document.addEventListener("touchstart", updateLastSeen);
+
+    return () => {
+      document.removeEventListener("click", updateLastSeen);
+      document.removeEventListener("touchstart", updateLastSeen);
+    };
+  }, [isLoggedIn]);
 
   useEffect(() => {
     window.__vaultAddToCartGuard = () => {

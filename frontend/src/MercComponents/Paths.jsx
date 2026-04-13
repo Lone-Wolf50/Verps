@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
+/* ── Session Manager ── */
+import {
+  wasUserInPWAMode,
+  isPWASessionExpired,
+  updatePWALastSeen,
+  shouldLogoutUser,
+  markWebSessionAlive,
+} from "../utils/sessionManager";
+
 /* ── Shell components ── */
 import Navbar            from "./Homepage/Navbar.jsx";
 import Footer            from "./Homepage/Footer.jsx";
@@ -10,7 +19,7 @@ import { CartProvider }  from "./Cartoptions/CartContext";
 /* ── PWA install banner ── */
 import VerpInstallBanner from "./Homepage/VerpInstallBanner.jsx";
 
-/* ── Supabase (session restore + browser tab cleanup) ── */
+/* ── Supabase (for pagehide session cleanup) ── */
 import { supabase } from "../supabaseClient";
 
 /* ── Auth & loading ── */
@@ -209,19 +218,22 @@ function Paths() {
       const staffRoleSS = sessionStorage.getItem("staffRole");
       const isStaffSession = staffRoleLS || staffRoleSS;
 
+      /* ── Detect PWA mode and set persistent flag ── */
       const isPWA =
         window.matchMedia("(display-mode: standalone)").matches ||
         window.navigator.standalone === true;
 
-      // Stamp a persistent flag the first time we detect PWA mode
-      if (isPWA) localStorage.setItem("vrp_is_pwa", "1");
-      const wasPWA = !!localStorage.getItem("vrp_is_pwa");
+      if (isPWA) {
+        localStorage.setItem("vrp_is_pwa", "1");
+      }
+
+      const wasPWA = wasUserInPWAMode();
 
       if (wasPWA) {
         /* ── PWA users — Check Supabase session if localStorage is missing ── */
         const lastSeen    = localStorage.getItem("vrp_last_seen");
         const gracePeriod = 7 * 24 * 60 * 60 * 1000;
-        const expired     = lastSeen && (Date.now() - parseInt(lastSeen)) > gracePeriod;
+        const expired     = lastSeen && (Date.now() - parseInt(lastSeen, 10)) > gracePeriod;
 
         if (expired && !isStaffSession) {
           // Grace period expired — clear auth
@@ -230,7 +242,7 @@ function Paths() {
           localStorage.removeItem("guest_cart");
           setIsLoggedIn(false);
         } else if (!localStorage.getItem("userEmail")) {
-          // ✅ NEW: localStorage is empty (likely cleared) but they're a PWA user
+          // ✅ localStorage is empty (likely cleared) but they're a PWA user
           // Try to restore session from Supabase if they have an active one
           try {
             const { data: sessions } = await supabase
@@ -265,38 +277,41 @@ function Paths() {
           }
         }
 
-        localStorage.setItem("vrp_last_seen", Date.now().toString());
-
+        /* ✅ Update last_seen on every app open for PWA users */
+        updatePWALastSeen();
       } else {
-        /* Browser/web users — sessionStorage tab-tracking */
-        const vrpAlive = sessionStorage.getItem("vrp_alive");
-        if (!vrpAlive && !isStaffSession) {
-          ["userEmail","userId","userName","deviceFingerprint","luxury_cart"]
-            .forEach((k) => localStorage.removeItem(k));
-          localStorage.removeItem("guest_cart");
-          setIsLoggedIn(false);
+        /* ── Browser/web users — sessionStorage tab-tracking ── */
+        if (shouldLogoutUser()) {
+          if (!isStaffSession) {
+            ["userEmail","userId","userName","deviceFingerprint","luxury_cart"]
+              .forEach((k) => localStorage.removeItem(k));
+            localStorage.removeItem("guest_cart");
+            setIsLoggedIn(false);
+          }
         }
+        markWebSessionAlive();
       }
 
-      sessionStorage.setItem("vrp_alive", "1");
       setSessionRestored(true);
     };
 
     initializeSession();
 
+    /* ── Cleanup on page hide: Only for web users, not PWA ── */
     const onPageHide = (e) => {
       if (!e.persisted) {
-        // PWA users — never delete their session on close, the 7-day grace period handles expiry
-        const isPWAUser = !!localStorage.getItem("vrp_is_pwa");
-        if (isPWAUser) return;
-
-        // Browser users only — clean up their session row on tab close
-        const fp  = localStorage.getItem("deviceFingerprint");
-        const uid = localStorage.getItem("userId");
-        if (fp && uid)
-          supabase.from("verp_sessions").delete().match({ user_id: uid, device_fingerprint: fp });
+        const wasPWA = wasUserInPWAMode();
+        /* ✅ Only delete session for web users, not PWA */
+        if (!wasPWA) {
+          const fp  = localStorage.getItem("deviceFingerprint");
+          const uid = localStorage.getItem("userId");
+          if (fp && uid) {
+            supabase.from("verp_sessions").delete().match({ user_id: uid, device_fingerprint: fp });
+          }
+        }
       }
     };
+
     window.addEventListener("pagehide", onPageHide);
     return () => window.removeEventListener("pagehide", onPageHide);
   }, []);
