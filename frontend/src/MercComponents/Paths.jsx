@@ -8,6 +8,7 @@ import {
   updatePWALastSeen,
   shouldLogoutUser,
   markWebSessionAlive,
+  getFingerprint,
 } from "../utils/sessionManager";
 
 /* ── Shell components ── */
@@ -242,18 +243,21 @@ function Paths() {
           localStorage.removeItem("guest_cart");
           setIsLoggedIn(false);
         } else if (!localStorage.getItem("userEmail")) {
-          // ✅ localStorage is empty (likely cleared) but they're a PWA user
-          // Try to restore session from Supabase if they have an active one
+          // ✅ localStorage is empty (app cleared) but they're a PWA user
+          // Try to restore session from Supabase using device fingerprint
           try {
-            const { data: sessions } = await supabase
+            /* Generate device fingerprint to match against stored session */
+            const fingerprint = getFingerprint();
+            
+            /* Query sessions by THIS device's fingerprint */
+            const { data: session } = await supabase
               .from("verp_sessions")
               .select("user_id, device_fingerprint")
-              .order("updated_at", { ascending: false })
-              .limit(1);
+              .eq("device_fingerprint", fingerprint)
+              .maybeSingle();
 
-            if (sessions && sessions.length > 0) {
-              const session = sessions[0];
-              // Found an active session — fetch user data
+            if (session && session.user_id) {
+              // ✅ Found an active session for THIS device
               const { data: user } = await supabase
                 .from("verp_users")
                 .select("id, email, full_name")
@@ -261,7 +265,7 @@ function Paths() {
                 .maybeSingle();
 
               if (user && user.email) {
-                // Restore the session to localStorage
+                // ✅ Restore the session to localStorage
                 localStorage.setItem("userEmail", user.email);
                 localStorage.setItem("userId", user.id);
                 localStorage.setItem("userName", user.full_name || "");

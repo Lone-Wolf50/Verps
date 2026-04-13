@@ -4,6 +4,18 @@
  */
 
 /**
+ * Generate device fingerprint for session matching
+ * Used to identify same device across app reinstalls/cache clears
+ */
+export const getFingerprint = () => {
+  const nav = window.navigator;
+  const raw = [nav.userAgent, nav.language, screen.width, screen.height, new Date().getTimezoneOffset()].join("|");
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) { hash = (hash << 5) - hash + raw.charCodeAt(i); hash |= 0; }
+  return Math.abs(hash).toString(36);
+};
+
+/**
  * Detect if app is running in PWA (standalone) mode
  */
 export const isPWAMode = () => {
