@@ -197,78 +197,61 @@ function Paths() {
   useEffect(() => {
     const initializeSession = async () => {
       try {
-        console.log("🔄 Session initialization starting...");
+        /* Guard: Check if user has staff privileges (bypass PWA logic) */
         const staffRoleLS = localStorage.getItem("staffRole");
         const staffRoleSS = sessionStorage.getItem("staffRole");
         const isStaffSession = staffRoleLS || staffRoleSS;
 
-        /* ── Detect PWA mode and set persistent flag ── */
+        /* Detect if app is running in PWA/standalone mode vs web browser */
         const isPWA =
           window.matchMedia("(display-mode: standalone)").matches ||
           window.navigator.standalone === true;
 
-        console.log("📱 Is PWA?", isPWA);
-
+        /* Mark PWA flag if first app launch detects standalone mode */
         if (isPWA) {
           localStorage.setItem("vrp_is_pwa", "1");
         }
 
+        /* Check if user previously used this app in PWA mode */
         const wasPWA = wasUserInPWAMode();
-        console.log("📱 Was PWA?", wasPWA);
 
         if (wasPWA) {
-          /* ── PWA users — Check Supabase session if localStorage is missing ── */
+          /* PWA mode: Check session validity and restore from Supabase if needed */
           const lastSeen    = localStorage.getItem("vrp_last_seen");
           const gracePeriod = 7 * 24 * 60 * 60 * 1000;
           const expired     = lastSeen && (Date.now() - parseInt(lastSeen, 10)) > gracePeriod;
 
-          console.log("⏱️ Last seen:", lastSeen, "Expired?", expired);
-
           if (expired && !isStaffSession) {
-            console.log("❌ Session expired");
-            // Grace period expired — clear auth
+            /* 7-day inactivity period exceeded — clear PWA session */
             ["userEmail","userId","userName","deviceFingerprint","luxury_cart","vrp_last_seen","vrp_session_type"]
               .forEach((k) => localStorage.removeItem(k));
             localStorage.removeItem("guest_cart");
             setIsLoggedIn(false);
           } else if (!localStorage.getItem("userEmail")) {
-            console.log("🔍 Restoring session from Supabase...");
+            /* No cached login — attempt to restore from Supabase using device fingerprint */
             await Promise.race([
               (async () => {
                 try {
-                  /* Generate device fingerprint to match against stored session */
+                  /* Generate device fingerprint to uniquely identify this device */
                   const fingerprint = getFingerprint();
-                  console.log("🔐 Device fingerprint for restoration:", fingerprint);
 
-                  /* Query sessions by THIS device's fingerprint */
+                  /* Query Supabase for active session matching this device fingerprint */
                   const { data: session, error: queryErr } = await supabase
                     .from("verp_sessions")
                     .select("user_id, device_fingerprint")
                     .eq("device_fingerprint", fingerprint)
                     .maybeSingle();
-
-                  console.log("📊 Query error:", queryErr);
-                  console.log("📊 Session from DB:", session);
                   
-                  if (!session && !queryErr) {
-                    console.log("⚠️ No session found, showing all sessions for debug:");
-                    const { data: allSessions } = await supabase.from("verp_sessions").select("*");
-                    console.log("📋 All sessions in DB:", allSessions);
-                  }
-
                   if (session && session.user_id) {
-                    // ✅ Found an active session for THIS device
+                    /* Session found for this device — fetch user data */
                     const { data: user } = await supabase
                       .from("verp_users")
                       .select("id, email, full_name")
                       .eq("id", session.user_id)
                       .maybeSingle();
 
-                    console.log("👤 User from DB:", user);
-
                     if (user && user.email) {
-                      console.log("✅ Restoring user:", user.email);
-                      // ✅ Restore the session to localStorage
+                      /* Restore user session from Supabase to localStorage */
                       localStorage.setItem("userEmail", user.email);
                       localStorage.setItem("userId", user.id);
                       localStorage.setItem("userName", user.full_name || "");
@@ -277,27 +260,21 @@ function Paths() {
                       localStorage.setItem("vrp_last_seen", Date.now().toString());
                       setIsLoggedIn(true);
                     }
-                  } else {
-                    console.log("❌ No session found for this device");
                   }
                 } catch (err) {
-                  // Session restore failed — user will need to login again
-                  console.warn("❌ Could not restore PWA session:", err);
+                  /* Session restoration failed — continue with normal login */
                 }
               })(),
               new Promise((resolve) =>
                 setTimeout(resolve, 1500)
               ),
             ]);
-          } else {
-            console.log("👤 User already logged in");
           }
 
-          /* ✅ Update last_seen on every app open for PWA users */
+          /* Update last activity timestamp for PWA session tracking */
           updatePWALastSeen();
         } else {
-          console.log("🌐 Web user - checking session");
-          /* ── Browser/web users — sessionStorage tab-tracking ── */
+          /* Web browser mode: Use standard logout-on-tab-close behavior */
           if (shouldLogoutUser()) {
             if (!isStaffSession) {
               ["userEmail","userId","userName","deviceFingerprint","luxury_cart"]
@@ -309,10 +286,9 @@ function Paths() {
           markWebSessionAlive();
         }
       } catch (err) {
-        console.error("❌ Session initialization error:", err);
+        /* Initialization error — continue with default behavior */
       } finally {
-        // ✅ ALWAYS set this to true, even if restoration fails
-        console.log("✅ Session restoration complete, showing app");
+        /* Always mark restoration complete to display app UI */
         setSessionRestored(true);
       }
     };
@@ -323,7 +299,7 @@ function Paths() {
     const onPageHide = (e) => {
       if (!e.persisted) {
         const wasPWA = wasUserInPWAMode();
-        /* ✅ Only delete session for web users, not PWA */
+        /* Check if user is staff (bypass PWA logout on tab close) */
         if (!wasPWA) {
           const fp  = localStorage.getItem("deviceFingerprint");
           const uid = localStorage.getItem("userId");

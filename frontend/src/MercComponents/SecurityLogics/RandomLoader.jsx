@@ -11,17 +11,14 @@ export default function RandomLoader() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Wait a moment for session initialization, then redirect
+    /* Hook: Wait for session initialization, then redirect based on login status */
     const timer = setTimeout(() => {
       const userEmail = localStorage.getItem("userEmail");
-      console.log("🔄 RandomLoader redirecting check - userEmail:", userEmail);
       if (userEmail) {
-        // ✅ User is logged in — redirect to home
-        console.log("✅ User logged in, redirecting to /");
+        /* User logged in — proceed to home page */
         navigate("/", { replace: true });
       } else {
-        // ❌ Session restoration failed — redirect to login
-        console.log("❌ Session restoration failed, redirecting to /login");
+        /* No session found — return to login */
         navigate("/login", { replace: true });
       }
     }, 2500);
