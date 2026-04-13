@@ -28,7 +28,7 @@ VERP is a full-stack e-commerce platform built as a Progressive Web App (PWA) th
 ### Key Characteristics
 
 - **Modern UI/UX**: Built with React 19 and styled with Tailwind CSS
-- **Progressive Web App**: Works offline and can be installed as an app
+- **Progressive Web App**: Works online and can be installed as an app
 - **Secure Authentication**: OTP-based verification and password management
 - **Real-time Data Sync**: TanStack React Query for server state management
 - **Responsive Design**: Fully responsive across all devices
