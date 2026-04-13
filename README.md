@@ -409,7 +409,7 @@ Query Parameters:
 - SQL injection prevention (via Supabase)
 
 ### Progressive Web App (PWA)
-✅ **Offline Support**
+✅ **Online Support**
 - Service Worker for offline access
 - Installable as native app
 - App icons and splash screens
@@ -649,7 +649,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 **Version**: 1.0.0  
 **Status**: Active Development
 
-Made with ❤️ by the Verp Team
+Made with the Verp Team
 - A **Supabase** project (free tier works) with the tables listed at the bottom of this file.
 - A **Gmail account** set up with an App Password for sending emails.
 - A **Paystack** account with your secret key (only needed for payment processing).
