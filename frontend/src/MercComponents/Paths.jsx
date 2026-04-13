@@ -21,7 +21,7 @@ import { CartProvider }  from "./Cartoptions/CartContext";
 import VerpInstallBanner from "./Homepage/VerpInstallBanner.jsx";
 
 /* ── Supabase (for pagehide session cleanup) ── */
-import { supabase } from "../supabaseClient";
+import { supabase } from "./supabaseClient";
 
 /* ── Auth & loading ── */
 import AuthPage       from "./SecurityLogics/AuthPage.jsx";
