@@ -449,24 +449,35 @@ const Navbar = () => {
   }, [isSearchOpen]);
 
   useEffect(() => {
-    const vrpAlive    = sessionStorage.getItem("vrp_alive");
     const staffRoleLS = localStorage.getItem("staffRole");
     const staffRoleSS = sessionStorage.getItem("staffRole");
-    if (!vrpAlive) {
-      const isStaffSession = staffRoleLS || staffRoleSS;
-      if (!isStaffSession) {
+    const isStaffSession = staffRoleLS || staffRoleSS;
+
+    const isPWA = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    if (isPWA) localStorage.setItem("vrp_is_pwa", "1");
+    const wasPWA = !!localStorage.getItem("vrp_is_pwa");
+
+    if (!wasPWA) {
+      // Browser users only — clear on new tab if no sessionStorage alive flag
+      const vrpAlive = sessionStorage.getItem("vrp_alive");
+      if (!vrpAlive && !isStaffSession) {
         ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
         localStorage.removeItem("guest_cart");
         setIsLoggedIn(false);
       }
     }
+    // PWA users skip the sessionStorage check entirely — Paths.jsx handles their grace period
+
     sessionStorage.setItem("vrp_alive", "1");
+
     const onPageHide = (e) => {
-      if (!e.persisted) {
+      if (!e.persisted && !wasPWA) {
+        // Browser users only — delete session row on tab close
         const fp  = localStorage.getItem("deviceFingerprint");
         const uid = localStorage.getItem("userId");
         if (fp && uid) supabase.from("verp_sessions").delete().match({ user_id: uid, device_fingerprint: fp });
       }
+      // PWA users: session stays in DB, 7-day grace period in Paths.jsx handles expiry
     };
     window.addEventListener("pagehide", onPageHide);
     return () => window.removeEventListener("pagehide", onPageHide);

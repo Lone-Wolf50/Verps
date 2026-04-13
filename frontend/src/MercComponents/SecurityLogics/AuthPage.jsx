@@ -392,10 +392,9 @@ const AuthPage_LoginForm = ({ onSuccess }) => {
       localStorage.setItem("userName", user.full_name);
       localStorage.setItem("deviceFingerprint", fingerprint);
 
-      if (
-        window.matchMedia("(display-mode: standalone)").matches ||
-        window.navigator.standalone === true
-      ) {
+      const isPWA = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      if (isPWA) {
+        localStorage.setItem("vrp_is_pwa", "1");         // persistent flag — survives restarts
         localStorage.setItem("vrp_session_type", "pwa");
         localStorage.setItem("vrp_last_seen", Date.now().toString());
       }
@@ -604,6 +603,7 @@ const AuthPage_OtpForm = ({ onSuccess }) => {
         window.matchMedia("(display-mode: standalone)").matches ||
         window.navigator.standalone === true
       ) {
+        localStorage.setItem("vrp_is_pwa", "1");         // persistent flag — survives restarts
         localStorage.setItem("vrp_session_type", "pwa");
         localStorage.setItem("vrp_last_seen", Date.now().toString());
       }

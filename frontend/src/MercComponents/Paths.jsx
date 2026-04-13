@@ -10,7 +10,7 @@ import { CartProvider }  from "./Cartoptions/CartContext";
 /* ── PWA install banner ── */
 import VerpInstallBanner from "./Homepage/VerpInstallBanner.jsx";
 
-/* ── Supabase (for pagehide session cleanup) ── */
+/* ── Supabase (session restore + browser tab cleanup) ── */
 import { supabase } from "../supabaseClient";
 
 /* ── Auth & loading ── */
@@ -286,6 +286,11 @@ function Paths() {
 
     const onPageHide = (e) => {
       if (!e.persisted) {
+        // PWA users — never delete their session on close, the 7-day grace period handles expiry
+        const isPWAUser = !!localStorage.getItem("vrp_is_pwa");
+        if (isPWAUser) return;
+
+        // Browser users only — clean up their session row on tab close
         const fp  = localStorage.getItem("deviceFingerprint");
         const uid = localStorage.getItem("userId");
         if (fp && uid)
