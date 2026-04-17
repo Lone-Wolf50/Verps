@@ -399,7 +399,7 @@ function Paths() {
               <Route path="/checkout"    element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/orderStatus" element={<ProtectedRoute><StatusTracker /></ProtectedRoute>} />
               <Route path="/inbox"       element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
-              <Route path="/support"     elements={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+              <Route path="/support"     element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
               <Route path="/reviews"     element={<ProtectedRoute><Reviews /></ProtectedRoute>} />
               <Route path="/profile"     element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
