@@ -6,15 +6,31 @@ import LiveAssistantChat from "./LiveAssistantChat";
 import Swal from "sweetalert2";
 
 /* ══════════════════════════════════════════════════════
+   SUPPORT HOURS HELPER
+   Mon–Sat 08:00–18:30 (Africa/Accra = GMT+0 always)
+   ══════════════════════════════════════════════════════ */
+const isWithinSupportHours = () => {
+  const now = new Date();
+  // Ghana is UTC+0 year-round (no DST)
+  const day = now.getUTCDay();   // 0=Sun, 1=Mon … 6=Sat
+  const hour = now.getUTCHours();
+  const min = now.getUTCMinutes();
+  const totalMins = hour * 60 + min;
+  const isWeekday = day >= 1 && day <= 6; // Mon–Sat
+  const isInWindow = totalMins >= 8 * 60 && totalMins < 18 * 60 + 30;
+  return isWeekday && isInWindow;
+};
+
+/* ══════════════════════════════════════════════════════
    OFFLINE MODAL
    Premium full-screen overlay shown when the assistant
    is not online and the user tries to escalate.
    ══════════════════════════════════════════════════════ */
 const OfflineModal = ({ onClose }) => {
   const [visible, setVisible] = useState(false);
+  const withinHours = isWithinSupportHours();
 
   useEffect(() => {
-    /* Slight tick so the enter animation fires */
     requestAnimationFrame(() => setVisible(true));
   }, []);
 
@@ -72,19 +88,16 @@ const OfflineModal = ({ onClose }) => {
             width: 88, height: 88,
             margin: "0 auto 32px",
           }}>
-            {/* Outer ring */}
             <div style={{
               position: "absolute", inset: 0,
               borderRadius: "50%",
               border: "1px solid rgba(239,68,68,0.12)",
             }} />
-            {/* Middle ring */}
             <div style={{
               position: "absolute", inset: 10,
               borderRadius: "50%",
               border: "1px solid rgba(239,68,68,0.18)",
             }} />
-            {/* Core */}
             <div style={{
               position: "absolute", inset: 20,
               borderRadius: "50%",
@@ -92,13 +105,10 @@ const OfflineModal = ({ onClose }) => {
               border: "1px solid rgba(239,68,68,0.28)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <span className="material-symbols-outlined" style={{
-                fontSize: 24, color: "#ef4444",
-              }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 24, color: "#ef4444" }}>
                 support_agent
               </span>
             </div>
-            {/* Orbiting dot */}
             <div style={{
               position: "absolute",
               top: "50%", left: "50%",
@@ -155,10 +165,101 @@ const OfflineModal = ({ onClose }) => {
             fontFamily: "'DM Sans',sans-serif",
             fontSize: 13, lineHeight: 1.75,
             color: "rgba(255,255,255,0.4)",
-            margin: "0 0 36px",
+            margin: "0 0 24px",
           }}>
-            The automated assistant is still available and can help with orders, returns, and common questions. Try again during working hours.
+            The automated assistant is still available and can help with orders, sizing, and returns.
           </p>
+
+          {/* ── Working Hours block ── */}
+          <div style={{
+            borderRadius: 16,
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            padding: "16px 20px",
+            marginBottom: 28,
+            textAlign: "left",
+          }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 7,
+              marginBottom: 12,
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 14, color: "rgba(255,255,255,0.3)" }}>
+                schedule
+              </span>
+              <span style={{
+                fontFamily: "'JetBrains Mono',monospace",
+                fontSize: 7, letterSpacing: "0.28em", textTransform: "uppercase",
+                color: "rgba(255,255,255,0.25)",
+              }}>
+                Working Hours
+              </span>
+            </div>
+
+            {/* Days + time row */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <p style={{
+                  fontFamily: "'DM Sans',sans-serif",
+                  fontSize: 13, fontWeight: 600,
+                  color: "rgba(255,255,255,0.7)",
+                  margin: "0 0 2px",
+                }}>
+                  Monday – Saturday
+                </p>
+                <p style={{
+                  fontFamily: "'JetBrains Mono',monospace",
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.35)",
+                  margin: 0,
+                  letterSpacing: "0.06em",
+                }}>
+                  8:00 AM – 6:30 PM
+                </p>
+              </div>
+
+              {/* Live status pill */}
+              <div style={{
+                padding: "5px 11px",
+                borderRadius: 999,
+                background: withinHours
+                  ? "rgba(34,197,94,0.08)"
+                  : "rgba(239,68,68,0.07)",
+                border: `1px solid ${withinHours ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.2)"}`,
+                display: "flex", alignItems: "center", gap: 6,
+              }}>
+                <div style={{
+                  width: 5, height: 5, borderRadius: "50%",
+                  background: withinHours ? "#22c55e" : "#ef4444",
+                }} />
+                <span style={{
+                  fontFamily: "'JetBrains Mono',monospace",
+                  fontSize: 7, letterSpacing: "0.22em", textTransform: "uppercase",
+                  color: withinHours ? "rgba(34,197,94,0.8)" : "rgba(239,68,68,0.7)",
+                }}>
+                  {withinHours ? "Now Open" : "Closed Now"}
+                </span>
+              </div>
+            </div>
+
+            {/* Sunday closed note */}
+            <div style={{
+              marginTop: 10,
+              paddingTop: 10,
+              borderTop: "1px solid rgba(255,255,255,0.05)",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 12, color: "rgba(255,255,255,0.15)" }}>
+                do_not_disturb_on
+              </span>
+              <span style={{
+                fontFamily: "'JetBrains Mono',monospace",
+                fontSize: 7, letterSpacing: "0.2em", textTransform: "uppercase",
+                color: "rgba(255,255,255,0.15)",
+              }}>
+                Closed on Sundays
+              </span>
+            </div>
+          </div>
 
           {/* Divider */}
           <div style={{
@@ -169,7 +270,6 @@ const OfflineModal = ({ onClose }) => {
 
           {/* Actions */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {/* Primary: back to bot */}
             <button
               onClick={handleClose}
               style={{
@@ -198,7 +298,6 @@ const OfflineModal = ({ onClose }) => {
               Continue with Bot
             </button>
 
-            {/* Secondary: dismiss */}
             <button
               onClick={handleClose}
               style={{
@@ -245,48 +344,48 @@ const BotHintBanner = ({ onEscalate }) => {
         }
       `}</style>
 
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:7 }}>
-        <span className="material-symbols-outlined" style={{ fontSize:15, color:"#ec5b13", flexShrink:0 }}>smart_toy</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 15, color: "#ec5b13", flexShrink: 0 }}>smart_toy</span>
         <span style={{
-          fontFamily:"'JetBrains Mono',monospace",
-          fontSize:8, letterSpacing:"0.22em",
-          textTransform:"uppercase", color:"#ec5b13", fontWeight:700,
+          fontFamily: "'JetBrains Mono',monospace",
+          fontSize: 8, letterSpacing: "0.22em",
+          textTransform: "uppercase", color: "#ec5b13", fontWeight: 700,
         }}>Scripted Bot — Not AI</span>
         <button
           onClick={() => setVisible(false)}
           style={{
-            marginLeft:"auto", background:"none", border:"none",
-            cursor:"pointer", padding:0, color:"rgba(255,255,255,0.2)",
-            display:"flex", alignItems:"center", lineHeight:1,
-            transition:"color 150ms",
+            marginLeft: "auto", background: "none", border: "none",
+            cursor: "pointer", padding: 0, color: "rgba(255,255,255,0.2)",
+            display: "flex", alignItems: "center", lineHeight: 1,
+            transition: "color 150ms",
           }}
           onMouseEnter={e => e.currentTarget.style.color = "rgba(255,255,255,0.5)"}
           onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.2)"}
         >
-          <span className="material-symbols-outlined" style={{ fontSize:15 }}>close</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 15 }}>close</span>
         </button>
       </div>
 
       <p style={{
-        fontFamily:"'DM Sans',sans-serif",
-        fontSize:12, lineHeight:1.6,
-        color:"rgba(255,255,255,0.45)",
-        margin:"0 0 10px",
+        fontFamily: "'DM Sans',sans-serif",
+        fontSize: 12, lineHeight: 1.6,
+        color: "rgba(255,255,255,0.45)",
+        margin: "0 0 10px",
       }}>
-        This assistant follows a <strong style={{ color:"rgba(255,255,255,0.65)", fontWeight:600 }}>fixed script</strong> — it can handle orders, sizing and returns, but it won't understand open-ended questions the way a real person would. If it can't help you, connect to the team directly.
+        This assistant follows a <strong style={{ color: "rgba(255,255,255,0.65)", fontWeight: 600 }}>fixed script</strong> — it can handle orders, sizing and returns, but it won't understand open-ended questions the way a real person would. If it can't help you, connect to the team directly.
       </p>
 
       <button
         onClick={onEscalate}
         style={{
-          display:"inline-flex", alignItems:"center", gap:6,
-          padding:"6px 13px", borderRadius:8,
-          background:"transparent",
-          border:"1px solid rgba(236,91,19,0.28)",
-          cursor:"pointer", transition:"all 180ms",
-          fontFamily:"'JetBrains Mono',monospace",
-          fontSize:8, letterSpacing:"0.18em",
-          textTransform:"uppercase", color:"#ec5b13",
+          display: "inline-flex", alignItems: "center", gap: 6,
+          padding: "6px 13px", borderRadius: 8,
+          background: "transparent",
+          border: "1px solid rgba(236,91,19,0.28)",
+          cursor: "pointer", transition: "all 180ms",
+          fontFamily: "'JetBrains Mono',monospace",
+          fontSize: 8, letterSpacing: "0.18em",
+          textTransform: "uppercase", color: "#ec5b13",
         }}
         onMouseEnter={e => {
           e.currentTarget.style.background = "rgba(236,91,19,0.1)";
@@ -297,7 +396,7 @@ const BotHintBanner = ({ onEscalate }) => {
           e.currentTarget.style.borderColor = "rgba(236,91,19,0.28)";
         }}
       >
-        <span className="material-symbols-outlined" style={{ fontSize:13 }}>support_agent</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 13 }}>support_agent</span>
         Talk to Support
       </button>
     </div>
@@ -306,8 +405,6 @@ const BotHintBanner = ({ onEscalate }) => {
 
 /* ══════════════════════════════════════════════════════
    AGENT ONLINE BANNER
-   Slides up from the bottom when support goes live
-   while the client is still on the bot screen.
    ══════════════════════════════════════════════════════ */
 const AgentOnlineBanner = ({ onConnect, onDismiss }) => {
   const [visible, setVisible] = useState(false);
@@ -340,7 +437,6 @@ const AgentOnlineBanner = ({ onConnect, onDismiss }) => {
         boxShadow: "0 20px 70px rgba(0,0,0,0.85), 0 0 0 1px rgba(34,197,94,0.07) inset",
         display: "flex", alignItems: "center", gap: 13,
       }}>
-        {/* Pulsing icon */}
         <div style={{
           flexShrink: 0, width: 38, height: 38, borderRadius: "50%",
           background: "rgba(34,197,94,0.1)",
@@ -351,7 +447,6 @@ const AgentOnlineBanner = ({ onConnect, onDismiss }) => {
           <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#22c55e" }}>support_agent</span>
         </div>
 
-        {/* Text */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{
             fontFamily: "'JetBrains Mono',monospace",
@@ -365,7 +460,6 @@ const AgentOnlineBanner = ({ onConnect, onDismiss }) => {
           }}>A live support agent is now available.</p>
         </div>
 
-        {/* Connect CTA */}
         <button
           onClick={() => { dismiss(); onConnect(); }}
           style={{
@@ -382,7 +476,6 @@ const AgentOnlineBanner = ({ onConnect, onDismiss }) => {
           onMouseLeave={e => e.currentTarget.style.filter = "none"}
         >Connect</button>
 
-        {/* Dismiss */}
         <button
           onClick={dismiss}
           style={{
@@ -404,25 +497,23 @@ const AgentOnlineBanner = ({ onConnect, onDismiss }) => {
 /* ══════════════════════════════════════════════════════
    SUPPORT PAGE
    ══════════════════════════════════════════════════════ */
-
-/* ── tiny sound helper — silently fails if browser blocks autoplay ── */
 const playSound = () => {
   try {
     const audio = new Audio("/notify.mp3");
     audio.volume = 0.5;
-    audio.play().catch(() => {});
-  } catch (_) {}
+    audio.play().catch(() => { });
+  } catch (_) { }
 };
 
 const SupportPage = () => {
   const navigate = useNavigate();
-  const [sessionStatus,   setSessionStatus]   = useState("bot");
-  const [chatId,          setChatId]          = useState(null);
-  const [loading,         setLoading]         = useState(true);
-  const [supportOnline,   setSupportOnline]   = useState(false);
-  const [showOffline,     setShowOffline]     = useState(false);
+  const [sessionStatus, setSessionStatus] = useState("bot");
+  const [chatId, setChatId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [supportOnline, setSupportOnline] = useState(false);
+  const [showOffline, setShowOffline] = useState(false);
   const [agentJustOnline, setAgentJustOnline] = useState(false);
-  const channelRef    = useRef(null);
+  const channelRef = useRef(null);
   const prevOnlineRef = useRef(null);
   const prevStatusRef = useRef("bot");
 
@@ -430,17 +521,16 @@ const SupportPage = () => {
     const check = async () => {
       const userEmail = localStorage.getItem("userEmail");
 
-      /* Check support status in parallel */
       const [sessionRes, statusRes] = await Promise.all([
         userEmail
           ? supabase
-              .from("verp_support_sessions")
-              .select("*")
-              .eq("client_email", userEmail)
-              .neq("status", "resolved")
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle()
+            .from("verp_support_sessions")
+            .select("*")
+            .eq("client_email", userEmail)
+            .neq("status", "resolved")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
           : Promise.resolve({ data: null }),
         supabase
           .from("verp_support_status")
@@ -460,7 +550,6 @@ const SupportPage = () => {
     check();
   }, []);
 
-  /* Realtime: keep support-status in sync */
   useEffect(() => {
     const channel = supabase
       .channel("sp_support_status")
@@ -469,10 +558,9 @@ const SupportPage = () => {
         { event: "*", schema: "public", table: "verp_support_status", filter: "id=eq.1" },
         (payload) => {
           const newOnline = payload.new?.is_online ?? false;
-          // Only show banner if we transition false → true (and client is still on bot screen)
           if (prevOnlineRef.current === false && newOnline === true) {
             setAgentJustOnline(true);
-            playSound(); // 🔔 client hears agent come online
+            playSound();
           }
           prevOnlineRef.current = newOnline;
           setSupportOnline(newOnline);
@@ -491,13 +579,13 @@ const SupportPage = () => {
         event: "UPDATE", schema: "public",
         table: "verp_support_sessions", filter: `id=eq.${chatId}`,
       }, (payload) => {
-          const newStatus = payload.new.status;
-          if (prevStatusRef.current !== "live" && newStatus === "live") {
-            playSound(); // ✅ client hears session connected
-          }
-          prevStatusRef.current = newStatus;
-          setSessionStatus(newStatus);
-        })
+        const newStatus = payload.new.status;
+        if (prevStatusRef.current !== "live" && newStatus === "live") {
+          playSound();
+        }
+        prevStatusRef.current = newStatus;
+        setSessionStatus(newStatus);
+      })
       .subscribe();
     channelRef.current = channel;
     return () => { supabase.removeChannel(channel); channelRef.current = null; };
@@ -513,7 +601,6 @@ const SupportPage = () => {
     return () => clearInterval(interval);
   }, [chatId, sessionStatus]);
 
-  /* Fallback poll for support status every 10s (safety net if realtime drops) */
   useEffect(() => {
     const poll = setInterval(async () => {
       const { data } = await supabase
@@ -525,7 +612,7 @@ const SupportPage = () => {
         const newOnline = data.is_online ?? false;
         if (prevOnlineRef.current === false && newOnline === true && sessionStatus === "bot") {
           setAgentJustOnline(true);
-          playSound(); // 🔔 fallback: client hears agent come online
+          playSound();
         }
         if (prevOnlineRef.current !== newOnline) {
           prevOnlineRef.current = newOnline;
@@ -537,7 +624,6 @@ const SupportPage = () => {
   }, [sessionStatus]);
 
   const handleEscalate = async () => {
-    /* Gate: check if support is online first */
     if (!supportOnline) {
       setShowOffline(true);
       return;
@@ -562,16 +648,20 @@ const SupportPage = () => {
       .insert([{ client_email: userEmail, status: "waiting" }])
       .select().single();
     if (data) { setChatId(data.id); setSessionStatus("waiting"); }
-    else Swal.fire({ title:"CONNECTION FAILED", text: error?.message || "Could not reach the Vault.", background:"#0d0d0d", color:"#fff", icon:"error", confirmButtonColor:"#ec5b13" });
+    else Swal.fire({ title: "CONNECTION FAILED", text: error?.message || "Could not reach the Vault.", background: "#0d0d0d", color: "#fff", icon: "error", confirmButtonColor: "#ec5b13" });
   };
 
   const handleSessionEnded = () => setSessionStatus("resolved");
 
+  /* ── derive offline reason for header subtitle ── */
+  const withinHours = isWithinSupportHours();
+  const offlineReason = !withinHours ? "Support Offline · Outside Hours" : "Support Offline";
+
   if (loading) return (
-    <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:14}}>
-      <div style={{width:28,height:28,borderRadius:"50%",border:"1.5px solid rgba(236,91,19,0.15)",borderTopColor:"#ec5b13",animation:"spin 1.1s linear infinite"}}/>
+    <div style={{ minHeight: "100vh", background: "#080808", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 14 }}>
+      <div style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(236,91,19,0.15)", borderTopColor: "#ec5b13", animation: "spin 1.1s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:"0.4em",color:"rgba(236,91,19,0.5)",textTransform:"uppercase"}}>SYNCING</p>
+      <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.4em", color: "rgba(236,91,19,0.5)", textTransform: "uppercase" }}>SYNCING</p>
     </div>
   );
 
@@ -584,10 +674,8 @@ const SupportPage = () => {
         @keyframes backBtnIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
       `}</style>
 
-      {/* Offline modal */}
       {showOffline && <OfflineModal onClose={() => setShowOffline(false)} />}
 
-      {/* Agent just came online — slide-up banner (only while on bot screen) */}
       {agentJustOnline && sessionStatus === "bot" && (
         <AgentOnlineBanner
           onConnect={() => { setAgentJustOnline(false); handleEscalate(); }}
@@ -595,35 +683,34 @@ const SupportPage = () => {
         />
       )}
 
-      {/* Full-screen chat surface */}
       <div style={{
-        position:"fixed", inset:0, background:"#080808", zIndex:200,
-        display:"flex", flexDirection:"column",
+        position: "fixed", inset: 0, background: "#080808", zIndex: 200,
+        display: "flex", flexDirection: "column",
       }}>
 
         {/* ── Header ── */}
         <div style={{
-          height:64, flexShrink:0,
-          display:"flex", alignItems:"center",
-          padding:"0 24px",
-          borderBottom:"1px solid rgba(255,255,255,0.04)",
-          background:"rgba(8,8,8,0.9)",
-          backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
+          height: 64, flexShrink: 0,
+          display: "flex", alignItems: "center",
+          padding: "0 24px",
+          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          background: "rgba(8,8,8,0.9)",
+          backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
         }}>
           <button
             onClick={() => navigate('/')}
             style={{
-              display:"flex", alignItems:"center", gap:10,
-              background:"transparent",
-              border:"1px solid rgba(255,255,255,0.08)",
-              borderRadius:999,
-              padding:"7px 16px 7px 12px",
-              cursor:"pointer",
-              color:"rgba(255,255,255,0.5)",
-              fontFamily:"'JetBrains Mono',monospace",
-              fontSize:8, letterSpacing:"0.25em", textTransform:"uppercase",
-              transition:"all 200ms",
-              animation:"backBtnIn 0.4s ease both",
+              display: "flex", alignItems: "center", gap: 10,
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 999,
+              padding: "7px 16px 7px 12px",
+              cursor: "pointer",
+              color: "rgba(255,255,255,0.5)",
+              fontFamily: "'JetBrains Mono',monospace",
+              fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase",
+              transition: "all 200ms",
+              animation: "backBtnIn 0.4s ease both",
             }}
             onMouseEnter={e => {
               e.currentTarget.style.borderColor = "rgba(236,91,19,0.5)";
@@ -636,20 +723,20 @@ const SupportPage = () => {
               e.currentTarget.querySelector(".back-icon").style.transform = "translateX(0)";
             }}
           >
-            <span className="material-symbols-outlined back-icon" style={{fontSize:16, transition:"transform 200ms"}}>
+            <span className="material-symbols-outlined back-icon" style={{ fontSize: 16, transition: "transform 200ms" }}>
               arrow_back
             </span>
             Back
           </button>
 
-          <div style={{ position:"absolute",left:"50%",transform:"translateX(-50%)", textAlign:"center" }}>
-            <p style={{ fontFamily:"'Playfair Display',serif", fontSize:15, fontStyle:"italic", color:"rgba(255,255,255,0.8)", margin:0 }}>
+          <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", textAlign: "center" }}>
+            <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontStyle: "italic", color: "rgba(255,255,255,0.8)", margin: 0 }}>
               VERP SUPPORT
             </p>
-            <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, letterSpacing:"0.3em", color:"rgba(255,255,255,0.2)", textTransform:"uppercase", margin:"2px 0 0" }}>
-              {sessionStatus === "bot"      && (supportOnline ? "Automated Assistant" : "Automated Assistant · Support Offline")}
-              {sessionStatus === "waiting"  && "Connecting..."}
-              {sessionStatus === "live"     && "● Live Session"}
+            <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.3em", color: "rgba(255,255,255,0.2)", textTransform: "uppercase", margin: "2px 0 0" }}>
+              {sessionStatus === "bot" && (supportOnline ? "Automated Assistant" : offlineReason)}
+              {sessionStatus === "waiting" && "Connecting..."}
+              {sessionStatus === "live" && "● Live Session"}
               {sessionStatus === "resolved" && "Session Ended"}
             </p>
           </div>
@@ -657,10 +744,10 @@ const SupportPage = () => {
 
         {/* ── Chat area ── */}
         <div style={{
-          flex:1, display:"flex", alignItems:"center", justifyContent:"center",
-          padding:"16px 20px 20px", overflow:"hidden",
+          flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "16px 20px 20px", overflow: "hidden",
         }}>
-          <div style={{width:"100%", maxWidth:480, height:"100%", maxHeight:640, display:"flex", flexDirection:"column"}}>
+          <div style={{ width: "100%", maxWidth: 480, height: "100%", maxHeight: 640, display: "flex", flexDirection: "column" }}>
 
             {sessionStatus === "bot" && (
               <>
@@ -670,39 +757,39 @@ const SupportPage = () => {
             )}
 
             {sessionStatus === "waiting" && (
-              <div style={{height:"100%",background:"#0d0d0d",border:"1px solid rgba(255,255,255,0.06)",borderRadius:28,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:28}}>
-                <div style={{position:"relative",width:60,height:60}}>
-                  <div style={{position:"absolute",inset:0,borderRadius:"50%",border:"1.5px solid rgba(236,91,19,0.1)"}}/>
-                  <div style={{position:"absolute",inset:0,borderRadius:"50%",border:"1.5px solid transparent",borderTopColor:"#ec5b13",animation:"spinW 1.1s linear infinite"}}/>
-                  <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <span className="material-symbols-outlined" style={{fontSize:22,color:"#ec5b13",opacity:0.5}}>support_agent</span>
+              <div style={{ height: "100%", background: "#0d0d0d", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 28 }}>
+                <div style={{ position: "relative", width: 60, height: 60 }}>
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1.5px solid rgba(236,91,19,0.1)" }} />
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1.5px solid transparent", borderTopColor: "#ec5b13", animation: "spinW 1.1s linear infinite" }} />
+                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 22, color: "#ec5b13", opacity: 0.5 }}>support_agent</span>
                   </div>
                 </div>
-                <div style={{textAlign:"center",display:"flex",flexDirection:"column",gap:8}}>
-                  <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontStyle:"italic",color:"white"}}>Awaiting Agent</h2>
-                  <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:"0.3em",color:"rgba(255,255,255,0.3)",textTransform:"uppercase",animation:"pulseW 2s ease-in-out infinite"}}>
+                <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontStyle: "italic", color: "white" }}>Awaiting Agent</h2>
+                  <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", animation: "pulseW 2s ease-in-out infinite" }}>
                     ESTABLISHING SECURE LINK...
                   </p>
-                  <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"rgba(255,255,255,0.15)",letterSpacing:"0.2em"}}>
+                  <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.15)", letterSpacing: "0.2em" }}>
                     Session will begin automatically
                   </p>
                 </div>
-                <button onClick={async()=>{
-                  if(chatId){await supabase.from("verp_support_sessions").update({status:"resolved"}).eq("id",chatId);}
+                <button onClick={async () => {
+                  if (chatId) { await supabase.from("verp_support_sessions").update({ status: "resolved" }).eq("id", chatId); }
                   setChatId(null); setSessionStatus("bot");
-                }} style={{background:"transparent",border:"1px solid rgba(239,68,68,0.3)",color:"rgba(239,68,68,0.6)",fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:"0.2em",textTransform:"uppercase",padding:"8px 20px",borderRadius:999,cursor:"pointer",transition:"all 200ms"}}
-                  onMouseEnter={e=>e.currentTarget.style.background="rgba(239,68,68,0.08)"}
-                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                }} style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "rgba(239,68,68,0.6)", fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.2em", textTransform: "uppercase", padding: "8px 20px", borderRadius: 999, cursor: "pointer", transition: "all 200ms" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.08)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                   Leave Queue
                 </button>
               </div>
             )}
 
-            {(sessionStatus==="live"||sessionStatus==="escalated"||sessionStatus==="full_push") && chatId && (
-              <LiveAssistantChat chatId={chatId} role="client" onSessionEnded={handleSessionEnded}/>
+            {(sessionStatus === "live" || sessionStatus === "escalated" || sessionStatus === "full_push") && chatId && (
+              <LiveAssistantChat chatId={chatId} role="client" onSessionEnded={handleSessionEnded} />
             )}
 
-            {sessionStatus==="resolved" && (
+            {sessionStatus === "resolved" && (
               <ChatBot
                 mode="rating"
                 chatId={chatId}
