@@ -187,7 +187,7 @@ const OfflineModal = ({ onClose }) => {
     </span>
   </div>
 
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+ 
  <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", gap: 16 }}>
   <div style={{ minWidth: 0 }}>
     <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.9)", margin: "0 0 3px", whiteSpace: "nowrap" }}>
@@ -216,7 +216,7 @@ const OfflineModal = ({ onClose }) => {
   </div>
 </div>
 
-</div>
+
 
   {/* Sunday closed note */}
   <div style={{
