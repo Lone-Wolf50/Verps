@@ -171,95 +171,72 @@ const OfflineModal = ({ onClose }) => {
           </p>
 
           {/* ── Working Hours block ── */}
-          <div style={{
-            borderRadius: 16,
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            padding: "16px 20px",
-            marginBottom: 28,
-            textAlign: "left",
-          }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 7,
-              marginBottom: 12,
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 14, color: "rgba(255,255,255,0.3)" }}>
-                schedule
-              </span>
-              <span style={{
-                fontFamily: "'JetBrains Mono',monospace",
-                fontSize: 7, letterSpacing: "0.28em", textTransform: "uppercase",
-                color: "rgba(255,255,255,0.25)",
-              }}>
-                Working Hours
-              </span>
-            </div>
+        
+<div style={{
+  borderRadius: 16,
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.07)",
+  padding: "16px 20px",
+  marginBottom: 28,
+  textAlign: "left",
+}}>
+  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+    <span className="material-symbols-outlined" style={{ fontSize: 14, color: "rgba(255,255,255,0.3)" }}>schedule</span>
+    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>
+      Working Hours
+    </span>
+  </div>
 
-            {/* Days + time row */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <p style={{
-                  fontFamily: "'DM Sans',sans-serif",
-                  fontSize: 13, fontWeight: 600,
-                  color: "rgba(255,255,255,0.7)",
-                  margin: "0 0 2px",
-                }}>
-                  Monday – Saturday
-                </p>
-                <p style={{
-                  fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 11,
-                  color: "rgba(255,255,255,0.35)",
-                  margin: 0,
-                  letterSpacing: "0.06em",
-                }}>
-                  8:00 AM – 6:30 PM
-                </p>
-              </div>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+ <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", gap: 16 }}>
+  <div style={{ minWidth: 0 }}>
+    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.9)", margin: "0 0 3px", whiteSpace: "nowrap" }}>
+      Monday – Saturday
+    </p>
+    <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+      8:00 AM – 6:30 PM
+    </p>
+  </div>
 
-              {/* Live status pill */}
-              <div style={{
-                padding: "5px 11px",
-                borderRadius: 999,
-                background: withinHours
-                  ? "rgba(34,197,94,0.08)"
-                  : "rgba(239,68,68,0.07)",
-                border: `1px solid ${withinHours ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.2)"}`,
-                display: "flex", alignItems: "center", gap: 6,
-              }}>
-                <div style={{
-                  width: 5, height: 5, borderRadius: "50%",
-                  background: withinHours ? "#22c55e" : "#ef4444",
-                }} />
-                <span style={{
-                  fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 7, letterSpacing: "0.22em", textTransform: "uppercase",
-                  color: withinHours ? "rgba(34,197,94,0.8)" : "rgba(239,68,68,0.7)",
-                }}>
-                  {withinHours ? "Now Open" : "Closed Now"}
-                </span>
-              </div>
-            </div>
+  <div style={{
+    flexShrink: 0,
+    padding: "5px 11px", borderRadius: 999,
+    background: withinHours ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.07)",
+    border: `1px solid ${withinHours ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.2)"}`,
+    display: "flex", alignItems: "center", gap: 6,
+  }}>
+    <div style={{ width: 5, height: 5, borderRadius: "50%", background: withinHours ? "#22c55e" : "#ef4444" }} />
+    <span style={{
+      fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.22em", textTransform: "uppercase",
+      color: withinHours ? "rgba(34,197,94,0.8)" : "rgba(239,68,68,0.7)",
+      whiteSpace: "nowrap",
+    }}>
+      {withinHours ? "Now Open" : "Closed Now"}
+    </span>
+  </div>
+</div>
 
-            {/* Sunday closed note */}
-            <div style={{
-              marginTop: 10,
-              paddingTop: 10,
-              borderTop: "1px solid rgba(255,255,255,0.05)",
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 12, color: "rgba(255,255,255,0.15)" }}>
-                do_not_disturb_on
-              </span>
-              <span style={{
-                fontFamily: "'JetBrains Mono',monospace",
-                fontSize: 7, letterSpacing: "0.2em", textTransform: "uppercase",
-                color: "rgba(255,255,255,0.15)",
-              }}>
-                Closed on Sundays
-              </span>
-            </div>
-          </div>
+</div>
+
+  {/* Sunday closed note */}
+  <div style={{
+    marginTop: 10, paddingTop: 10,
+    borderTop: "1px solid rgba(255,255,255,0.05)",
+    display: "flex", alignItems: "center", gap: 7,
+  }}>
+    <span className="material-symbols-outlined" style={{ fontSize: 14, color: "rgba(239,68,68,0.7)" }}>
+      do_not_disturb_on
+    </span>
+    <span style={{
+      fontFamily: "'DM Sans',sans-serif",
+      fontSize: 14, fontWeight: 500,
+      color: "rgba(239,68,68,0.8)",
+      letterSpacing: "0.01em",
+    }}>
+      Closed on Sundays
+    </span>
+  </div>
+</div>
 
           {/* Divider */}
           <div style={{
