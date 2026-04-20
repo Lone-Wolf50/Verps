@@ -4,14 +4,14 @@ import Swal from "sweetalert2";
 
 /* ─── DESIGN TOKENS ──────────────────────────────────────────── */
 const T = {
-  void:        "#080808",
-  obsidian:    "#0d0d0d",
+  void:        "var(--bg-dark)",
+  obsidian:    "var(--bg-panel)",
   smoke:       "#1c1c1c",
   ember:       "#ec5b13",
   emberDim:    "rgba(236,91,19,0.10)",
   emberBorder: "rgba(236,91,19,0.35)",
-  border:      "1px solid rgba(255,255,255,0.06)",
-  borderSub:   "1px solid rgba(255,255,255,0.03)",
+  border:      "1px solid var(--overlay-4)",
+  borderSub:   "1px solid var(--overlay-2)",
 };
 
 const MONO  = "'JetBrains Mono', monospace";
@@ -26,8 +26,8 @@ const buildReplyEmailHTML = (toEmail, subject, bodyText, fromRole) => {
 
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
-<body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;min-height:100vh;">
+<body style="margin:0;padding:0;background:var(--bg-deep);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:var(--bg-deep);min-height:100vh;">
 <tr><td align="center" style="padding:40px 20px;">
   <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
@@ -37,14 +37,14 @@ const buildReplyEmailHTML = (toEmail, subject, bodyText, fromRole) => {
     </td></tr>
 
     <!-- CARD -->
-    <tr><td style="background:linear-gradient(135deg,#0d0d0d,#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+    <tr><td style="background:linear-gradient(135deg,var(--bg-panel),#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
       <table width="100%" cellpadding="0" cellspacing="0">
 
         <!-- accent -->
         <tr><td style="height:3px;background:linear-gradient(90deg,#ec5b13,transparent);"></td></tr>
 
         <!-- hero -->
-        <tr><td style="background:linear-gradient(135deg,rgba(236,91,19,0.1),rgba(236,91,19,0.02));padding:26px 36px 20px;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <tr><td style="background:linear-gradient(135deg,rgba(236,91,19,0.1),rgba(236,91,19,0.02));padding:26px 36px 20px;border-bottom:1px solid var(--border-light);">
           <table width="100%" cellpadding="0" cellspacing="0"><tr>
             <td>
               <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.38em;text-transform:uppercase;color:#ec5b13;">REPLY FROM ${roleLabel.toUpperCase()}</p>
@@ -55,15 +55,15 @@ const buildReplyEmailHTML = (toEmail, subject, bodyText, fromRole) => {
         </td></tr>
 
         <!-- subject strip -->
-        <tr><td style="padding:18px 36px 14px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <tr><td style="padding:18px 36px 14px;border-bottom:1px solid var(--overlay-3);">
           <p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">SUBJECT</p>
-          <p style="margin:0;font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);">${subject || "(no subject)"}</p>
+          <p style="margin:0;font-size:14px;font-weight:600;color:var(--text-primary);">${subject || "(no subject)"}</p>
         </td></tr>
 
         <!-- greeting + body -->
         <tr><td style="padding:22px 36px 16px;">
           <p style="margin:0 0 14px;font-size:13px;color:rgba(255,255,255,0.82);line-height:1.7;">Dear <strong style="color:#fff;">${name}</strong>,</p>
-          <div style="background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 18px;">
+          <div style="background:#111;border:1px solid var(--overlay-4);border-radius:12px;padding:16px 18px;">
             <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.68);line-height:1.85;">${cleanBody}</p>
           </div>
         </td></tr>
@@ -91,8 +91,8 @@ const buildReplyEmailHTML = (toEmail, subject, bodyText, fromRole) => {
 
     <!-- footer -->
     <tr><td align="center" style="padding:26px 20px 0;">
-      <p style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.1);">VERP EXECUTIVE COLLECTION</p>
-      <p style="margin:0;font-size:10px;color:rgba(255,255,255,0.08);line-height:1.7;">Automated message from the Verp support system. Do not reply directly to this email.</p>
+      <p style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.4em;text-transform:uppercase;color:var(--border-medium);">VERP EXECUTIVE COLLECTION</p>
+      <p style="margin:0;font-size:10px;color:var(--border-medium);line-height:1.7;">Automated message from the Verp support system. Do not reply directly to this email.</p>
     </td></tr>
 
   </table>
@@ -154,7 +154,7 @@ const OrderMessagesTab = () => {
 
     if (error) {
       setBusy(false);
-      Swal.fire({ title: "Error", text: error.message, icon: "error", background: T.obsidian, color: "#fff" });
+      Swal.fire({ title: "Error", text: error.message, icon: "error", background: T.obsidian, color: "var(--text-primary)" });
       return;
     }
 
@@ -184,7 +184,7 @@ const OrderMessagesTab = () => {
       text: "Reply delivered to client inbox.",
       icon: "success",
       background: T.obsidian,
-      color: "#fff",
+      color: "var(--text-primary)",
       timer: 2000,
       showConfirmButton: false,
     });
@@ -199,7 +199,7 @@ const OrderMessagesTab = () => {
       text: "This cannot be undone.",
       icon: "warning",
       background: T.obsidian,
-      color: "#fff",
+      color: "var(--text-primary)",
       showCancelButton: true,
       confirmButtonColor: T.ember,
       cancelButtonColor: "#333",
@@ -303,7 +303,7 @@ const OrderMessagesTab = () => {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
                 <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-                  <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: isRead(msg) ? 400 : 600, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: isRead(msg) ? 400 : 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {msg.to_email || "—"}
                   </p>
                   <p style={{ fontFamily: MONO, fontSize: 8, color: "rgba(255,255,255,0.25)", marginTop: 2, letterSpacing: "0.08em" }}>
@@ -312,12 +312,12 @@ const OrderMessagesTab = () => {
                 </div>
                 <span style={{
                   width: 7, height: 7, borderRadius: "50%", flexShrink: 0, marginTop: 4,
-                  background:  isRead(msg) ? "rgba(255,255,255,0.1)" : T.ember,
+                  background:  isRead(msg) ? "var(--border-medium)" : T.ember,
                   boxShadow:   isRead(msg) ? "none" : `0 0 6px ${T.ember}`,
                 }} />
               </div>
 
-              <p style={{ fontFamily: SANS, fontSize: 11, color: "rgba(255,255,255,0.55)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
+              <p style={{ fontFamily: SANS, fontSize: 11, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
                 {msg.subject || "(no subject)"}
               </p>
               <p style={{ fontFamily: SANS, fontSize: 11, color: "rgba(255,255,255,0.3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -344,7 +344,7 @@ const OrderMessagesTab = () => {
                 <p style={{ fontFamily: MONO, fontSize: 8, color: T.ember, letterSpacing: "0.22em", textTransform: "uppercase" }}>
                   {selected.from_role || "system"}
                 </p>
-                <p style={{ fontFamily: SERIF, fontSize: 15, fontStyle: "italic", color: "white", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <p style={{ fontFamily: SERIF, fontSize: 15, fontStyle: "italic", color: "var(--text-primary)", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {selected.to_email || "—"}
                 </p>
               </div>
@@ -365,13 +365,13 @@ const OrderMessagesTab = () => {
                 <p style={{ fontFamily: MONO, fontSize: 7, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: 5 }}>
                   {new Date(selected.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} · {new Date(selected.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                 </p>
-                <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>
+                <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
                   {selected.subject || "(no subject)"}
                 </p>
               </div>
 
               <div style={{ background: "#111", border: T.border, borderRadius: 11, padding: "14px 16px" }}>
-                <p style={{ fontFamily: SANS, fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                <p style={{ fontFamily: SANS, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                   {selected.body || "(empty)"}
                 </p>
               </div>

@@ -21,7 +21,7 @@ const getCatImg = (cat) => {
 const PremiumCategoryCard = ({ cat, isFeatured = false }) => (
 	<Link
 		to={`/category/${cat.slug || cat.name.toLowerCase()}`}
-		className="group relative block w-full overflow-hidden border border-white/[0.05] bg-[#0a0a0a] transition-all duration-500 hover:border-[#ec5b13]/30 hover:shadow-[0_0_24px_rgba(236,91,19,0.08)]"
+		className="group relative block w-full overflow-hidden border border-white/[0.05] bg-[var(--bg-main)] transition-all duration-500 hover:border-[#ec5b13]/30 hover:shadow-[0_0_24px_rgba(236,91,19,0.08)]"
 		style={{ borderRadius: 4 }}
 	>
 		<div
@@ -57,7 +57,7 @@ const PremiumCategoryCard = ({ cat, isFeatured = false }) => (
 				</span>
 				<div className="flex items-center justify-between">
 					<h3
-						className="text-white uppercase group-hover:text-[#ec5b13] transition-colors duration-300"
+						className="text-[color:var(--text-primary)] uppercase group-hover:text-[#ec5b13] transition-colors duration-300"
 						style={{ fontFamily: "'DM Sans',sans-serif", fontSize: isFeatured ? 19 : 16, fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1 }}
 					>
 						{cat.name}
@@ -88,7 +88,7 @@ const AllCategoriesPage = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-[#050505] flex items-center justify-center">
+			<div className="min-h-screen bg-[var(--bg-deep)] flex items-center justify-center">
 				<div className="text-center">
 					<div className="w-8 h-8 border border-[#ec5b13] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
 					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.28em", color: "rgba(255,255,255,0.45)" }}>
@@ -100,7 +100,7 @@ const AllCategoriesPage = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-[#050505] text-white">
+		<div className="min-h-screen bg-[var(--bg-deep)] text-[color:var(--text-primary)]">
 
 			{/* ── Header — pt-16 instead of pt-32, tight and close to nav ── */}
 			<div className="pt-10 pb-10 px-6 max-w-7xl mx-auto">
@@ -116,7 +116,7 @@ const AllCategoriesPage = () => {
 								</span>
 							</div>
 							<h1
-								className="text-white uppercase"
+								className="text-[color:var(--text-primary)] uppercase"
 								style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "clamp(36px,5vw,60px)", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 0.95 }}
 							>
 								Verp{" "}
@@ -129,7 +129,7 @@ const AllCategoriesPage = () => {
 						{/* Back button */}
 						<button
 							onClick={() => navigate(-1)}
-							className="group flex items-center gap-2.5 text-white/30 hover:text-white/60 transition-colors duration-300"
+							className="group flex items-center gap-2.5 text-[color:var(--text-muted)] hover:text-[color:var(--text-secondary)] transition-colors duration-300"
 						>
 							<ArrowLeft
 								className="group-hover:-translate-x-0.5 transition-transform duration-300"
@@ -167,7 +167,7 @@ const AllCategoriesPage = () => {
 				<div className="mb-14">
 					<div className="flex items-center gap-3 mb-6">
 						<LayoutGrid style={{ width: 13, height: 13, color: "#ec5b13" }} />
-						<h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
+						<h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "var(--text-muted)" }}>
 							Curated Highlights
 						</h2>
 					</div>
@@ -185,7 +185,7 @@ const AllCategoriesPage = () => {
 				<div className="space-y-6">
 					<div className="flex items-center justify-between">
 						<h2
-							className="text-white"
+							className="text-[color:var(--text-primary)]"
 							style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 20, fontWeight: 300, letterSpacing: "-0.01em" }}
 						>
 							Complete{" "}
@@ -213,7 +213,7 @@ const AllCategoriesPage = () => {
 			</main>
 
 			{/* Bottom fade */}
-			<div className="fixed bottom-0 left-0 w-full h-24 pointer-events-none z-10" style={{ background: "linear-gradient(to top, #050505, transparent)" }} />
+			<div className="fixed bottom-0 left-0 w-full h-24 pointer-events-none z-10" style={{ background: "linear-gradient(to top, var(--bg-deep), transparent)" }} />
 		</div>
 	);
 };

@@ -25,15 +25,15 @@ const STYLES = `
   @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @keyframes slideInR{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
   .vault-agent-name-input{color:#000!important;background:#fff!important;}
-  .at-bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:60;background:rgba(8,8,8,0.97);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:stretch;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 32px rgba(0,0,0,0.6);}
+  .at-bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:60;background:rgba(8,8,8,0.97);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid var(--overlay-4);display:flex;align-items:stretch;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 32px rgba(0,0,0,0.6);}
   .at-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 4px 8px;border:none;background:transparent;cursor:pointer;position:relative;transition:all 150ms;-webkit-tap-highlight-color:transparent;min-height:58px;}
   .at-nav-item.active .at-nav-icon{color:#ec5b13;}
   .at-nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:2px;background:linear-gradient(90deg,transparent,#ec5b13,transparent);border-radius:0 0 4px 4px;}
   .at-nav-icon{font-size:21px!important;color:rgba(255,255,255,0.25);transition:color 200ms;}
   .at-nav-label{font-family:'JetBrains Mono',monospace;font-size:5.5px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.22);transition:color 200ms;white-space:nowrap;}
   .at-nav-item.active .at-nav-label{color:rgba(236,91,19,0.65);}
-  .at-badge{position:absolute;top:6px;right:calc(50% - 17px);min-width:15px;height:15px;border-radius:999px;background:#ef4444;color:white;font-family:'JetBrains Mono',monospace;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid #080808;box-shadow:0 2px 8px rgba(239,68,68,0.5);}
-  .at-order-card{background:#0d0d0d;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color 180ms,background 180ms;animation:fadeUp 0.3s ease both;-webkit-tap-highlight-color:transparent;}
+  .at-badge{position:absolute;top:6px;right:calc(50% - 17px);min-width:15px;height:15px;border-radius:999px;background:#ef4444;color:white;font-family:'JetBrains Mono',monospace;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid var(--bg-dark);box-shadow:0 2px 8px rgba(239,68,68,0.5);}
+  .at-order-card{background:var(--bg-panel);border:1px solid var(--border-light);border-radius:16px;padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color 180ms,background 180ms;animation:fadeUp 0.3s ease both;-webkit-tap-highlight-color:transparent;}
   .at-order-card:active{background:#111;border-color:rgba(236,91,19,0.28);}
   @keyframes onlinePulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}}
   @keyframes offlinePulse{0%,100%{opacity:1}50%{opacity:0.4}}
@@ -69,11 +69,11 @@ const InitializeModal = ({ onInitialized }) => {
     }}>
       <div style={{
         width: "100%", maxWidth: 420,
-        background: "linear-gradient(160deg,#111,#0a0a0a)",
+        background: "linear-gradient(160deg,#111,var(--bg-main))",
         border: "1px solid rgba(255,255,255,0.07)",
         borderRadius: 28,
         padding: "48px 36px 40px",
-        boxShadow: "0 48px 120px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.03) inset",
+        boxShadow: "0 48px 120px rgba(0,0,0,0.85), 0 0 0 1px var(--overlay-2) inset",
         animation: "initFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both",
         textAlign: "center",
         position: "relative",
@@ -111,7 +111,7 @@ const InitializeModal = ({ onInitialized }) => {
         <h2 style={{
           fontFamily: "'Playfair Display',serif",
           fontSize: 26, fontStyle: "italic",
-          color: "#fff", margin: "0 0 8px",
+          color: "var(--text-primary)", margin: "0 0 8px",
         }}>
           {done ? "You're Live" : "Initialize Live Support"}
         </h2>
@@ -408,7 +408,7 @@ const AssistantTerminal = () => {
 				)}
 
 				{/* Sidebar */}
-				<div style={{ width: 220, flexShrink: 0, background: "#0a0a0a", borderRight: T.borderSub, position: isMobile ? "fixed" : "relative", top: 0, left: 0, height: "100vh", zIndex: 50, transform: isMobile ? (sidebarOpen ? "translateX(0)" : "translateX(-100%)") : "translateX(0)", transition: "transform 350ms cubic-bezier(0.16,1,0.3,1)" }}>
+				<div style={{ width: 220, flexShrink: 0, background: "var(--bg-main)", borderRight: T.borderSub, position: isMobile ? "fixed" : "relative", top: 0, left: 0, height: "100vh", zIndex: 50, transform: isMobile ? (sidebarOpen ? "translateX(0)" : "translateX(-100%)") : "translateX(0)", transition: "transform 350ms cubic-bezier(0.16,1,0.3,1)" }}>
 					<Sidebar tab={tab} isMobile={isMobile} waitingCount={waitingCount} fullPushCount={fullPushCount} reviewCount={reviewCount} onTabSwitch={switchTab} onClose={() => setSidebarOpen(false)} onLogout={handleStaffLogout} />
 				</div>
 
@@ -417,7 +417,7 @@ const AssistantTerminal = () => {
 
 					{/* Mobile top bar */}
 					{isMobile && (
-						<div style={{ height: 56, background: "rgba(10,10,10,0.98)", borderBottom: T.borderSub, display: "flex", alignItems: "center", padding: "0 16px", gap: 10, flexShrink: 0, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 30, boxShadow: "0 1px 0 rgba(255,255,255,0.04)" }}>
+						<div style={{ height: 56, background: "rgba(10,10,10,0.98)", borderBottom: T.borderSub, display: "flex", alignItems: "center", padding: "0 16px", gap: 10, flexShrink: 0, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 30, boxShadow: "0 1px 0 var(--overlay-3)" }}>
 							<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
 								<span style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontStyle: "italic", color: T.ember, lineHeight: 1 }}>V</span>
 								<div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -441,7 +441,7 @@ const AssistantTerminal = () => {
             <div style={{
               height: 40, flexShrink: 0,
               background: "rgba(8,8,8,0.95)",
-              borderBottom: "1px solid rgba(255,255,255,0.04)",
+              borderBottom: "1px solid var(--overlay-3)",
               display: "flex", alignItems: "center",
               padding: "0 22px", justifyContent: "flex-end", gap: 10,
             }}>

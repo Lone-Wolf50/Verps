@@ -91,14 +91,14 @@ const SearchOverlay = ({ isOpen, onClose }) => {
           style={{
             background: "linear-gradient(160deg, #121212 0%, #0c0c0c 100%)",
             border: "1px solid rgba(255,255,255,0.07)",
-            boxShadow: "0 40px 100px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.03)",
+            boxShadow: "0 40px 100px rgba(0,0,0,0.9), 0 0 0 1px var(--overlay-2)",
           }}
           onClick={e => e.stopPropagation()}
         >
           {/* ── Search bar ── */}
           <div
             className="flex-shrink-0 flex items-center gap-3 px-4"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", paddingTop: 14, paddingBottom: 14 }}
+            style={{ borderBottom: "1px solid var(--overlay-4)", paddingTop: 14, paddingBottom: 14 }}
           >
             {/* Glassmorphism pill input */}
             <div
@@ -107,7 +107,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                 display: "flex",
                 alignItems: "center",
                 gap: 11,
-                background: "rgba(255,255,255,0.06)",
+                background: "var(--overlay-4)",
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
                 border: "1px solid rgba(255,255,255,0.11)",
@@ -117,12 +117,12 @@ const SearchOverlay = ({ isOpen, onClose }) => {
               }}
               onFocusCapture={e => {
                 e.currentTarget.style.borderColor = "rgba(236,91,19,0.45)";
-                e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236,91,19,0.06), inset 0 1px 0 rgba(255,255,255,0.08)";
+                e.currentTarget.style.background = "var(--border-medium)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236,91,19,0.06), inset 0 1px 0 var(--border-medium)";
               }}
               onBlurCapture={e => {
                 e.currentTarget.style.borderColor = "rgba(255,255,255,0.11)";
-                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                e.currentTarget.style.background = "var(--overlay-4)";
                 e.currentTarget.style.boxShadow = "none";
               }}
             >
@@ -169,9 +169,9 @@ const SearchOverlay = ({ isOpen, onClose }) => {
             {/* Close overlay button — only X here, no X inside input */}
             <button
               onClick={onClose}
-              style={{ flexShrink: 0, width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.05)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.4)", transition: "all 200ms" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.22)"; e.currentTarget.style.color = "white"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
+              style={{ flexShrink: 0, width: 38, height: 38, borderRadius: "50%", background: "var(--border-light)", backdropFilter: "blur(12px)", border: "1px solid var(--border-medium)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.4)", transition: "all 200ms" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.22)"; e.currentTarget.style.color = "var(--text-primary)"; e.currentTarget.style.background = "var(--border-medium)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border-medium)"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; e.currentTarget.style.background = "var(--border-light)"; }}
             >
               <X style={{ width: 13, height: 13 }} />
             </button>
@@ -253,13 +253,13 @@ const SearchOverlay = ({ isOpen, onClose }) => {
           />
           <div
             className="_so-qv relative w-full max-w-2xl max-h-[88vh] flex flex-col md:flex-row overflow-hidden rounded-2xl"
-            style={{ background: "linear-gradient(160deg,#131313 0%,#0a0a0a 100%)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 60px 120px rgba(0,0,0,0.95)" }}
+            style={{ background: "linear-gradient(160deg,#131313 0%,var(--bg-main) 100%)", border: "1px solid var(--border-medium)", boxShadow: "0 60px 120px rgba(0,0,0,0.95)" }}
           >
             {/* Close */}
             <button onClick={closeQV}
-              style={{ position: "absolute", top: 14, right: 14, zIndex: 50, width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.4)", transition: "all 200ms" }}
+              style={{ position: "absolute", top: 14, right: 14, zIndex: 50, width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.7)", border: "1px solid var(--border-medium)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.4)", transition: "all 200ms" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#ec5b13"; e.currentTarget.style.color = "#ec5b13"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border-medium)"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; }}
             >
               <X style={{ width: 13, height: 13 }} />
             </button>
@@ -269,7 +269,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
               <img src={quickViewProduct.image_url} alt={quickViewProduct.name} className="w-full h-full object-cover" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)" }} />
               {/* Price badge on image */}
-              <div style={{ position: "absolute", bottom: 14, left: 14, fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 22, color: "white", textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
+              <div style={{ position: "absolute", bottom: 14, left: 14, fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 22, color: "var(--text-primary)", textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
                 ${Number(quickViewProduct.price).toLocaleString()}
               </div>
             </div>
@@ -277,18 +277,18 @@ const SearchOverlay = ({ isOpen, onClose }) => {
             {/* Content */}
             <div className="flex-1 flex flex-col min-h-0">
               {/* Header */}
-              <div className="flex-shrink-0 px-6 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <div className="flex-shrink-0 px-6 py-5" style={{ borderBottom: "1px solid var(--border-light)" }}>
                 <div className="flex items-center gap-2 mb-2.5">
                   <div style={{ width: 18, height: 1, background: "#ec5b13" }} />
                   <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", color: "rgba(236,91,19,0.7)", textTransform: "uppercase", fontWeight: 700 }}>
                     Limited Release
                   </span>
                 </div>
-                <h2 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 18, fontWeight: 800, textTransform: "uppercase", letterSpacing: "-0.02em", color: "white", lineHeight: 1.1, marginBottom: 10 }}>
+                <h2 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 18, fontWeight: 800, textTransform: "uppercase", letterSpacing: "-0.02em", color: "var(--text-primary)", lineHeight: 1.1, marginBottom: 10 }}>
                   {quickViewProduct.name}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <span style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", textTransform: "uppercase", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 6, padding: "4px 9px" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", textTransform: "uppercase", background: "var(--overlay-3)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 6, padding: "4px 9px" }}>
                     <ShieldCheck style={{ width: 10, height: 10, color: "#ec5b13" }} />
                     Verified
                   </span>
@@ -318,15 +318,15 @@ const SearchOverlay = ({ isOpen, onClose }) => {
 
                 {/* Related */}
                 {relatedItems.length > 0 && (
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 16 }}>
+                  <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: 16 }}>
                     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", display: "block", marginBottom: 10 }}>From your search</span>
                     <div className="grid grid-cols-2 gap-2">
                       {relatedItems.map(item => (
                         <button key={item.id} onClick={() => { setQV(item); setDescExp(false); }}
                           className="group flex items-center gap-2.5 text-left rounded-xl p-2.5 transition-all duration-200"
-                          style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
+                          style={{ background: "var(--overlay-1)", border: "1px solid var(--border-light)" }}
                           onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.3)"; e.currentTarget.style.background = "rgba(236,91,19,0.03)"; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}>
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border-light)"; e.currentTarget.style.background = "var(--overlay-1)"; }}>
                           <div style={{ width: 36, height: 36, borderRadius: 8, overflow: "hidden", flexShrink: 0 }}>
                             <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
                           </div>
@@ -342,7 +342,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
               </div>
 
               {/* Add to cart */}
-              <div className="flex-shrink-0 px-6 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+              <div className="flex-shrink-0 px-6 py-4" style={{ borderTop: "1px solid var(--border-light)" }}>
                 <button
                   onClick={() => { addToCart({ ...quickViewProduct, image: quickViewProduct.image_url }); closeQV(); }}
                   className="w-full flex items-center justify-center gap-2.5 font-black uppercase transition-all duration-200 active:scale-[0.98]"
@@ -369,7 +369,7 @@ const SectionLabel = ({ text }) => (
   <div className="flex items-center gap-3">
     <div style={{ width: 16, height: 1, background: "#ec5b13", opacity: 0.5 }} />
     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>{text}</span>
-    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.05)" }} />
+    <div className="flex-1 h-px" style={{ background: "var(--border-light)" }} />
   </div>
 );
 
@@ -377,9 +377,9 @@ const CategoryPill = ({ name, onClick }) => (
   <button
     onClick={onClick}
     className="flex items-center gap-1.5 transition-all duration-200 active:scale-95"
-    style={{ padding: "6px 14px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}
+    style={{ padding: "6px 14px", borderRadius: 999, background: "var(--overlay-3)", border: "1px solid var(--border-medium)", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}
     onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.4)"; e.currentTarget.style.color = "#ec5b13"; e.currentTarget.style.background = "rgba(236,91,19,0.06)"; }}
-    onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border-medium)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; e.currentTarget.style.background = "var(--overlay-3)"; }}
   >
     <Tag style={{ width: 10, height: 10 }} />
     {name}
@@ -390,12 +390,12 @@ const ProductCard = ({ product, onClick, index }) => (
   <button
     onClick={onClick}
     className="_so-result group relative flex items-center gap-3.5 text-left w-full overflow-hidden rounded-xl transition-all duration-200 active:scale-[0.98]"
-    style={{ animationDelay: `${index * 0.04}s`, padding: "10px 12px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" }}
+    style={{ animationDelay: `${index * 0.04}s`, padding: "10px 12px", background: "rgba(255,255,255,0.025)", border: "1px solid var(--overlay-4)", cursor: "pointer" }}
     onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.28)"; e.currentTarget.style.background = "rgba(236,91,19,0.04)"; }}
-    onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.background = "rgba(255,255,255,0.025)"; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--overlay-4)"; e.currentTarget.style.background = "rgba(255,255,255,0.025)"; }}
   >
     {/* Thumbnail */}
-    <div style={{ width: 52, height: 52, borderRadius: 10, overflow: "hidden", flexShrink: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+    <div style={{ width: 52, height: 52, borderRadius: 10, overflow: "hidden", flexShrink: 0, background: "var(--overlay-3)", border: "1px solid rgba(255,255,255,0.07)" }}>
       {product.image_url
         ? <img src={product.image_url} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.08)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"} />
         : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📦</div>
@@ -403,12 +403,12 @@ const ProductCard = ({ product, onClick, index }) => (
     </div>
     {/* Info */}
     <div className="flex-1 min-w-0">
-      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</p>
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 700, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</p>
       {product.category && <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", marginTop: 3 }}>{product.category}</p>}
       <p style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 15, color: "#ec5b13", marginTop: 4 }}>${product.price}</p>
     </div>
     {/* Arrow */}
-    <ArrowUpRight style={{ width: 14, height: 14, color: "rgba(255,255,255,0.1)", flexShrink: 0, transition: "all 200ms" }}
+    <ArrowUpRight style={{ width: 14, height: 14, color: "var(--border-medium)", flexShrink: 0, transition: "all 200ms" }}
       className="group-hover:text-[#ec5b13] group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
     />
   </button>
@@ -422,7 +422,7 @@ const StaticMenu = ({ navigate, onClose }) => (
         {["Outerwear", "Vault", "Essentials"].map(term => (
           <button key={term} onClick={() => { navigate(`/shop?search=${term}`); onClose(); }}
             className="transition-all duration-200 active:scale-95"
-            style={{ padding: "8px 18px", borderRadius: 999, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.01em" }}
+            style={{ padding: "8px 18px", borderRadius: 999, background: "var(--overlay-2)", border: "1px solid rgba(255,255,255,0.07)", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.01em" }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.35)"; e.currentTarget.style.color = "#ec5b13"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}>
             {term}

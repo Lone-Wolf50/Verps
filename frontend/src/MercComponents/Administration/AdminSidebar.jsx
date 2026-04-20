@@ -70,7 +70,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 			<div style={{
 				height: 64,
 				padding: "0 16px",
-				borderBottom: "1px solid rgba(255,255,255,0.05)",
+				borderBottom: "1px solid var(--border-light)",
 				display: "flex",
 				alignItems: "center",
 				gap: 10,
@@ -100,7 +100,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 6, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.22)", margin: 0 }}>
 						VAULT ADMIN
 					</p>
-					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.1)", margin: "2px 0 0" }}>
+					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--border-medium)", margin: "2px 0 0" }}>
 						EXECUTIVE INTERFACE
 					</p>
 				</div>
@@ -156,7 +156,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 								position: "relative",
 								flexShrink: 0,
 							}}
-							onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
+							onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "var(--border-light)"; }}
 							onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
 						>
 							<span className="material-symbols-outlined" style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
@@ -190,7 +190,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 									height: 14,
 									borderRadius: 999,
 									background: bColor,
-									color: "#fff",
+									color: "var(--text-primary)",
 									fontFamily: "'JetBrains Mono',monospace",
 									fontSize: 7,
 									fontWeight: 700,
@@ -209,7 +209,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 			</nav>
 
 			{/* ── Footer / sign-out ── */}
-			<div style={{ padding: "12px 8px 14px", borderTop: "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
+			<div style={{ padding: "12px 8px 14px", borderTop: "1px solid var(--border-light)", flexShrink: 0 }}>
 			 <button
 					onClick={handleStaffLogout}
 					title={!showLabels ? "Sign out" : undefined}
@@ -232,7 +232,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 						marginBottom: showLabels ? 10 : 0,
 						transition: "background 150ms, color 150ms",
 					}}
-					onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
+					onMouseEnter={(e) => { e.currentTarget.style.background = "var(--overlay-3)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
 					onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.28)"; }}
 				>
 					<span className="material-symbols-outlined" style={{ fontSize: 14 }}>logout</span>
@@ -252,7 +252,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 						fontSize: 6,
 						letterSpacing: "0.25em",
 						textTransform: "uppercase",
-						color: "rgba(255,255,255,0.08)",
+						color: "var(--border-medium)",
 						textAlign: "center",
 						marginTop: 2,
 					}}>
@@ -279,8 +279,8 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 					height: "100%",
 					width: hovered ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W,
 					zIndex: 150,
-					background: "#0a0a0a",
-					borderRight: "1px solid rgba(255,255,255,0.05)",
+					background: "var(--bg-main)",
+					borderRight: "1px solid var(--border-light)",
 					transition: "width 260ms cubic-bezier(0.16,1,0.3,1)",
 					overflow: "hidden",
 					/* Subtle shadow when expanded to feel like a layer above content */
@@ -301,7 +301,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 					height: 56,
 					background: "rgba(8,8,8,0.96)",
 					backdropFilter: "blur(20px)",
-					borderBottom: "1px solid rgba(255,255,255,0.05)",
+					borderBottom: "1px solid var(--border-light)",
 				}}
 			>
 				<button
@@ -311,12 +311,12 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 						height: 32,
 						borderRadius: 8,
 						background: "transparent",
-						border: "1px solid rgba(255,255,255,0.09)",
+						border: "1px solid var(--border-medium)",
 						cursor: "pointer",
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "center",
-						color: "rgba(255,255,255,0.55)",
+						color: "var(--text-muted)",
 					}}
 				>
 					<span className="material-symbols-outlined" style={{ fontSize: 17 }}>menu</span>
@@ -329,7 +329,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 					<span style={{
 						marginLeft: "auto",
 						background: "#ef4444",
-						color: "white",
+						color: "var(--text-primary)",
 						fontFamily: "'JetBrains Mono',monospace",
 						fontSize: 7,
 						fontWeight: 700,
@@ -366,8 +366,8 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 					height: "100%",
 					width: SIDEBAR_EXPANDED_W,
 					zIndex: 150,
-					background: "#0a0a0a",
-					borderRight: "1px solid rgba(255,255,255,0.05)",
+					background: "var(--bg-main)",
+					borderRight: "1px solid var(--border-light)",
 					transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
 					transition: "transform 300ms cubic-bezier(0.16,1,0.3,1)",
 				}}

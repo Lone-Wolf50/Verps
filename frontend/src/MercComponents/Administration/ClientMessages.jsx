@@ -8,9 +8,9 @@ const getInternalSecret = () => {
 };
 
 const T = {
-	void:"#080808", obsidian:"#0d0d0d", ember:"#ec5b13",
+	void:"var(--bg-dark)", obsidian:"var(--bg-panel)", ember:"#ec5b13",
 	shipped:"#38bdf8", live:"#22c55e", waiting:"#f59e0b", violet:"#a78bfa",
-	border:"1px solid rgba(255,255,255,0.06)", sub:"1px solid rgba(255,255,255,0.03)",
+	border:"1px solid var(--overlay-4)", sub:"1px solid var(--overlay-2)",
 };
 
 /* ─── RETURN EMAIL BUILDER ───────────────────────────────────── */
@@ -68,8 +68,8 @@ const buildReturnEmailHTML = (req, decision, clientName) => {
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>${c.headline}</title>
 </head>
-<body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;min-height:100vh;">
+<body style="margin:0;padding:0;background:var(--bg-deep);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:var(--bg-deep);min-height:100vh;">
 <tr><td align="center" style="padding:40px 20px;">
   <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
@@ -84,7 +84,7 @@ const buildReturnEmailHTML = (req, decision, clientName) => {
 
     <!-- MAIN CARD -->
     <tr>
-      <td style="background:linear-gradient(135deg,#0d0d0d,#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+      <td style="background:linear-gradient(135deg,var(--bg-panel),#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
 
         <!-- ACCENT TOP BAND -->
         <tr>
@@ -93,7 +93,7 @@ const buildReturnEmailHTML = (req, decision, clientName) => {
 
         <!-- HERO SECTION -->
         <tr>
-          <td style="background:linear-gradient(135deg,${c.gradientFrom}14,${c.gradientTo}06);padding:30px 36px 24px;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <td style="background:linear-gradient(135deg,${c.gradientFrom}14,${c.gradientTo}06);padding:30px 36px 24px;border-bottom:1px solid var(--border-light);">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td>
@@ -124,7 +124,7 @@ const buildReturnEmailHTML = (req, decision, clientName) => {
 
         <!-- ORDER DETAILS ROW -->
         <tr>
-          <td style="padding:22px 36px;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <td style="padding:22px 36px;border-bottom:1px solid var(--overlay-3);">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td style="width:50%;">
@@ -182,10 +182,10 @@ const buildReturnEmailHTML = (req, decision, clientName) => {
     <!-- FOOTER -->
     <tr>
       <td align="center" style="padding:32px 20px 0;">
-        <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.1);">
+        <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.4em;text-transform:uppercase;color:var(--border-medium);">
           VERP EXECUTIVE COLLECTION
         </p>
-        <p style="margin:0;font-size:10px;color:rgba(255,255,255,0.08);line-height:1.7;">
+        <p style="margin:0;font-size:10px;color:var(--border-medium);line-height:1.7;">
           This is an automated message from the Verp Returns Management System.<br/>
           For questions, reply to this email or contact our support team.
         </p>
@@ -242,7 +242,7 @@ const ClientMessages_SessionList = ({ sessions, selectedId, onSelect, searchQuer
 			<div style={{position:"relative"}}>
 				<span className="material-symbols-outlined" style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",fontSize:16,color:"rgba(255,255,255,0.25)"}}>search</span>
 				<input value={searchQuery} onChange={e => onSearchChange(e.target.value)} placeholder="Search clients..."
-					style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"9px 12px 9px 32px",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"rgba(255,255,255,0.7)",outline:"none",boxSizing:"border-box"}} />
+					style={{width:"100%",background:"var(--overlay-3)",border:"1px solid var(--border-medium)",borderRadius:10,padding:"9px 12px 9px 32px",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"var(--text-secondary)",outline:"none",boxSizing:"border-box"}} />
 			</div>
 		</div>
 		<div style={{flex:1,overflowY:"auto",padding:"8px"}}>
@@ -252,7 +252,7 @@ const ClientMessages_SessionList = ({ sessions, selectedId, onSelect, searchQuer
 			{sessions.map(s => (
 				<button key={s.id} onClick={() => onSelect(s)}
 					style={{width:"100%",textAlign:"left",padding:"12px",background:selectedId===s.id?"rgba(236,91,19,0.08)":"transparent",border:selectedId===s.id?"1px solid rgba(236,91,19,0.22)":"1px solid transparent",borderRadius:10,cursor:"pointer",transition:"all 160ms",marginBottom:4}}
-					onMouseEnter={e => { if (selectedId !== s.id) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+					onMouseEnter={e => { if (selectedId !== s.id) e.currentTarget.style.background = "var(--overlay-2)"; }}
 					onMouseLeave={e => { if (selectedId !== s.id) e.currentTarget.style.background = "transparent"; }}>
 					<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:6,marginBottom:4}}>
 						<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(255,255,255,0.8)",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{s.client_email}</p>
@@ -356,7 +356,7 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 				{messages.map((msg, idx) => {
 					const isClient = msg.sender_role === "client";
 					const isAdmin  = msg.sender_role === "admin";
-					const bg = isClient ? "rgba(255,255,255,0.08)" : isAdmin ? T.violet : T.ember;
+					const bg = isClient ? "var(--border-medium)" : isAdmin ? T.violet : T.ember;
 					return (
 						<div key={msg.id || idx} style={{display:"flex",justifyContent:isClient?"flex-start":"flex-end"}}>
 							<div style={{maxWidth:"78%",minWidth:0,display:"flex",flexDirection:"column",alignItems:isClient?"flex-start":"flex-end",gap:3}}>
@@ -375,7 +375,7 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 			{clientTyping && session.status === "full_push" && (
 				<div style={{padding:"6px 14px 2px",flexShrink:0,background:T.obsidian}}>
 					<div style={{display:"flex",alignItems:"center",gap:8}}>
-						<div style={{display:"flex",gap:3,alignItems:"center",padding:"8px 14px",background:"rgba(255,255,255,0.05)",border:`1px solid ${T.border}`,borderRadius:"4px 14px 14px 14px",width:"fit-content"}}>
+						<div style={{display:"flex",gap:3,alignItems:"center",padding:"8px 14px",background:"var(--border-light)",border:`1px solid ${T.border}`,borderRadius:"4px 14px 14px 14px",width:"fit-content"}}>
 							<span style={{width:6,height:6,borderRadius:"50%",background:"rgba(255,255,255,0.4)",animation:"cmTypingDot 1.4s ease-in-out infinite",animationDelay:"0ms"}} />
 							<span style={{width:6,height:6,borderRadius:"50%",background:"rgba(255,255,255,0.4)",animation:"cmTypingDot 1.4s ease-in-out infinite",animationDelay:"200ms"}} />
 							<span style={{width:6,height:6,borderRadius:"50%",background:"rgba(255,255,255,0.4)",animation:"cmTypingDot 1.4s ease-in-out infinite",animationDelay:"400ms"}} />
@@ -389,7 +389,7 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 				{isFullPush ? (
 					<form onSubmit={sendReply} style={{display:"flex",gap:8,alignItems:"flex-end"}}>
 						<input ref={inputRef} value={input} onChange={handleAdminInputChange} disabled={sending} placeholder="Reply to client..." autoComplete="off"
-							style={{flex:1,minWidth:0,background:"rgba(56,189,248,0.04)",border:"1px solid rgba(56,189,248,0.18)",borderRadius:10,padding:"11px 14px",color:"white",fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",WebkitAppearance:"none",boxSizing:"border-box"}} />
+							style={{flex:1,minWidth:0,background:"rgba(56,189,248,0.04)",border:"1px solid rgba(56,189,248,0.18)",borderRadius:10,padding:"11px 14px",color:"var(--text-primary)",fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",WebkitAppearance:"none",boxSizing:"border-box"}} />
 						<button type="submit" disabled={sending || !input.trim()}
 							style={{flexShrink:0,background:T.shipped,borderRadius:10,padding:"11px 16px",color:"#000",fontWeight:700,border:"none",cursor:sending||!input.trim()?"not-allowed":"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:"0.1em",opacity:sending||!input.trim()?0.45:1,transition:"opacity 200ms",whiteSpace:"nowrap"}}>
 							SEND
@@ -409,8 +409,8 @@ const ClientMessages_ChatWindow = ({ session, onPushBack, onSessionUpdate, onRes
 							</div>
 						</div>
 						<div style={{display:"flex",gap:8,alignItems:"flex-end",opacity:0.25,pointerEvents:"none",userSelect:"none"}}>
-							<input disabled readOnly placeholder="Reply to client..." style={{flex:1,minWidth:0,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"11px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"rgba(255,255,255,0.2)",outline:"none",cursor:"not-allowed",boxSizing:"border-box"}} />
-							<div style={{flexShrink:0,background:"rgba(255,255,255,0.06)",borderRadius:10,padding:"11px 16px",fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:"0.1em",color:"rgba(255,255,255,0.2)",whiteSpace:"nowrap"}}>SEND</div>
+							<input disabled readOnly placeholder="Reply to client..." style={{flex:1,minWidth:0,background:"var(--overlay-1)",border:"1px solid var(--overlay-4)",borderRadius:10,padding:"11px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"rgba(255,255,255,0.2)",outline:"none",cursor:"not-allowed",boxSizing:"border-box"}} />
+							<div style={{flexShrink:0,background:"var(--overlay-4)",borderRadius:10,padding:"11px 16px",fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:"0.1em",color:"rgba(255,255,255,0.2)",whiteSpace:"nowrap"}}>SEND</div>
 						</div>
 					</div>
 				)}
@@ -518,7 +518,7 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 			<style>{`
 				.rp-list{display:flex;flex-direction:column;width:280px;border-right:${T.border};flex-shrink:0;overflow:hidden}
 				.rp-detail{flex:1;display:flex;flex-direction:column;overflow:hidden}
-				.rp-back{display:none;align-items:center;gap:6px;padding:10px 14px;background:${T.obsidian};border:none;border-bottom:1px solid rgba(255,255,255,0.03);cursor:pointer;color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;flex-shrink:0;width:100%}
+				.rp-back{display:none;align-items:center;gap:6px;padding:10px 14px;background:${T.obsidian};border:none;border-bottom:1px solid var(--overlay-2);cursor:pointer;color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;flex-shrink:0;width:100%}
 				@media(max-width:640px){
 					.rp-list{width:100%;border-right:none;display:${!mobileShowDetail ? "flex" : "none"} !important}
 					.rp-detail{display:${mobileShowDetail ? "flex" : "none"} !important}
@@ -533,24 +533,24 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 						RETURN REQUESTS · {grouped.filter(g => g.hasUnresolved).length} UNRESOLVED
 					</p>
 					<input value={searchQ} onChange={e => setSearchQ(e.target.value)} placeholder="Search email / order..."
-						style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"8px 10px",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(255,255,255,0.7)",outline:"none",boxSizing:"border-box"}} />
+						style={{width:"100%",background:"var(--overlay-2)",border:"1px solid var(--overlay-4)",borderRadius:8,padding:"8px 10px",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"var(--text-secondary)",outline:"none",boxSizing:"border-box"}} />
 				</div>
 				<div style={{flex:1,overflowY:"auto",padding:8}}>
-					{loading && <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"rgba(255,255,255,0.1)",textAlign:"center",paddingTop:40,letterSpacing:"0.2em",textTransform:"uppercase"}}>LOADING…</p>}
-					{!loading && filtered.length === 0 && <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"rgba(255,255,255,0.1)",textAlign:"center",paddingTop:40,letterSpacing:"0.2em",textTransform:"uppercase"}}>NO REQUESTS</p>}
+					{loading && <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"var(--border-medium)",textAlign:"center",paddingTop:40,letterSpacing:"0.2em",textTransform:"uppercase"}}>LOADING…</p>}
+					{!loading && filtered.length === 0 && <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"var(--border-medium)",textAlign:"center",paddingTop:40,letterSpacing:"0.2em",textTransform:"uppercase"}}>NO REQUESTS</p>}
 					{filtered.map(g => {
 						const sc   = STATUS_COLORS[g.latest?.status] || STATUS_COLORS.pending;
 						const isSel = selected?.email === g.email;
 						return (
 							<button key={g.email} onClick={() => handleSelectGroup(g)}
 								style={{width:"100%",textAlign:"left",padding:"12px",background:isSel?"rgba(236,91,19,0.08)":"transparent",border:isSel?"1px solid rgba(236,91,19,0.22)":"1px solid transparent",borderRadius:10,cursor:"pointer",transition:"all 160ms",marginBottom:4}}
-								onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+								onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = "var(--overlay-2)"; }}
 								onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = "transparent"; }}>
 								<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-									<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(255,255,255,0.85)",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{g.email}</p>
+									<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"var(--text-primary)",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{g.email}</p>
 									<div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
 										{g.requests.length > 1 && (
-											<span style={{display:"inline-flex",alignItems:"center",padding:"1px 6px",borderRadius:999,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"rgba(255,255,255,0.35)"}}>×{g.requests.length}</span>
+											<span style={{display:"inline-flex",alignItems:"center",padding:"1px 6px",borderRadius:999,background:"var(--overlay-4)",border:"1px solid var(--border-medium)",fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"rgba(255,255,255,0.35)"}}>×{g.requests.length}</span>
 										)}
 										<span style={{display:"inline-flex",padding:"2px 7px",borderRadius:999,background:`${sc.color}14`,border:`1px solid ${sc.color}40`,fontFamily:"'JetBrains Mono',monospace",fontSize:6,color:sc.color,textTransform:"uppercase",letterSpacing:"0.1em",whiteSpace:"nowrap"}}>{sc.label}</span>
 									</div>
@@ -587,7 +587,7 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 										const isAct = activeReq?.id === r.id;
 										return (
 											<button key={r.id} onClick={() => setActiveReq(r)}
-												style={{flexShrink:0,padding:"6px 12px",borderRadius:8,border:isAct?`1px solid ${sc.color}50`:"1px solid rgba(255,255,255,0.08)",background:isAct?`${sc.color}14`:"transparent",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.12em",textTransform:"uppercase",color:isAct?sc.color:"rgba(255,255,255,0.3)",transition:"all 160ms",whiteSpace:"nowrap"}}>
+												style={{flexShrink:0,padding:"6px 12px",borderRadius:8,border:isAct?`1px solid ${sc.color}50`:"1px solid var(--border-medium)",background:isAct?`${sc.color}14`:"transparent",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.12em",textTransform:"uppercase",color:isAct?sc.color:"rgba(255,255,255,0.3)",transition:"all 160ms",whiteSpace:"nowrap"}}>
 												#{i+1} · {r.order_number || r.order_id?.slice(0,6)} · <span style={{color:sc.color}}>{sc.label}</span>
 											</button>
 										);
@@ -598,9 +598,9 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 						<div style={{flex:1,overflowY:"auto",padding:"16px",WebkitOverflowScrolling:"touch"}}>
 
 							{/* Reason */}
-							<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:14,padding:"16px",marginBottom:16}}>
+							<div style={{background:"var(--overlay-1)",border:"1px solid var(--border-light)",borderRadius:14,padding:"16px",marginBottom:16}}>
 								<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.25em",textTransform:"uppercase",color:"rgba(236,91,19,0.6)",marginBottom:10}}>REASON FOR RETURN</p>
-								<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,lineHeight:1.75,color:"rgba(255,255,255,0.7)"}}>{displayReq.reason}</p>
+								<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,lineHeight:1.75,color:"var(--text-secondary)"}}>{displayReq.reason}</p>
 							</div>
 
 							{/* Items snapshot */}
@@ -609,7 +609,7 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 									<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:"0.25em",textTransform:"uppercase",color:"rgba(255,255,255,0.2)",marginBottom:10}}>ORDER ITEMS</p>
 									<div style={{display:"flex",flexDirection:"column",gap:8}}>
 										{displayReq.items_snapshot.map((item, i) => (
-											<div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:10,padding:"10px 12px"}}>
+											<div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"var(--overlay-1)",border:"1px solid var(--overlay-3)",borderRadius:10,padding:"10px 12px"}}>
 												{item.image && <img src={item.image} alt="" style={{width:36,height:36,objectFit:"cover",borderRadius:6,flexShrink:0}} />}
 												<div style={{minWidth:0,flex:1}}>
 													<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.75)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</p>
@@ -669,7 +669,7 @@ const ReturnRequestsPanel = ({ onCountChange, isActive = true }) => {
 								</div>
 
 								{/* Email legend */}
-								<div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,padding:"8px 12px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8}}>
+								<div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,padding:"8px 12px",background:"var(--overlay-1)",border:"1px solid var(--border-light)",borderRadius:8}}>
 									<span style={{fontSize:10}}>✉</span>
 									<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:"0.18em",textTransform:"uppercase",color:"rgba(255,255,255,0.2)",margin:0}}>
 										EMAIL ICON = AUTOMATIC CLIENT NOTIFICATION WILL BE SENT
@@ -758,7 +758,7 @@ const ClientMessages = () => {
 				::-webkit-scrollbar-thumb{background:rgba(56,189,248,0.3);border-radius:99px}
 				.cm-list{display:flex;flex-direction:column;width:280px;flex-shrink:0}
 				.cm-chat-pane{flex:1;display:flex;flex-direction:column;overflow:hidden}
-				.cm-back-btn{display:none;align-items:center;gap:6px;padding:10px 14px;background:#0d0d0d;border:none;border-bottom:1px solid rgba(255,255,255,0.03);cursor:pointer;color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;flex-shrink:0;width:100%;box-sizing:border-box}
+				.cm-back-btn{display:none;align-items:center;gap:6px;padding:10px 14px;background:var(--bg-panel);border:none;border-bottom:1px solid var(--overlay-2);cursor:pointer;color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;flex-shrink:0;width:100%;box-sizing:border-box}
 				@media(max-width:640px){
 					.cm-list{width:100% !important;border-right:none !important;display:${!mobileShowChat ? "flex" : "none"} !important}
 					.cm-chat-pane{display:${mobileShowChat ? "flex" : "none"} !important}
@@ -768,7 +768,7 @@ const ClientMessages = () => {
 			<div style={{display:"flex",flexDirection:"column",height:"100%",background:T.void,fontFamily:"'DM Sans',sans-serif",overflow:"hidden"}}>
 
 				{/* Tabs */}
-				<div style={{display:"flex",gap:4,padding:"10px 12px",borderBottom:"1px solid rgba(255,255,255,0.06)",flexShrink:0,background:T.obsidian,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+				<div style={{display:"flex",gap:4,padding:"10px 12px",borderBottom:"1px solid var(--overlay-4)",flexShrink:0,background:T.obsidian,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
 					{[
 						{ key:"chats",   label:"Support Chats",  icon:"forum" },
 						{ key:"returns", label:"Return Requests", icon:"assignment_return" },
@@ -778,7 +778,7 @@ const ClientMessages = () => {
 							<span className="material-symbols-outlined" style={{fontSize:13}}>{icon}</span>
 							{label}
 							{key === "returns" && badgeCount > 0 && (
-								<span style={{position:"absolute",top:-6,right:-6,minWidth:17,height:17,borderRadius:999,background:"#ef4444",color:"#fff",fontFamily:"'JetBrains Mono',monospace",fontSize:7,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 4px",lineHeight:1,animation:"badgePop 2s ease-in-out infinite"}}>
+								<span style={{position:"absolute",top:-6,right:-6,minWidth:17,height:17,borderRadius:999,background:"#ef4444",color:"var(--text-primary)",fontFamily:"'JetBrains Mono',monospace",fontSize:7,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 4px",lineHeight:1,animation:"badgePop 2s ease-in-out infinite"}}>
 									{badgeCount > 99 ? "99+" : badgeCount}
 								</span>
 							)}

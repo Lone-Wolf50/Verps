@@ -48,7 +48,7 @@ export const StatCard = ({ label, value, sub, subColor }) => (
 		<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>
 			{label}
 		</p>
-		<p style={{ fontFamily: "'Playfair Display',serif", fontSize: 32, fontStyle: "italic", color: "white", lineHeight: 1 }}>
+		<p style={{ fontFamily: "'Playfair Display',serif", fontSize: 32, fontStyle: "italic", color: "var(--text-primary)", lineHeight: 1 }}>
 			{value}
 		</p>
 		{sub && (

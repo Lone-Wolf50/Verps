@@ -259,12 +259,12 @@ const ReviewPrompt = ({ userEmail }) => {
       >
         <div
           style={{
-            background:   "#0d0d0d",
+            background:   "var(--bg-panel)",
             border:       "1px solid rgba(236,91,19,0.2)",
             borderTop:    "2px solid #ec5b13",
             borderRadius: 20,
             padding:      "20px 22px",
-            boxShadow:    "0 20px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.04)",
+            boxShadow:    "0 20px 80px rgba(0,0,0,0.85), 0 0 0 1px var(--overlay-3)",
             fontFamily:   "'DM Sans',sans-serif",
           }}
         >
@@ -293,7 +293,7 @@ const ReviewPrompt = ({ userEmail }) => {
                   >
                     Quick Review
                   </p>
-                  <p style={{ color: "white", fontWeight: 600, fontSize: 14, lineHeight: 1.3 }}>
+                  <p style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: 14, lineHeight: 1.3 }}>
                     How was your{" "}
                     <span style={{ color: "#ec5b13" }}>{pendingOrder.productName}</span>?
                   </p>
@@ -327,8 +327,8 @@ const ReviewPrompt = ({ userEmail }) => {
                 style={{
                   width: "100%",
                   marginTop: 14,
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "var(--overlay-2)",
+                  border: "1px solid var(--border-medium)",
                   borderRadius: 12,
                   padding: "10px 14px",
                   color: "rgba(255,255,255,0.8)",
@@ -350,7 +350,7 @@ const ReviewPrompt = ({ userEmail }) => {
                   marginTop: 12,
                   width: "100%",
                   padding: "12px 0",
-                  background: rating ? "#ec5b13" : "rgba(255,255,255,0.06)",
+                  background: rating ? "#ec5b13" : "var(--overlay-4)",
                   border: "none",
                   borderRadius: 12,
                   color: rating ? "#000" : "rgba(255,255,255,0.2)",

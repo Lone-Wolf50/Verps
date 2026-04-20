@@ -13,7 +13,7 @@ const QueueTab = ({ waitingSessions, onRefresh }) => (
 		{waitingSessions.length === 0 && (
 			<div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 200, gap: 12, opacity: 0.15 }}>
 				<span className="material-symbols-outlined" style={{ fontSize: 36 }}>done_all</span>
-				<p style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontStyle: "italic", color: "white" }}>All Clear</p>
+				<p style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontStyle: "italic", color: "var(--text-primary)" }}>All Clear</p>
 			</div>
 		)}
 
@@ -21,7 +21,7 @@ const QueueTab = ({ waitingSessions, onRefresh }) => (
 			<div key={s.id} style={{ background: T.obsidian, border: T.border, borderRadius: 15, padding: "16px 20px", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, animation: `fadeUp 0.3s ${idx * 0.06}s both` }}>
 				<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
 					<Badge status="waiting" />
-					<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: "white", marginTop: 4 }}>{s.client_email}</p>
+					<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: "var(--text-primary)", marginTop: 4 }}>{s.client_email}</p>
 					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em" }}>
 						{new Date(s.created_at).toLocaleTimeString()}
 					</p>
@@ -34,12 +34,12 @@ const QueueTab = ({ waitingSessions, onRefresh }) => (
 							input: "text",
 							inputPlaceholder: "e.g. Ama",
 							inputAttributes: { "aria-label": "Your name" },
-							background: "#0a0a0a", color: "#fff",
+							background: "var(--bg-main)", color: "var(--text-primary)",
 							showCancelButton: true,
 							confirmButtonColor: "#ec5b13",
 							cancelButtonColor: "#1c1c1c",
 							confirmButtonText: "Start session",
-							customClass: { popup: "rounded-2xl border border-white/10", input: "vault-agent-name-input" },
+							customClass: { popup: "rounded-2xl border border-[color:var(--border-medium)]", input: "vault-agent-name-input" },
 						});
 						if (!agentName || !agentName.trim()) return;
 						const name = agentName.trim();

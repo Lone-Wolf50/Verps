@@ -88,7 +88,7 @@ const AnalyticsTab = () => {
 					{ratingRows.map((r) => (
 						<div key={r.star} style={{ display: "flex", alignItems: "center", gap: 10 }}>
 							<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: T.ember, width: 22, textAlign: "right" }}>{r.star}★</span>
-							<div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.04)", borderRadius: 99, overflow: "hidden" }}>
+							<div style={{ flex: 1, height: 5, background: "var(--overlay-3)", borderRadius: 99, overflow: "hidden" }}>
 								<div style={{ height: "100%", width: `${(r.count / maxR) * 100}%`, background: `rgba(236,91,19,${0.3 + (r.star / 5) * 0.7})`, borderRadius: 99, transition: "width 800ms cubic-bezier(0.16,1,0.3,1)" }} />
 							</div>
 							<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", width: 18 }}>{r.count}</span>

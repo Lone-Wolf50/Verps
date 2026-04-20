@@ -4,8 +4,8 @@ import Swal from "sweetalert2";
 
 const T = {
 	ember: "#ec5b13",
-	obsidian: "#0d0d0d",
-	border: "1px solid rgba(255,255,255,0.06)",
+	obsidian: "var(--bg-panel)",
+	border: "1px solid var(--overlay-4)",
 	live: "#22c55e",
 	shipped: "#38bdf8",
 	delivered: "#a78bfa",
@@ -28,7 +28,7 @@ const StatCard = ({ label, value, sub, accent, subColor }) => (
 		className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.03] to-transparent p-5"
 		style={{ borderTop: `2px solid ${accent || T.ember}` }}
 	>
-		<p className="text-[9px] font-bold uppercase tracking-[0.28em] text-white/30 mb-2">
+		<p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[color:var(--text-muted)] mb-2">
 			{label}
 		</p>
 		<p
@@ -36,7 +36,7 @@ const StatCard = ({ label, value, sub, accent, subColor }) => (
 				fontFamily: "'Playfair Display',serif",
 				fontSize: 32,
 				fontStyle: "italic",
-				color: "white",
+				color: "var(--text-primary)",
 				lineHeight: 1,
 			}}
 		>
@@ -60,7 +60,7 @@ const PeriodBarChart = ({ data, title, period, onPeriodChange }) => {
 		<div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.03] to-transparent p-6">
 			{/* Header + period toggle */}
 			<div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-				<p className="text-[9px] font-bold uppercase tracking-[0.28em] text-white/30">
+				<p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[color:var(--text-muted)]">
 					{title}
 				</p>
 				<div className="flex gap-1 bg-black/30 rounded-xl p-1">
@@ -68,7 +68,7 @@ const PeriodBarChart = ({ data, title, period, onPeriodChange }) => {
 						<button
 							key={p}
 							onClick={() => onPeriodChange(p)}
-							className={`px-3 py-1.5 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all ${period === p ? "bg-[#ec5b13] text-black" : "text-white/30 hover:text-white/60"}`}
+							className={`px-3 py-1.5 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all ${period === p ? "bg-[#ec5b13] text-black" : "text-[color:var(--text-muted)] hover:text-[color:var(--text-secondary)]"}`}
 						>
 							{p}
 						</button>
@@ -194,7 +194,7 @@ const BroadcastPanel = () => {
 		Swal.fire({
 			title: "Broadcast Sent!",
 			background: T.obsidian,
-			color: "#fff",
+			color: "var(--text-primary)",
 			icon: "success",
 			confirmButtonColor: T.ember,
 			timer: 1800,
@@ -212,7 +212,7 @@ const BroadcastPanel = () => {
 					className="absolute inset-0"
 					style={{
 						background:
-							"radial-gradient(circle at 70% 30%,rgba(255,255,255,0.08),transparent 50%)",
+							"radial-gradient(circle at 70% 30%,var(--border-medium),transparent 50%)",
 					}}
 				/>
 				<div className="relative">
@@ -245,7 +245,7 @@ const BroadcastPanel = () => {
 					<button
 						onClick={sendBroadcast}
 						disabled={sending || !subject.trim() || !body.trim()}
-						className="w-full bg-black text-white py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-black/90 transition-all active:scale-[0.98] disabled:opacity-40"
+						className="w-full bg-black text-[color:var(--text-primary)] py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-black/90 transition-all active:scale-[0.98] disabled:opacity-40"
 					>
 						{sending ? "SENDING..." : "SEND BROADCAST"}
 					</button>
@@ -553,7 +553,7 @@ const Analytics = () => {
 	if (loading)
 		return (
 			<div className="flex items-center justify-center h-full py-40">
-				<div className="w-8 h-8 border-2 border-t-[#ec5b13] border-white/10 rounded-full animate-spin" />
+				<div className="w-8 h-8 border-2 border-t-[#ec5b13] border-[color:var(--border-medium)] rounded-full animate-spin" />
 			</div>
 		);
 
@@ -644,7 +644,7 @@ const Analytics = () => {
 					<BroadcastPanel />
 					{/* Rating satisfaction */}
 					<div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.03] to-transparent p-6">
-						<p className="text-[9px] font-bold uppercase tracking-[0.28em] text-white/30 mb-5">
+						<p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[color:var(--text-muted)] mb-5">
 							SATISFACTION
 						</p>
 						<div className="space-y-3">
@@ -673,7 +673,7 @@ const Analytics = () => {
 											style={{
 												flex: 1,
 												height: 5,
-												background: "rgba(255,255,255,0.04)",
+												background: "var(--overlay-3)",
 												borderRadius: 99,
 												overflow: "hidden",
 											}}

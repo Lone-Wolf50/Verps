@@ -3,14 +3,14 @@ import { supabase } from "../supabaseClient";
 
 /* ─── TOKENS ─────────────────────────────────────────────────── */
 const T = {
-	void: "#080808",
-	obsidian: "#0d0d0d",
+	void: "var(--bg-dark)",
+	obsidian: "var(--bg-panel)",
 	ember: "#ec5b13",
 	shipped: "#38bdf8",
 	violet: "#a78bfa",
 	live: "#22c55e",
-	border: "1px solid rgba(255,255,255,0.06)",
-	sub: "1px solid rgba(255,255,255,0.03)",
+	border: "1px solid var(--overlay-4)",
+	sub: "1px solid var(--overlay-2)",
 };
 
 const FROM_CFG = {
@@ -47,7 +47,7 @@ const MessageRow = ({ msg, isSelected, onClick }) => {
 					height: 6,
 					borderRadius: "50%",
 					background: isUnread ? T.ember : "transparent",
-					border: isUnread ? "none" : "1px solid rgba(255,255,255,0.1)",
+					border: isUnread ? "none" : "1px solid var(--border-medium)",
 					flexShrink: 0,
 					marginTop: 5,
 					animation: isUnread ? "pd 2s ease-in-out infinite" : "none",
@@ -61,7 +61,7 @@ const MessageRow = ({ msg, isSelected, onClick }) => {
 						fontFamily: "'DM Sans',sans-serif",
 						fontSize: 12,
 						fontWeight: isUnread ? 600 : 400,
-						color: isUnread ? "white" : "rgba(255,255,255,0.6)",
+						color: isUnread ? "var(--text-primary)" : "rgba(255,255,255,0.6)",
 						overflow: "hidden",
 						textOverflow: "ellipsis",
 						whiteSpace: "nowrap",
@@ -325,7 +325,7 @@ const MessageDetail = ({ msg, isMobile, onBack }) => {
 						fontSize: "clamp(16px,2.5vw,20px)",
 						fontStyle: "italic",
 						fontWeight: 400,
-						color: "white",
+						color: "var(--text-primary)",
 						lineHeight: 1.3,
 					}}
 				>
@@ -381,7 +381,7 @@ const MessageDetail = ({ msg, isMobile, onBack }) => {
 			>
 				<div
 					style={{
-						background: "rgba(255,255,255,0.02)",
+						background: "var(--overlay-1)",
 						border: T.border,
 						borderRadius: 14,
 						padding: "18px 20px",
@@ -391,7 +391,7 @@ const MessageDetail = ({ msg, isMobile, onBack }) => {
 						style={{
 							fontFamily: "'DM Sans',sans-serif",
 							fontSize: 13,
-							color: "rgba(255,255,255,0.7)",
+							color: "var(--text-secondary)",
 							lineHeight: 1.8,
 							whiteSpace: "pre-wrap",
 						}}
@@ -535,7 +535,7 @@ const AdminInbox = () => {
 									fontSize: "clamp(18px,3vw,24px)",
 									fontStyle: "italic",
 									fontWeight: 400,
-									color: "white",
+									color: "var(--text-primary)",
 								}}
 							>
 								Supervisor <span style={{ color: T.ember }}>Inbox</span>
@@ -568,7 +568,7 @@ const AdminInbox = () => {
 									key={label}
 									style={{
 										padding: "8px 14px",
-										background: "rgba(255,255,255,0.03)",
+										background: "var(--overlay-2)",
 										border: T.sub,
 										borderRadius: 10,
 										textAlign: "center",
@@ -634,7 +634,7 @@ const AdminInbox = () => {
 									paddingRight: 12,
 									paddingTop: 8,
 									paddingBottom: 8,
-									background: "rgba(255,255,255,0.03)",
+									background: "var(--overlay-2)",
 									border: T.border,
 									borderRadius: 10,
 									fontFamily: "'DM Sans',sans-serif",
@@ -659,7 +659,7 @@ const AdminInbox = () => {
 										cursor: "pointer",
 										transition: "all 200ms",
 										background:
-											filter === f.k ? T.ember : "rgba(255,255,255,0.06)",
+											filter === f.k ? T.ember : "var(--overlay-4)",
 										color: filter === f.k ? "#000" : "rgba(255,255,255,0.4)",
 										fontFamily: "'JetBrains Mono',monospace",
 										fontSize: 8,

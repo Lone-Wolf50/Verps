@@ -2,12 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../supabaseClient";
 
 const T = {
-	void: "#080808",
-	obsidian: "#0d0d0d",
+	void: "var(--bg-dark)",
+	obsidian: "var(--bg-panel)",
 	ember: "#ec5b13",
 	shipped: "#38bdf8",
-	border: "1px solid rgba(255,255,255,0.06)",
-	sub: "1px solid rgba(255,255,255,0.03)",
+	border: "1px solid var(--overlay-4)",
+	sub: "1px solid var(--overlay-2)",
 };
 
 /* ── No "admin access only" gate: route protection handles who can reach /admin.
@@ -159,7 +159,7 @@ const AdminChannel = () => {
 										borderRadius: "50%",
 										background: T.ember,
 										animation: "pulseDot 2s ease-in-out infinite",
-										border: "1.5px solid #080808",
+										border: "1.5px solid var(--bg-dark)",
 									}}
 								/>
 							</div>
@@ -170,7 +170,7 @@ const AdminChannel = () => {
 										fontSize: "clamp(16px,2.5vw,22px)",
 										fontStyle: "italic",
 										fontWeight: 400,
-										color: "white",
+										color: "var(--text-primary)",
 									}}
 								>
 									Admin <span style={{ color: T.shipped }}>Channel</span>
@@ -391,7 +391,7 @@ const AdminChannel = () => {
 								padding: "11px 16px",
 								fontFamily: "'DM Sans',sans-serif",
 								fontSize: 13,
-								color: "rgba(255,255,255,0.85)",
+								color: "var(--text-primary)",
 								outline: "none",
 								transition: "border-color 200ms",
 							}}
@@ -430,7 +430,7 @@ const AdminChannel = () => {
 							fontSize: 6,
 							letterSpacing: "0.2em",
 							textTransform: "uppercase",
-							color: "rgba(255,255,255,0.1)",
+							color: "var(--border-medium)",
 							textAlign: "center",
 							marginTop: 10,
 						}}

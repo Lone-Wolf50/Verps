@@ -15,7 +15,7 @@ import AdminSidebar from "./AdminSidebar";
 
 const AdminLayout = ({ children }) => {
 	return (
-		<div className="min-h-screen bg-[#050505] text-white">
+		<div className="min-h-screen bg-[var(--bg-deep)] text-[color:var(--text-primary)]">
 			<AdminSidebar />
 
 			<main

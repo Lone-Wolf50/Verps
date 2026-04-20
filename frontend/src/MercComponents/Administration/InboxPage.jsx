@@ -4,13 +4,13 @@ import { supabase } from "../supabaseClient";
 
 /* ─── TOKENS ─────────────────────────────────────────────────── */
 const T = {
-  void: "#080808",
-  obsidian: "#0d0d0d",
+  void: "var(--bg-dark)",
+  obsidian: "var(--bg-panel)",
   ember: "#ec5b13",
   shipped: "#38bdf8",
   violet: "#a78bfa",
-  border: "1px solid rgba(255,255,255,0.06)",
-  sub: "1px solid rgba(255,255,255,0.03)",
+  border: "1px solid var(--overlay-4)",
+  sub: "1px solid var(--overlay-2)",
 };
 
 const getOrigin = (msg) => {
@@ -64,7 +64,7 @@ const OrderImagesStrip = ({ orderNumber, toEmail }) => {
           <img
             src={item.image}
             alt={item.name}
-            style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 10, border: "1px solid var(--border-medium)" }}
             onError={e => { e.currentTarget.style.display = "none"; }}
           />
           {item.quantity > 1 && (
@@ -117,7 +117,7 @@ const MessageCard = ({ msg, onRead, onDelete }) => {
       {/* CARD HEADER */}
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px" }}>
         {/* Unread dot */}
-        <div style={{ width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: isUnread ? T.ember : "transparent", border: isUnread ? "none" : "1px solid rgba(255,255,255,0.1)", animation: isUnread ? "unreadPulse 2s ease-in-out infinite" : "none" }} />
+        <div style={{ width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: isUnread ? T.ember : "transparent", border: isUnread ? "none" : "1px solid var(--border-medium)", animation: isUnread ? "unreadPulse 2s ease-in-out infinite" : "none" }} />
         {/* Sender avatar */}
         <div style={{ width: 38, height: 38, borderRadius: "50%", background: `${from.color}12`, border: `1px solid ${from.color}28`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <span className="material-symbols-outlined" style={{ fontSize: 18, color: from.color }}>{from.icon}</span>
@@ -130,7 +130,7 @@ const MessageCard = ({ msg, onRead, onDelete }) => {
               <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.15em", textTransform: "uppercase", color: T.ember, background: "rgba(236,91,19,0.1)", border: "1px solid rgba(236,91,19,0.22)", padding: "2px 7px", borderRadius: 999 }}>NEW</span>
             )}
           </div>
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: isUnread ? 600 : 400, color: isUnread ? "white" : "rgba(255,255,255,0.62)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{msg.subject || "(no subject)"}</p>
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: isUnread ? 600 : 400, color: isUnread ? "var(--text-primary)" : "rgba(255,255,255,0.62)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{msg.subject || "(no subject)"}</p>
           <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.2)", marginTop: 4, letterSpacing: "0.1em" }}>
             {new Date(msg.created_at).toLocaleDateString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
           </p>
@@ -155,7 +155,7 @@ const MessageCard = ({ msg, onRead, onDelete }) => {
           )}
 
           {/* Message body */}
-          <div style={{ background: "rgba(255,255,255,0.02)", border: T.sub, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+          <div style={{ background: "var(--overlay-1)", border: T.sub, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
             <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>
               {msg.body || "(empty message)"}
             </p>
@@ -246,7 +246,7 @@ const InboxPage = () => {
           {/* PAGE HEADER */}
           <div style={{ marginBottom: 36, animation: "fadeUp 0.55s both" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
-              <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(30px,6vw,48px)", fontStyle: "italic", fontWeight: 400, color: "white", lineHeight: 1.1 }}>
+              <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(30px,6vw,48px)", fontStyle: "italic", fontWeight: 400, color: "var(--text-primary)", lineHeight: 1.1 }}>
                 Verp <span style={{ color: T.ember }}>Inbox</span>
               </h1>
               {unreadCount > 0 && (
@@ -269,7 +269,7 @@ const InboxPage = () => {
                   { k: "read", l: "Read", c: messages.length - unreadCount },
                 ].map(({ k, l, c }) => (
                   <button key={k} onClick={() => setFilter(k)}
-                    style={{ padding: "7px 16px", borderRadius: 999, border: "none", cursor: "pointer", transition: "all 200ms", background: filter === k ? T.ember : "rgba(255,255,255,0.06)", color: filter === k ? "#000" : "rgba(255,255,255,0.42)", fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                    style={{ padding: "7px 16px", borderRadius: 999, border: "none", cursor: "pointer", transition: "all 200ms", background: filter === k ? T.ember : "var(--overlay-4)", color: filter === k ? "#000" : "rgba(255,255,255,0.42)", fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}>
                     {l} · {c}
                   </button>
                 ))}
@@ -278,7 +278,7 @@ const InboxPage = () => {
                 <button onClick={markAllRead}
                   style={{ background: "transparent", border: T.border, borderRadius: 999, padding: "7px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.32)", transition: "all 200ms" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(236,91,19,0.3)"; e.currentTarget.style.color = T.ember; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.32)"; }}>
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--overlay-4)"; e.currentTarget.style.color = "rgba(255,255,255,0.32)"; }}>
                   MARK ALL READ
                 </button>
               )}
@@ -293,7 +293,7 @@ const InboxPage = () => {
           ) : !userEmail ? (
             <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.3 }}>
               <span className="material-symbols-outlined" style={{ fontSize: 48, color: T.ember }}>lock</span>
-              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.3em", color: "white", marginTop: 16, textTransform: "uppercase" }}>AUTHENTICATION REQUIRED</p>
+              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.3em", color: "var(--text-primary)", marginTop: 16, textTransform: "uppercase" }}>AUTHENTICATION REQUIRED</p>
             </div>
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.2 }}>

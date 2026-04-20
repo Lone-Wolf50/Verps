@@ -27,12 +27,12 @@ import { supabase } from "../supabaseClient";
 
 /* ── Design tokens (inline so this file is self-contained) ── */
 const T = {
-  void:     "#080808",
-  obsidian: "#0d0d0d",
+  void:     "var(--bg-dark)",
+  obsidian: "var(--bg-panel)",
   ember:    "#ec5b13",
   shipped:  "#38bdf8",
-  border:   "1px solid rgba(255,255,255,0.06)",
-  sub:      "1px solid rgba(255,255,255,0.03)",
+  border:   "1px solid var(--overlay-4)",
+  sub:      "1px solid var(--overlay-2)",
 };
 
 /*
@@ -128,10 +128,10 @@ const AdminChannel = ({ role = "admin" }) => {
                 <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(56,189,248,0.1)", border:"1px solid rgba(56,189,248,0.25)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   <span className="material-symbols-outlined" style={{ fontSize:18, color: T.shipped }}>lock</span>
                 </div>
-                <div style={{ position:"absolute", bottom:1, right:1, width:8, height:8, borderRadius:"50%", background: T.ember, animation:"pulseDot 2s ease-in-out infinite", border:"1.5px solid #080808" }} />
+                <div style={{ position:"absolute", bottom:1, right:1, width:8, height:8, borderRadius:"50%", background: T.ember, animation:"pulseDot 2s ease-in-out infinite", border:"1.5px solid var(--bg-dark)" }} />
               </div>
               <div>
-                <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(16px,2.5vw,22px)", fontStyle:"italic", fontWeight:400, color:"white" }}>
+                <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(16px,2.5vw,22px)", fontStyle:"italic", fontWeight:400, color:"var(--text-primary)" }}>
                   {isAdmin ? "Admin" : "Assistant"} <span style={{ color: T.shipped }}>Channel</span>
                 </h2>
                 <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:7, letterSpacing:"0.22em", textTransform:"uppercase", color:"rgba(255,255,255,0.22)", marginTop:2 }}>
@@ -212,7 +212,7 @@ const AdminChannel = ({ role = "admin" }) => {
               onChange={(e) => setInput(e.target.value)}
               disabled={sending}
               placeholder={isAdmin ? "REPLY TO ASSISTANT — PRIVATE & SECURE..." : "MESSAGE ADMIN (PRIVATE)..."}
-              style={{ flex:1, background: isAdmin ? "rgba(56,189,248,0.04)" : "#111", border: isAdmin ? "1px solid rgba(56,189,248,0.18)" : T.border, borderRadius:12, padding:"11px 16px", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"rgba(255,255,255,0.85)", outline:"none", transition:"border-color 200ms" }}
+              style={{ flex:1, background: isAdmin ? "rgba(56,189,248,0.04)" : "#111", border: isAdmin ? "1px solid rgba(56,189,248,0.18)" : T.border, borderRadius:12, padding:"11px 16px", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"var(--text-primary)", outline:"none", transition:"border-color 200ms" }}
               onFocus={(e)  => (e.currentTarget.style.borderColor = isAdmin ? "rgba(56,189,248,0.4)" : "rgba(236,91,19,0.4)")}
               onBlur={(e)   => (e.currentTarget.style.borderColor = isAdmin ? "rgba(56,189,248,0.18)" : T.border)}
             />
@@ -224,7 +224,7 @@ const AdminChannel = ({ role = "admin" }) => {
               SEND
             </button>
           </form>
-          <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:6, letterSpacing:"0.2em", textTransform:"uppercase", color:"rgba(255,255,255,0.1)", textAlign:"center", marginTop:10 }}>
+          <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:6, letterSpacing:"0.2em", textTransform:"uppercase", color:"var(--border-medium)", textAlign:"center", marginTop:10 }}>
             END-TO-END PRIVATE · ADMIN & ASSISTANT ONLY · SESSION VERIFIED
           </p>
         </div>

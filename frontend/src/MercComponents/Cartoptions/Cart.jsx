@@ -8,7 +8,7 @@ const Cart = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] text-white flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-[var(--bg-panel)] text-[color:var(--text-primary)] flex flex-col items-center justify-center p-6">
         <span className="material-symbols-outlined text-6xl text-white/10 mb-4">
           shopping_bag
         </span>
@@ -29,7 +29,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white pt-20 pb-28 px-6">
+    <div className="min-h-screen bg-[var(--bg-panel)] text-[color:var(--text-primary)] pt-20 pb-28 px-6">
       <style>{`
         @keyframes cartRowIn {
           from { opacity: 0; transform: translateY(12px); }
@@ -50,14 +50,14 @@ const Cart = () => {
             style={{
               display: "flex", alignItems: "center", justifyContent: "center",
               width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "var(--overlay-3)",
+              border: "1px solid var(--border-medium)",
               color: "rgba(255,255,255,0.65)",
               cursor: "pointer",
               transition: "all 180ms",
             }}
             onMouseEnter={e => { e.currentTarget.style.background = "rgba(236,91,19,0.1)"; e.currentTarget.style.borderColor = "rgba(236,91,19,0.35)"; e.currentTarget.style.color = "#ec5b13"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "var(--overlay-3)"; e.currentTarget.style.borderColor = "var(--border-medium)"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
           </button>
@@ -82,7 +82,7 @@ const Cart = () => {
             {cart.map((item, i) => (
               <div
                 key={`${item.id}-${item.size || ""}-${item.color || ""}`}
-                className="cart-row p-4 sm:p-6 rounded-3xl border border-white/5 bg-white/[0.03] flex gap-4 sm:gap-6 items-start sm:items-center"
+                className="cart-row p-4 sm:p-6 rounded-3xl border border-[color:var(--border-light)] bg-white/[0.03] flex gap-4 sm:gap-6 items-start sm:items-center"
                 style={{ animationDelay: `${i * 0.06}s` }}
               >
                 <img
@@ -125,8 +125,8 @@ const Cart = () => {
                           fontFamily: "'JetBrains Mono',monospace", fontSize: 8,
                           letterSpacing: "0.18em", textTransform: "uppercase",
                           color: "rgba(255,255,255,0.4)",
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.08)",
+                          background: "var(--border-light)",
+                          border: "1px solid var(--border-medium)",
                           borderRadius: 6, padding: "3px 7px",
                         }}>SIZE {item.size}</span>
                       )}
@@ -135,8 +135,8 @@ const Cart = () => {
                           fontFamily: "'JetBrains Mono',monospace", fontSize: 8,
                           letterSpacing: "0.18em", textTransform: "uppercase",
                           color: "rgba(255,255,255,0.4)",
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.08)",
+                          background: "var(--border-light)",
+                          border: "1px solid var(--border-medium)",
                           borderRadius: 6, padding: "3px 7px",
                         }}>{item.color}</span>
                       )}
@@ -151,21 +151,21 @@ const Cart = () => {
                     {/* Qty stepper */}
                     <div style={{
                       display: "flex", alignItems: "center",
-                      border: "1px solid rgba(255,255,255,0.1)",
+                      border: "1px solid var(--border-medium)",
                       borderRadius: 999, padding: "4px 4px",
-                      background: "rgba(255,255,255,0.04)",
+                      background: "var(--overlay-3)",
                     }}>
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
                         style={{
                           width: 28, height: 28, borderRadius: "50%", border: "none",
-                          background: "rgba(255,255,255,0.06)", cursor: "pointer",
-                          color: "rgba(255,255,255,0.7)", fontSize: 16, lineHeight: 1,
+                          background: "var(--overlay-4)", cursor: "pointer",
+                          color: "var(--text-secondary)", fontSize: 16, lineHeight: 1,
                           display: "flex", alignItems: "center", justifyContent: "center",
                           transition: "background 150ms",
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = "rgba(236,91,19,0.2)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "var(--overlay-4)"}
                       >−</button>
                       <span style={{
                         fontFamily: "'JetBrains Mono',monospace", fontSize: 13,
@@ -176,13 +176,13 @@ const Cart = () => {
                         onClick={() => updateQuantity(item.id, 1)}
                         style={{
                           width: 28, height: 28, borderRadius: "50%", border: "none",
-                          background: "rgba(255,255,255,0.06)", cursor: "pointer",
-                          color: "rgba(255,255,255,0.7)", fontSize: 16, lineHeight: 1,
+                          background: "var(--overlay-4)", cursor: "pointer",
+                          color: "var(--text-secondary)", fontSize: 16, lineHeight: 1,
                           display: "flex", alignItems: "center", justifyContent: "center",
                           transition: "background 150ms",
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = "rgba(236,91,19,0.2)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "var(--overlay-4)"}
                       >+</button>
                     </div>
 
@@ -212,8 +212,8 @@ const Cart = () => {
             <div
               className="p-8 rounded-3xl sticky top-32"
               style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                background: "var(--overlay-2)",
+                border: "1px solid var(--border-medium)",
                 backdropFilter: "blur(20px)",
               }}
             >
@@ -232,14 +232,14 @@ const Cart = () => {
                     <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.45)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {item.name} ×{item.quantity}
                     </span>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "var(--text-muted)", flexShrink: 0 }}>
                       GH₵{(item.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div style={{ height: 1, background: "rgba(255,255,255,0.06)", marginBottom: 20 }} />
+              <div style={{ height: 1, background: "var(--overlay-4)", marginBottom: 20 }} />
 
               <div className="flex justify-between py-2">
                 <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 20, fontWeight: 900, fontStyle: "italic", textTransform: "uppercase", color: "rgba(255,255,255,0.92)" }}>
@@ -256,15 +256,15 @@ const Cart = () => {
                 style={{
                   width: "100%", marginTop: 24,
                   padding: "18px 0", borderRadius: 16, border: "none",
-                  background: "#fff", color: "#000",
+                  background: "var(--text-primary)", color: "#000",
                   fontFamily: "'DM Sans',sans-serif", fontWeight: 900,
                   fontSize: 13, letterSpacing: "0.18em", textTransform: "uppercase",
                   cursor: "pointer", transition: "all 200ms",
-                  boxShadow: "0 8px 32px rgba(255,255,255,0.08)",
+                  boxShadow: "0 8px 32px var(--border-medium)",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = "#ec5b13"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(236,91,19,0.35)"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.color = "#000"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(255,255,255,0.08)"; }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#ec5b13"; e.currentTarget.style.color = "var(--text-primary)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(236,91,19,0.35)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "var(--text-primary)"; e.currentTarget.style.color = "#000"; e.currentTarget.style.boxShadow = "0 8px 32px var(--border-medium)"; }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 18 }}>lock</span>
                 Secure Checkout

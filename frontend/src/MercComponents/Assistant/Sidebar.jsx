@@ -43,7 +43,7 @@ const Sidebar = ({ tab, isMobile, waitingCount, fullPushCount, reviewCount, onTa
 					<span style={{
 						minWidth: 18, height: 18, borderRadius: 999,
 						background: n.id === "reviews" ? T.ember : T.escalated,
-						color: "white",
+						color: "var(--text-primary)",
 						fontFamily: "'JetBrains Mono',monospace",
 						fontSize: 8, fontWeight: 700,
 						display: "flex", alignItems: "center", justifyContent: "center",
@@ -78,11 +78,11 @@ const Sidebar = ({ tab, isMobile, waitingCount, fullPushCount, reviewCount, onTa
 
 				{/* Divider before secondary items */}
 				<div style={{ margin: "10px 0 6px", padding: "0 4px", display: "flex", alignItems: "center", gap: 8 }}>
-					<div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
+					<div style={{ flex: 1, height: 1, background: "var(--border-light)" }} />
 					<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 6, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>
 						More
 					</span>
-					<div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
+					<div style={{ flex: 1, height: 1, background: "var(--border-light)" }} />
 				</div>
 
 				{secondaryItems.map(renderItem)}
@@ -93,7 +93,7 @@ const Sidebar = ({ tab, isMobile, waitingCount, fullPushCount, reviewCount, onTa
 				<button
 					onClick={onLogout}
 					style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", background: "transparent", border: T.border, borderRadius: 10, cursor: "pointer", color: "rgba(255,255,255,0.35)", fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.18em", textTransform: "uppercase" }}
-					onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
+					onMouseEnter={(e) => { e.currentTarget.style.background = "var(--overlay-3)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
 					onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}
 				>
 					<span className="material-symbols-outlined" style={{ fontSize: 14 }}>logout</span>

@@ -86,7 +86,7 @@ const Hero = () => {
   const slide = slides[current];
 
   return (
-    <header className="hero-root relative w-full bg-[#080808]" style={{ minHeight: 520 }}>
+    <header className="hero-root relative w-full bg-[var(--bg-dark)]" style={{ minHeight: 520 }}>
 
       {/* Stacked images */}
       {slides.map((s, i) => (
@@ -145,7 +145,7 @@ const Hero = () => {
                 fontWeight: 900,
                 letterSpacing: "-0.03em",
                 lineHeight: 0.95,
-                color: "white",
+                color: "var(--text-primary)",
                 textTransform: "uppercase",
                 animationDelay: `${0.15 + i * 0.08}s`,
               }}
@@ -191,9 +191,9 @@ const Hero = () => {
             <Link
               to="/categories"
               state={{ scrollTo: "bestsellers" }}
-              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.05)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)", color: "white", padding: "12px 24px", borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", textDecoration: "none", whiteSpace: "nowrap" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "var(--border-light)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)", color: "var(--text-primary)", padding: "12px 24px", borderRadius: 999, fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", textDecoration: "none", whiteSpace: "nowrap" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--border-medium)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "var(--border-light)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
             >
               View Lookbook
             </Link>
@@ -233,7 +233,7 @@ const Hero = () => {
               style={{
                 width: 38, height: 38,
                 borderRadius: "50%",
-                background: "rgba(255,255,255,0.05)",
+                background: "var(--border-light)",
                 border: "1px solid rgba(255,255,255,0.12)",
                 backdropFilter: "blur(12px)",
                 color: "rgba(255,255,255,0.6)",
@@ -241,8 +241,8 @@ const Hero = () => {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 200ms",
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(236,91,19,0.2)"; e.currentTarget.style.borderColor = "#ec5b13"; e.currentTarget.style.color = "white"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(236,91,19,0.2)"; e.currentTarget.style.borderColor = "#ec5b13"; e.currentTarget.style.color = "var(--text-primary)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "var(--border-light)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 17 }}>{icon}</span>
             </button>

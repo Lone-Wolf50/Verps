@@ -10,8 +10,8 @@ const getInternalSecret = () => {
 
 /* ─── TOKENS ─────────────────────────────────────────────────── */
 const T = {
-	void: "#080808",
-	obsidian: "#0d0d0d",
+	void: "var(--bg-dark)",
+	obsidian: "var(--bg-panel)",
 	ember: "#ec5b13",
 	live: "#10b981",
 	waiting: "#eab308",
@@ -19,7 +19,7 @@ const T = {
 	violet: "#a855f7",
 	returned: "#f43f5e",
 	cancelled: "#64748b",
-	border: "1px solid rgba(255,255,255,0.06)",
+	border: "1px solid var(--overlay-4)",
 };
 
 const ORDER_STATUSES = [
@@ -121,8 +121,8 @@ const buildStatusEmailHTML = (order, status, clientName) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${cfg.title}</title>
 </head>
-<body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;min-height:100vh;">
+<body style="margin:0;padding:0;background:var(--bg-deep);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:var(--bg-deep);min-height:100vh;">
 <tr><td align="center" style="padding:40px 20px;">
 
   <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
@@ -138,12 +138,12 @@ const buildStatusEmailHTML = (order, status, clientName) => {
 
     <!-- HERO CARD -->
     <tr>
-      <td style="background:linear-gradient(135deg,#0d0d0d,#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+      <td style="background:linear-gradient(135deg,var(--bg-panel),#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
 
         <!-- STATUS BAND -->
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td style="background:linear-gradient(90deg,${cfg.gradientFrom}18,${cfg.gradientTo}08);padding:28px 36px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <td style="background:linear-gradient(90deg,${cfg.gradientFrom}18,${cfg.gradientTo}08);padding:28px 36px;border-bottom:1px solid var(--border-light);">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
@@ -174,7 +174,7 @@ const buildStatusEmailHTML = (order, status, clientName) => {
 
           <!-- ORDER DETAILS STRIP -->
           <tr>
-            <td style="padding:24px 36px;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <td style="padding:24px 36px;border-bottom:1px solid var(--overlay-3);">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="width:50%;">
@@ -193,7 +193,7 @@ const buildStatusEmailHTML = (order, status, clientName) => {
           <!-- BODY COPY -->
           <tr>
             <td style="padding:28px 36px 24px;">
-              <p style="margin:0 0 12px;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.7;">
+              <p style="margin:0 0 12px;font-size:13px;color:var(--text-primary);line-height:1.7;">
                 Dear <strong style="color:#fff;">${name}</strong>,
               </p>
               <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.6);line-height:1.8;">
@@ -236,7 +236,7 @@ const buildStatusEmailHTML = (order, status, clientName) => {
     <tr>
       <td align="center" style="padding:0 20px 40px;">
         <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:8px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.15);">VERP · EXECUTIVE COLLECTION</p>
-        <p style="margin:0;font-size:10px;color:rgba(255,255,255,0.1);line-height:1.6;">
+        <p style="margin:0;font-size:10px;color:var(--border-medium);line-height:1.6;">
           This is an automated notification from the Verp Order Management System.<br/>
           If you have questions, reply to this email or contact our support team.
         </p>
@@ -341,12 +341,12 @@ const CustomerProfileCard = ({ order }) => {
 					{avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { e.currentTarget.style.display = "none"; }} /> : <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, fontStyle: "italic", color: T.ember }}>{initial}</span>}
 				</div>
 				<div style={{ minWidth: 0, flex: 1 }}>
-					{deliveryName && <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontStyle: "italic", color: "white", lineHeight: 1.25, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{deliveryName}</p>}
+					{deliveryName && <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontStyle: "italic", color: "var(--text-primary)", lineHeight: 1.25, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{deliveryName}</p>}
 					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.32)", letterSpacing: "0.08em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{email || "—"}</p>
 					{bio && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: "rgba(255,255,255,0.35)", fontStyle: "italic", marginTop: 4, lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{bio}</p>}
 				</div>
 			</div>
-			<div style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
+			<div style={{ height: 1, background: "var(--border-light)" }} />
 			<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 				<InfoRow icon="call" label="Phone" value={phone} color={T.live} />
 				<InfoRow icon="location_on" label="Location" value={location} color={T.shipped} />
@@ -450,8 +450,8 @@ const ClientRequests = () => {
 
 		const statusColor = STATUS_COLOR[newStatus] || T.ember;
 		Swal.fire({
-			background: "#0d0d0d",
-			color: "#fff",
+			background: "var(--bg-panel)",
+			color: "var(--text-primary)",
 			html: `
 				<div style="text-align:center;padding:8px 0;">
 					<div style="width:52px;height:52px;border-radius:50%;background:${statusColor}18;border:1px solid ${statusColor}40;display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
@@ -471,7 +471,7 @@ const ClientRequests = () => {
 	if (loading)
 		return (
 			<div className="flex items-center justify-center py-32">
-				<div className="w-8 h-8 border-2 border-t-[#ec5b13] border-white/10 rounded-full animate-spin" />
+				<div className="w-8 h-8 border-2 border-t-[#ec5b13] border-[color:var(--border-medium)] rounded-full animate-spin" />
 			</div>
 		);
 
@@ -480,16 +480,16 @@ const ClientRequests = () => {
 			{/* ── HEADER + TOGGLE ── */}
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 				<div>
-					<h2 className="text-3xl md:text-4xl font-light text-white tracking-tight">
+					<h2 className="text-3xl md:text-4xl font-light text-[color:var(--text-primary)] tracking-tight">
 						Order <span className="font-serif italic" style={{ color: T.ember }}>Flow</span>
 					</h2>
-					<p className="text-xs text-white/40 mt-2 tracking-wide">
+					<p className="text-xs text-[color:var(--text-muted)] mt-2 tracking-wide">
 						{filtered.length} order{filtered.length !== 1 ? "s" : ""} in this view
 					</p>
 				</div>
-				<div className="bg-white/5 p-1 rounded-2xl flex border border-white/10 w-full sm:w-auto">
+				<div className="bg-[var(--overlay-2)] p-1 rounded-2xl flex border border-[color:var(--border-medium)] w-full sm:w-auto">
 					{["incoming", "outgoing"].map((v) => (
-						<button key={v} onClick={() => setView(v)} className={`flex-1 sm:flex-none px-4 md:px-6 py-3 rounded-xl text-[10px] font-bold uppercase transition-all tracking-wider ${view === v ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white/60"}`}>
+						<button key={v} onClick={() => setView(v)} className={`flex-1 sm:flex-none px-4 md:px-6 py-3 rounded-xl text-[10px] font-bold uppercase transition-all tracking-wider ${view === v ? "bg-white text-black shadow-lg" : "text-[color:var(--text-muted)] hover:text-[color:var(--text-secondary)]"}`}>
 							{v}
 						</button>
 					))}
@@ -500,7 +500,7 @@ const ClientRequests = () => {
 			<div className="hidden lg:block relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01]">
 				<div className="overflow-x-auto">
 					<table className="w-full text-left">
-						<thead className="bg-white/5 text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">
+						<thead className="bg-[var(--overlay-2)] text-[10px] uppercase tracking-[0.2em] font-bold text-[color:var(--text-muted)]">
 							<tr>
 								<th className="p-5 font-bold">Client</th>
 								<th className="p-5 font-bold">Order ID</th>
@@ -511,14 +511,14 @@ const ClientRequests = () => {
 						</thead>
 						<tbody className="divide-y divide-white/5">
 							{filtered.length === 0 && (
-								<tr><td colSpan={5} className="p-10 text-center text-white/20 text-xs uppercase tracking-widest">No orders</td></tr>
+								<tr><td colSpan={5} className="p-10 text-center text-[color:var(--text-muted)] text-xs uppercase tracking-widest">No orders</td></tr>
 							)}
 							{filtered.map((order) => (
 								<tr key={order.id} className="hover:bg-white/[0.02] transition-colors group">
 									<td className="p-5">
-										<p className="font-medium text-sm text-white">{order.delivery_name || order.customer_name || order.client_email || order.email || "—"}</p>
-										<p className="text-[10px] text-white/30 font-mono mt-0.5" style={{ letterSpacing: "0.05em" }}>{order.client_email || order.email || ""}</p>
-										<p className="text-[10px] text-white/30 uppercase tracking-wider mt-1">{new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} · {new Date(order.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
+										<p className="font-medium text-sm text-[color:var(--text-primary)]">{order.delivery_name || order.customer_name || order.client_email || order.email || "—"}</p>
+										<p className="text-[10px] text-[color:var(--text-muted)] font-mono mt-0.5" style={{ letterSpacing: "0.05em" }}>{order.client_email || order.email || ""}</p>
+										<p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mt-1">{new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} · {new Date(order.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
 										{(() => {
 											let items = [];
 											try { items = typeof order.items === "string" ? JSON.parse(order.items) : (Array.isArray(order.items) ? order.items : []); } catch (_) {}
@@ -527,20 +527,20 @@ const ClientRequests = () => {
 												<div className="flex gap-1 mt-2 flex-wrap">
 													{items.slice(0, 4).map((item, i) => (
 														<div key={i} className="relative flex-shrink-0">
-															{item.image ? <img src={item.image} alt={item.name || "item"} title={item.name || ""} className="w-9 h-9 object-cover rounded-lg" style={{ border: "1px solid rgba(255,255,255,0.08)" }} onError={e => { e.currentTarget.style.display = "none"; }} /> : <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}><span className="material-symbols-outlined text-white/20" style={{ fontSize: 13 }}>image</span></div>}
+															{item.image ? <img src={item.image} alt={item.name || "item"} title={item.name || ""} className="w-9 h-9 object-cover rounded-lg" style={{ border: "1px solid var(--border-medium)" }} onError={e => { e.currentTarget.style.display = "none"; }} /> : <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "var(--overlay-3)", border: "1px solid rgba(255,255,255,0.07)" }}><span className="material-symbols-outlined text-[color:var(--text-muted)]" style={{ fontSize: 13 }}>image</span></div>}
 															{(item.quantity || 1) > 1 && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#ec5b13] text-black text-[7px] font-bold flex items-center justify-center">{item.quantity}</span>}
 														</div>
 													))}
-													{items.length > 4 && <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[8px] text-white/30 font-mono" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>+{items.length - 4}</div>}
+													{items.length > 4 && <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[8px] text-[color:var(--text-muted)] font-mono" style={{ background: "var(--overlay-2)", border: "1px solid var(--overlay-4)" }}>+{items.length - 4}</div>}
 												</div>
 											);
 										})()}
 									</td>
-									<td className="p-5"><span className="text-xs text-white/50 font-mono">{order.order_number || "—"}</span></td>
+									<td className="p-5"><span className="text-xs text-[color:var(--text-muted)] font-mono">{order.order_number || "—"}</span></td>
 									<td className="p-5"><span className="text-sm font-bold" style={{ color: T.ember }}>GH₵ {Number(order.total_amount || 0).toLocaleString()}</span></td>
 									<td className="p-5"><Badge status={order.status} /></td>
 									<td className="p-5 text-right">
-										<button onClick={() => openManifest(order)} className="text-[10px] font-medium text-white/60 border border-white/10 px-5 py-2.5 rounded-xl transition-all uppercase tracking-wider" onMouseEnter={(e) => { e.currentTarget.style.background = T.ember; e.currentTarget.style.borderColor = T.ember; e.currentTarget.style.color = "#000"; }} onMouseLeave={(e) => { e.currentTarget.style.background = ""; e.currentTarget.style.borderColor = ""; e.currentTarget.style.color = ""; }}>
+										<button onClick={() => openManifest(order)} className="text-[10px] font-medium text-[color:var(--text-secondary)] border border-[color:var(--border-medium)] px-5 py-2.5 rounded-xl transition-all uppercase tracking-wider" onMouseEnter={(e) => { e.currentTarget.style.background = T.ember; e.currentTarget.style.borderColor = T.ember; e.currentTarget.style.color = "#000"; }} onMouseLeave={(e) => { e.currentTarget.style.background = ""; e.currentTarget.style.borderColor = ""; e.currentTarget.style.color = ""; }}>
 											Manage
 										</button>
 									</td>
@@ -553,28 +553,28 @@ const ClientRequests = () => {
 
 			{/* ── MOBILE CARDS ── */}
 			<div className="lg:hidden space-y-4">
-				{filtered.length === 0 && <div className="text-center py-16 text-white/20 text-xs uppercase tracking-widest">No orders</div>}
+				{filtered.length === 0 && <div className="text-center py-16 text-[color:var(--text-muted)] text-xs uppercase tracking-widest">No orders</div>}
 				{filtered.map((order) => (
 					<div key={order.id} className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-5 space-y-4">
 						<div className="flex justify-between items-start">
 							<div>
-								<h3 className="font-medium text-sm text-white">{order.delivery_name || order.customer_name || order.client_email || order.email || "—"}</h3>
-								{(order.delivery_name || order.customer_name) && <p className="text-[10px] text-white/30 font-mono mt-0.5" style={{ letterSpacing: "0.05em" }}>{order.client_email || order.email || ""}</p>}
-								<p className="text-[10px] text-white/30 uppercase tracking-wider mt-1">{new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} · {new Date(order.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
+								<h3 className="font-medium text-sm text-[color:var(--text-primary)]">{order.delivery_name || order.customer_name || order.client_email || order.email || "—"}</h3>
+								{(order.delivery_name || order.customer_name) && <p className="text-[10px] text-[color:var(--text-muted)] font-mono mt-0.5" style={{ letterSpacing: "0.05em" }}>{order.client_email || order.email || ""}</p>}
+								<p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mt-1">{new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} · {new Date(order.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
 							</div>
 							<Badge status={order.status} />
 						</div>
-						<div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+						<div className="grid grid-cols-2 gap-4 pt-4 border-t border-[color:var(--border-light)]">
 							<div>
-								<p className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Order ID</p>
-								<p className="text-xs text-white/60 font-mono">{order.order_number || "—"}</p>
+								<p className="text-[9px] text-[color:var(--text-muted)] uppercase tracking-wider mb-1">Order ID</p>
+								<p className="text-xs text-[color:var(--text-secondary)] font-mono">{order.order_number || "—"}</p>
 							</div>
 							<div>
-								<p className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Value</p>
+								<p className="text-[9px] text-[color:var(--text-muted)] uppercase tracking-wider mb-1">Value</p>
 								<p className="text-sm font-bold" style={{ color: T.ember }}>GH₵ {Number(order.total_amount || 0).toLocaleString()}</p>
 							</div>
 						</div>
-						<button onClick={() => openManifest(order)} className="w-full text-[10px] font-medium text-white/60 border border-white/10 px-5 py-3 rounded-xl transition-all uppercase tracking-wider" onMouseEnter={(e) => { e.currentTarget.style.background = T.ember; e.currentTarget.style.borderColor = T.ember; e.currentTarget.style.color = "#000"; }} onMouseLeave={(e) => { e.currentTarget.style.background = ""; e.currentTarget.style.borderColor = ""; e.currentTarget.style.color = ""; }}>
+						<button onClick={() => openManifest(order)} className="w-full text-[10px] font-medium text-[color:var(--text-secondary)] border border-[color:var(--border-medium)] px-5 py-3 rounded-xl transition-all uppercase tracking-wider" onMouseEnter={(e) => { e.currentTarget.style.background = T.ember; e.currentTarget.style.borderColor = T.ember; e.currentTarget.style.color = "#000"; }} onMouseLeave={(e) => { e.currentTarget.style.background = ""; e.currentTarget.style.borderColor = ""; e.currentTarget.style.color = ""; }}>
 							Manage Order
 						</button>
 					</div>
@@ -584,16 +584,16 @@ const ClientRequests = () => {
 			{/* ── MANIFEST MODAL ── */}
 			{selectedOrder && (
 				<div className="fixed inset-0 z-[300] flex items-end md:items-center justify-center p-0 md:p-6" style={{ background: "rgba(0,0,0,0.9)", backdropFilter: "blur(16px)" }}>
-					<div className="bg-[#0a0a0a] border-t md:border border-white/10 w-full md:max-w-lg rounded-t-3xl md:rounded-3xl p-6 md:p-10 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-						<button onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors">
+					<div className="bg-[var(--bg-main)] border-t md:border border-[color:var(--border-medium)] w-full md:max-w-lg rounded-t-3xl md:rounded-3xl p-6 md:p-10 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+						<button onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors">
 							<span className="material-symbols-outlined text-2xl">close</span>
 						</button>
 
 						<div className="mb-8 pr-10">
-							<h3 className="text-2xl md:text-3xl font-light text-white tracking-tight mb-2">
+							<h3 className="text-2xl md:text-3xl font-light text-[color:var(--text-primary)] tracking-tight mb-2">
 								Order <span className="font-serif italic" style={{ color: T.ember }}>{selectedOrder.order_number}</span>
 							</h3>
-							<p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
+							<p className="text-[10px] font-medium text-[color:var(--text-muted)] uppercase tracking-wider">
 								{selectedOrder.delivery_name || selectedOrder.customer_name || selectedOrder.client_email || selectedOrder.email}
 							</p>
 						</div>
@@ -602,15 +602,15 @@ const ClientRequests = () => {
 							<CustomerProfileCard order={selectedOrder} />
 
 							{/* Summary */}
-							<div className="p-4 rounded-2xl border border-white/5 bg-white/[0.02]">
+							<div className="p-4 rounded-2xl border border-[color:var(--border-light)] bg-white/[0.02]">
 								<div className="flex items-center justify-between">
 									<div>
-										<p className="text-[9px] text-white/40 uppercase tracking-widest mb-1">Current Value</p>
+										<p className="text-[9px] text-[color:var(--text-muted)] uppercase tracking-widest mb-1">Current Value</p>
 										<p className="text-xl font-bold" style={{ color: T.ember }}>GH₵ {Number(selectedOrder.total_amount || 0).toLocaleString()}</p>
 									</div>
 									<Badge status={selectedOrder.status} />
 								</div>
-								<p className="text-[10px] text-white/30 mt-3">
+								<p className="text-[10px] text-[color:var(--text-muted)] mt-3">
 									{new Date(selectedOrder.created_at).toLocaleDateString("en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
 								</p>
 								{(() => {
@@ -618,13 +618,13 @@ const ClientRequests = () => {
 									try { items = typeof selectedOrder.items === "string" ? JSON.parse(selectedOrder.items) : (Array.isArray(selectedOrder.items) ? selectedOrder.items : []); } catch (_) {}
 									if (!items.length) return null;
 									return (
-										<div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/5">
+										<div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[color:var(--border-light)]">
 											{items.map((item, i) => (
 												<div key={i} className="flex items-center gap-2 bg-white/[0.03] rounded-xl p-1.5 border border-white/[0.05]">
-													{item.image ? <img src={item.image} alt={item.name || ""} className="w-10 h-10 object-cover rounded-lg flex-shrink-0" onError={e => { e.currentTarget.style.display = "none"; }} /> : <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0"><span className="material-symbols-outlined text-white/20" style={{ fontSize: 14 }}>image</span></div>}
+													{item.image ? <img src={item.image} alt={item.name || ""} className="w-10 h-10 object-cover rounded-lg flex-shrink-0" onError={e => { e.currentTarget.style.display = "none"; }} /> : <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0"><span className="material-symbols-outlined text-[color:var(--text-muted)]" style={{ fontSize: 14 }}>image</span></div>}
 													<div className="min-w-0 pr-1">
-														<p className="text-[9px] font-medium text-white/60 truncate max-w-[90px]">{item.name || "Item"}</p>
-														<p className="text-[8px] text-white/30 font-mono">×{item.quantity || 1}</p>
+														<p className="text-[9px] font-medium text-[color:var(--text-secondary)] truncate max-w-[90px]">{item.name || "Item"}</p>
+														<p className="text-[8px] text-[color:var(--text-muted)] font-mono">×{item.quantity || 1}</p>
 													</div>
 												</div>
 											))}
@@ -635,19 +635,19 @@ const ClientRequests = () => {
 
 							{/* Status selector */}
 							<div className="space-y-3">
-								<label className="block text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">Update Status</label>
+								<label className="block text-[10px] font-bold uppercase text-[color:var(--text-muted)] tracking-[0.2em]">Update Status</label>
 								<div className="relative">
 									<select
 										value={newStatus}
 										onChange={(e) => setNewStatus(e.target.value)}
-										className="w-full px-5 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm uppercase outline-none focus:border-[#ec5b13]/50 transition-all appearance-none cursor-pointer font-bold tracking-widest"
+										className="w-full px-5 py-4 bg-[var(--overlay-3)] border border-[color:var(--border-medium)] rounded-2xl text-sm uppercase outline-none focus:border-[#ec5b13]/50 transition-all appearance-none cursor-pointer font-bold tracking-widest"
 										style={{ color: STATUS_COLOR[newStatus] || T.ember }}
 									>
 										{ORDER_STATUSES.map((s) => (
-											<option key={s} value={s} style={{ color: STATUS_COLOR[s] || "#fff", background: "#0d0d0d" }}>{s.toUpperCase()}</option>
+											<option key={s} value={s} style={{ color: STATUS_COLOR[s] || "var(--text-primary)", background: "var(--bg-panel)" }}>{s.toUpperCase()}</option>
 										))}
 									</select>
-									<span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none text-lg">expand_more</span>
+									<span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)] pointer-events-none text-lg">expand_more</span>
 								</div>
 								{/* Email trigger indicator */}
 								<EmailTriggerPill status={newStatus} />
@@ -659,11 +659,11 @@ const ClientRequests = () => {
 									onClick={handleUpdate}
 									disabled={saving}
 									className="flex-1 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-[0.15em] transition-all active:scale-[0.98] disabled:opacity-50"
-									style={{ background: `linear-gradient(135deg, ${T.ember}, #d94e0f)`, color: "#fff" }}
+									style={{ background: `linear-gradient(135deg, ${T.ember}, #d94e0f)`, color: "var(--text-primary)" }}
 								>
 									{saving ? "SAVING..." : EMAIL_TRIGGER_STATUSES.has(newStatus) ? "UPDATE & NOTIFY CLIENT" : "UPDATE STATUS"}
 								</button>
-								<button onClick={() => setSelectedOrder(null)} className="flex-1 sm:flex-none px-8 py-4 bg-white/5 border border-white/10 text-white/50 rounded-2xl font-bold text-[10px] uppercase tracking-[0.15em] hover:bg-white/10 hover:text-white transition-all">
+								<button onClick={() => setSelectedOrder(null)} className="flex-1 sm:flex-none px-8 py-4 bg-[var(--overlay-2)] border border-[color:var(--border-medium)] text-[color:var(--text-muted)] rounded-2xl font-bold text-[10px] uppercase tracking-[0.15em] hover:bg-white/10 hover:text-[color:var(--text-primary)] transition-all">
 									Cancel
 								</button>
 							</div>

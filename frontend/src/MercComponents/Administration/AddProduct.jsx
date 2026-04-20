@@ -97,7 +97,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 		timer: 3000,
 		timerProgressBar: true,
 		background: "#1a1a1a",
-		color: "#fff",
+		color: "var(--text-primary)",
 	});
 	useEffect(() => {
 		fetchCategories();
@@ -194,8 +194,8 @@ const AddProduct = ({ editData, onSuccess }) => {
 				title: editingCategoryId ? "ARCHITECTURE UPDATED" : "CATEGORY CREATED",
 				text: `${categoryName} has been synchronized in the vault.`,
 				icon: "success",
-				background: "#0a0a0a",
-				color: "#fff",
+				background: "var(--bg-main)",
+				color: "var(--text-primary)",
 				confirmButtonColor: "#ec5b13",
 			});
 
@@ -222,8 +222,8 @@ const AddProduct = ({ editData, onSuccess }) => {
 			showCancelButton: true,
 			confirmButtonText: "CLEAR",
 			cancelButtonText: "CANCEL",
-			background: "#0a0a0a",
-			color: "#fff",
+			background: "var(--bg-main)",
+			color: "var(--text-primary)",
 			confirmButtonColor: "#ec5b13",
 			cancelButtonColor: "#1a1a1a",
 		});
@@ -243,8 +243,8 @@ const AddProduct = ({ editData, onSuccess }) => {
 			icon: "warning",
 			showCancelButton: true,
 			confirmButtonText: "CONFIRM PURGE",
-			background: "#0a0a0a",
-			color: "#fff",
+			background: "var(--bg-main)",
+			color: "var(--text-primary)",
 			confirmButtonColor: "#ec5b13",
 		});
 
@@ -349,8 +349,8 @@ const AddProduct = ({ editData, onSuccess }) => {
 				title: editData ? "VAULT UPDATED" : "MASTERPIECE VAULTED",
 				text: `${productData.name} has been synchronized.`,
 				icon: "success",
-				background: "#0a0a0a",
-				color: "#fff",
+				background: "var(--bg-main)",
+				color: "var(--text-primary)",
 				confirmButtonColor: "#ec5b13",
 			});
 
@@ -376,7 +376,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 							Section 01
 						</span>
 					</div>
-					<h2 className="text-3xl md:text-5xl font-light text-white tracking-tight">
+					<h2 className="text-3xl md:text-5xl font-light text-[color:var(--text-primary)] tracking-tight">
 						Category{" "}
 						<span className="font-serif italic text-[#ec5b13]">
 							Architecture
@@ -387,7 +387,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 				<div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl p-6 md:p-12">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 						{/* Category Image Upload */}
-						<div className="relative group aspect-square rounded-2xl border-2 border-dashed border-white/10 bg-gradient-to-br from-white/[0.01] to-transparent flex flex-col items-center justify-center overflow-hidden transition-all hover:border-[#ec5b13]/40">
+						<div className="relative group aspect-square rounded-2xl border-2 border-dashed border-[color:var(--border-medium)] bg-gradient-to-br from-white/[0.01] to-transparent flex flex-col items-center justify-center overflow-hidden transition-all hover:border-[#ec5b13]/40">
 							{categoryPreviewUrl ? (
 								<>
 									<img
@@ -398,7 +398,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 									<div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
 										<button
 											onClick={removeCategoryImage}
-											className="p-3 md:p-4 bg-red-500/80 hover:bg-red-600 text-white rounded-full transition-transform hover:scale-110 shadow-xl"
+											className="p-3 md:p-4 bg-red-500/80 hover:bg-red-600 text-[color:var(--text-primary)] rounded-full transition-transform hover:scale-110 shadow-xl"
 											title="Remove Image"
 										>
 											<svg
@@ -429,7 +429,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 										onChange={handleCategoryFileChange}
 										accept="image/*"
 									/>
-									<div className="mb-4 p-4 rounded-full bg-white/5 text-white/20 group-hover:text-[#ec5b13] transition-colors">
+									<div className="mb-4 p-4 rounded-full bg-[var(--overlay-2)] text-[color:var(--text-muted)] group-hover:text-[#ec5b13] transition-colors">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											width="32"
@@ -446,9 +446,9 @@ const AddProduct = ({ editData, onSuccess }) => {
 											<line x1="12" y1="3" x2="12" y2="15" />
 										</svg>
 									</div>
-									<p className="text-xs md:text-sm font-light text-white/30 tracking-wide">
+									<p className="text-xs md:text-sm font-light text-[color:var(--text-muted)] tracking-wide">
 										Drop Category Image or{" "}
-										<span className="text-white/60 underline">Browse</span>
+										<span className="text-[color:var(--text-secondary)] underline">Browse</span>
 									</p>
 								</label>
 							)}
@@ -457,14 +457,14 @@ const AddProduct = ({ editData, onSuccess }) => {
 						{/* Category Name & Actions */}
 						<div className="flex flex-col justify-center gap-6">
 							<div className="space-y-3">
-								<label className="block text-[9px] md:text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">
+								<label className="block text-[9px] md:text-[10px] font-bold uppercase text-[color:var(--text-muted)] tracking-[0.2em]">
 									{editingCategoryId
 										? "Update Classification Name"
 										: "Category Name"}
 								</label>
 								<input
 									type="text"
-									className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
+									className="w-full px-4 md:px-6 py-4 md:py-5 bg-[var(--overlay-3)] border border-[color:var(--border-medium)] rounded-xl md:rounded-2xl text-[color:var(--text-primary)] text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
 									placeholder="e.g. Performance Series"
 									value={categoryName}
 									onChange={(e) => setCategoryName(e.target.value)}
@@ -475,7 +475,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 								<button
 									onClick={handleCategorySave}
 									disabled={loading}
-									className="w-full px-6 md:px-8 py-4 md:py-5 bg-gradient-to-r from-[#ec5b13] to-[#d94e0f] text-white rounded-xl md:rounded-2xl font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] hover:shadow-lg hover:shadow-[#ec5b13]/30 transition-all active:scale-[0.98] disabled:opacity-50"
+									className="w-full px-6 md:px-8 py-4 md:py-5 bg-gradient-to-r from-[#ec5b13] to-[#d94e0f] text-[color:var(--text-primary)] rounded-xl md:rounded-2xl font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] hover:shadow-lg hover:shadow-[#ec5b13]/30 transition-all active:scale-[0.98] disabled:opacity-50"
 								>
 									{loading
 										? "Processing..."
@@ -493,14 +493,14 @@ const AddProduct = ({ editData, onSuccess }) => {
 											setCategoryPreviewUrl(null);
 											setCategoryImageFile(null);
 										}}
-										className="text-[9px] font-bold uppercase text-white/20 hover:text-red-500 transition-colors tracking-[0.2em] text-center"
+										className="text-[9px] font-bold uppercase text-[color:var(--text-muted)] hover:text-red-500 transition-colors tracking-[0.2em] text-center"
 									>
 										Abort Edit
 									</button>
 								)}
 							</div>
 
-							<p className="text-[9px] md:text-[10px] text-white/20 uppercase tracking-widest text-center">
+							<p className="text-[9px] md:text-[10px] text-[color:var(--text-muted)] uppercase tracking-widest text-center">
 								{editingCategoryId
 									? "Modifying existing vault structure"
 									: "Add categories to organize products"}
@@ -519,7 +519,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 							Section 02
 						</span>
 					</div>
-					<h2 className="text-3xl md:text-5xl font-light text-white tracking-tight">
+					<h2 className="text-3xl md:text-5xl font-light text-[color:var(--text-primary)] tracking-tight">
 						{editData ? "Modify" : "Add New"}{" "}
 						<span className="font-serif italic text-[#ec5b13]">
 							Masterpiece
@@ -531,12 +531,12 @@ const AddProduct = ({ editData, onSuccess }) => {
 					<div className="lg:col-span-2">
 						<form className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl p-6 md:p-12 space-y-6 md:space-y-8">
 							<div className="space-y-3">
-								<label className="block text-[9px] md:text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">
+								<label className="block text-[9px] md:text-[10px] font-bold uppercase text-[color:var(--text-muted)] tracking-[0.2em]">
 									Product Name
 								</label>
 								<input
 									type="text"
-									className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
+									className="w-full px-4 md:px-6 py-4 md:py-5 bg-[var(--overlay-3)] border border-[color:var(--border-medium)] rounded-xl md:rounded-2xl text-[color:var(--text-primary)] text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
 									placeholder="Enter product name"
 									value={productData.name}
 									onChange={(e) =>
@@ -546,12 +546,12 @@ const AddProduct = ({ editData, onSuccess }) => {
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
 								<div className="space-y-3">
-									<label className="block text-[9px] md:text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">
+									<label className="block text-[9px] md:text-[10px] font-bold uppercase text-[color:var(--text-muted)] tracking-[0.2em]">
 										Category
 									</label>
 									<input
 										type="text"
-										className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
+										className="w-full px-4 md:px-6 py-4 md:py-5 bg-[var(--overlay-3)] border border-[color:var(--border-medium)] rounded-xl md:rounded-2xl text-[color:var(--text-primary)] text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
 										placeholder="e.g., Bags"
 										value={productData.category}
 										onChange={(e) =>
@@ -563,14 +563,14 @@ const AddProduct = ({ editData, onSuccess }) => {
 									/>
 								</div>
 								<div className="space-y-3">
-									<label className="block text-[9px] md:text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">
+									<label className="block text-[9px] md:text-[10px] font-bold uppercase text-[color:var(--text-muted)] tracking-[0.2em]">
 										Price (GH₵)
 									</label>
 									<input
 										type="number"
 										step="0.01"
 										min="0"
-										className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
+										className="w-full px-4 md:px-6 py-4 md:py-5 bg-[var(--overlay-3)] border border-[color:var(--border-medium)] rounded-xl md:rounded-2xl text-[color:var(--text-primary)] text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
 										placeholder="0.00"
 										value={productData.price}
 										onChange={(e) =>
@@ -580,12 +580,12 @@ const AddProduct = ({ editData, onSuccess }) => {
 									/>
 								</div>
 								<div className="space-y-3">
-									<label className="block text-[9px] md:text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">
+									<label className="block text-[9px] md:text-[10px] font-bold uppercase text-[color:var(--text-muted)] tracking-[0.2em]">
 										Origin
 									</label>
 									<input
 										type="text"
-										className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
+										className="w-full px-4 md:px-6 py-4 md:py-5 bg-[var(--overlay-3)] border border-[color:var(--border-medium)] rounded-xl md:rounded-2xl text-[color:var(--text-primary)] text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
 										placeholder="e.g., Italy"
 										value={productData.origin}
 										onChange={(e) =>
@@ -594,12 +594,12 @@ const AddProduct = ({ editData, onSuccess }) => {
 									/>
 								</div>
 								<div className="space-y-3">
-									<label className="block text-[9px] md:text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">
+									<label className="block text-[9px] md:text-[10px] font-bold uppercase text-[color:var(--text-muted)] tracking-[0.2em]">
 										Series
 									</label>
 									<input
 										type="text"
-										className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
+										className="w-full px-4 md:px-6 py-4 md:py-5 bg-[var(--overlay-3)] border border-[color:var(--border-medium)] rounded-xl md:rounded-2xl text-[color:var(--text-primary)] text-sm md:text-base focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
 										placeholder="e.g., 2026"
 										value={productData.series}
 										onChange={(e) =>
@@ -609,11 +609,11 @@ const AddProduct = ({ editData, onSuccess }) => {
 								</div>
 							</div>
 							<div className="space-y-3">
-								<label className="block text-[9px] md:text-[10px] font-bold uppercase text-white/50 tracking-[0.2em]">
+								<label className="block text-[9px] md:text-[10px] font-bold uppercase text-[color:var(--text-muted)] tracking-[0.2em]">
 									Description
 								</label>
 								<textarea
-									className="w-full px-4 md:px-6 py-4 md:py-5 bg-black/20 border border-white/10 rounded-xl md:rounded-2xl text-white text-sm md:text-base h-32 md:h-40 resize-none focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
+									className="w-full px-4 md:px-6 py-4 md:py-5 bg-[var(--overlay-3)] border border-[color:var(--border-medium)] rounded-xl md:rounded-2xl text-[color:var(--text-primary)] text-sm md:text-base h-32 md:h-40 resize-none focus:outline-none focus:border-[#ec5b13]/50 transition-all font-light"
 									placeholder="Describe the product..."
 									value={productData.description}
 									onChange={(e) =>
@@ -629,7 +629,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 
 					<div className="space-y-6">
 						{/* IMAGE UPLOAD & PREVIEW AREA */}
-						<div className="relative group aspect-square rounded-2xl md:rounded-3xl border-2 border-dashed border-white/10 bg-gradient-to-br from-white/[0.01] to-transparent flex flex-col items-center justify-center overflow-hidden transition-all hover:border-[#ec5b13]/40">
+						<div className="relative group aspect-square rounded-2xl md:rounded-3xl border-2 border-dashed border-[color:var(--border-medium)] bg-gradient-to-br from-white/[0.01] to-transparent flex flex-col items-center justify-center overflow-hidden transition-all hover:border-[#ec5b13]/40">
 							{previewUrl ? (
 								<>
 									<img
@@ -640,7 +640,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 									<div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
 										<button
 											onClick={removeImage}
-											className="p-3 md:p-4 bg-red-500/80 hover:bg-red-600 text-white rounded-full transition-transform hover:scale-110 shadow-xl"
+											className="p-3 md:p-4 bg-red-500/80 hover:bg-red-600 text-[color:var(--text-primary)] rounded-full transition-transform hover:scale-110 shadow-xl"
 											title="Purge Image"
 										>
 											<svg
@@ -671,7 +671,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 										onChange={handleFileChange}
 										accept="image/*"
 									/>
-									<div className="mb-4 p-4 rounded-full bg-white/5 text-white/20 group-hover:text-[#ec5b13] transition-colors">
+									<div className="mb-4 p-4 rounded-full bg-[var(--overlay-2)] text-[color:var(--text-muted)] group-hover:text-[#ec5b13] transition-colors">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											width="32"
@@ -688,9 +688,9 @@ const AddProduct = ({ editData, onSuccess }) => {
 											<line x1="12" y1="3" x2="12" y2="15" />
 										</svg>
 									</div>
-									<p className="text-xs md:text-sm font-light text-white/30 tracking-wide">
+									<p className="text-xs md:text-sm font-light text-[color:var(--text-muted)] tracking-wide">
 										Drop Asset Media or{" "}
-										<span className="text-white/60 underline">Browse</span>
+										<span className="text-[color:var(--text-secondary)] underline">Browse</span>
 									</p>
 								</label>
 							)}
@@ -700,7 +700,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 							<button
 								onClick={handleSubmit}
 								disabled={loading}
-								className="w-full px-6 md:px-8 py-4 md:py-5 bg-gradient-to-r from-[#ec5b13] to-[#d94e0f] text-white rounded-xl md:rounded-2xl font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] hover:shadow-lg hover:shadow-[#ec5b13]/30 transition-all active:scale-[0.98] disabled:opacity-50"
+								className="w-full px-6 md:px-8 py-4 md:py-5 bg-gradient-to-r from-[#ec5b13] to-[#d94e0f] text-[color:var(--text-primary)] rounded-xl md:rounded-2xl font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] hover:shadow-lg hover:shadow-[#ec5b13]/30 transition-all active:scale-[0.98] disabled:opacity-50"
 							>
 								{loading
 									? "Synchronizing..."
@@ -710,16 +710,16 @@ const AddProduct = ({ editData, onSuccess }) => {
 							</button>
 							<button
 								onClick={handleClear}
-								className="w-full px-6 md:px-8 py-4 md:py-5 bg-white/5 border border-white/10 text-white/40 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-[11px] uppercase tracking-[0.2em] hover:bg-white/10 hover:text-white transition-all"
+								className="w-full px-6 md:px-8 py-4 md:py-5 bg-[var(--overlay-2)] border border-[color:var(--border-medium)] text-[color:var(--text-muted)] rounded-xl md:rounded-2xl font-bold text-[10px] md:text-[11px] uppercase tracking-[0.2em] hover:bg-white/10 hover:text-[color:var(--text-primary)] transition-all"
 							>
 								Reset Architecture
 							</button>
 						</div>
 
 						{/* Status Indicators */}
-						<div className="pt-4 md:pt-6 border-t border-white/5 space-y-3">
+						<div className="pt-4 md:pt-6 border-t border-[color:var(--border-light)] space-y-3">
 							<div className="flex items-center justify-between">
-								<span className="text-[8px] md:text-[9px] text-white/20 uppercase font-bold tracking-widest">
+								<span className="text-[8px] md:text-[9px] text-[color:var(--text-muted)] uppercase font-bold tracking-widest">
 									Storage Status
 								</span>
 								<span className="text-[8px] md:text-[9px] text-green-500 uppercase font-bold tracking-widest">
@@ -727,10 +727,10 @@ const AddProduct = ({ editData, onSuccess }) => {
 								</span>
 							</div>
 							<div className="flex items-center justify-between">
-								<span className="text-[8px] md:text-[9px] text-white/20 uppercase font-bold tracking-widest">
+								<span className="text-[8px] md:text-[9px] text-[color:var(--text-muted)] uppercase font-bold tracking-widest">
 									Encryption
 								</span>
-								<span className="text-[8px] md:text-[9px] text-white/40 uppercase font-bold tracking-widest">
+								<span className="text-[8px] md:text-[9px] text-[color:var(--text-muted)] uppercase font-bold tracking-widest">
 									AES-256
 								</span>
 							</div>
@@ -747,7 +747,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 							Section 03
 						</span>
 					</div>
-					<h2 className="text-3xl md:text-5xl font-light text-white tracking-tight">
+					<h2 className="text-3xl md:text-5xl font-light text-[color:var(--text-primary)] tracking-tight">
 						Vault{" "}
 						<span className="font-serif italic text-[#ec5b13]">Repository</span>
 					</h2>
@@ -760,7 +760,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 						categories.map((cat) => (
 							<div
 								key={cat.id}
-								className="group relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/5 bg-white/[0.02] transition-all hover:border-[#ec5b13]/30"
+								className="group relative aspect-[4/5] rounded-2xl overflow-hidden border border-[color:var(--border-light)] bg-white/[0.02] transition-all hover:border-[#ec5b13]/30"
 							>
 								<img
 									src={cat.image_url}
@@ -772,7 +772,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 									<p className="text-[10px] text-[#ec5b13] font-black uppercase tracking-[0.2em] mb-1">
 										Category
 									</p>
-									<h3 className="text-white font-light text-lg tracking-tight truncate">
+									<h3 className="text-[color:var(--text-primary)] font-light text-lg tracking-tight truncate">
 										{cat.name}
 									</h3>
 								</div>
@@ -780,7 +780,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 								<div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
 									<button
 										onClick={() => handleEditCategory(cat)}
-										className="w-32 py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-[#ec5b13] hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0"
+										className="w-32 py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-[#ec5b13] hover:text-[color:var(--text-primary)] transition-all transform translate-y-4 group-hover:translate-y-0"
 									>
 										Edit
 									</button>
@@ -788,7 +788,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 										onClick={() =>
 											handleDeleteCategory(cat.id, cat.name, cat.image_url)
 										}
-										className="w-32 py-2.5 border border-white/20 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-red-600 hover:border-red-600 transition-all transform translate-y-4 group-hover:translate-y-0 delay-75"
+										className="w-32 py-2.5 border border-white/20 text-[color:var(--text-primary)] text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-red-600 hover:border-red-600 transition-all transform translate-y-4 group-hover:translate-y-0 delay-75"
 									>
 										Delete
 									</button>
@@ -799,7 +799,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 					{/* 2. LOADING STATE: Prevents "Empty" flash on refresh */}
 					{loading && categories.length === 0 && (
 						<div className="col-span-full py-24 text-center">
-							<div className="inline-block w-8 h-8 border-2 border-t-[#ec5b13] border-white/10 rounded-full animate-spin mb-4"></div>
+							<div className="inline-block w-8 h-8 border-2 border-t-[#ec5b13] border-[color:var(--border-medium)] rounded-full animate-spin mb-4"></div>
 							<p className="text-[#ec5b13] uppercase tracking-[0.3em] text-[10px] font-bold animate-pulse">
 								Synchronizing Vault Data...
 							</p>
@@ -808,8 +808,8 @@ const AddProduct = ({ editData, onSuccess }) => {
 
 					{/* 3. EMPTY STATE: Only shows if NOT loading and actually empty */}
 					{!loading && categories.length === 0 && (
-						<div className="col-span-full py-24 text-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.01]">
-							<div className="inline-flex p-4 rounded-full bg-white/5 text-white/10 mb-4">
+						<div className="col-span-full py-24 text-center border-2 border-dashed border-[color:var(--border-light)] rounded-3xl bg-white/[0.01]">
+							<div className="inline-flex p-4 rounded-full bg-[var(--overlay-2)] text-white/10 mb-4">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									width="32"
@@ -826,7 +826,7 @@ const AddProduct = ({ editData, onSuccess }) => {
 									<path d="M8 12h8" />
 								</svg>
 							</div>
-							<p className="text-white/20 uppercase tracking-[0.3em] text-[10px] font-bold">
+							<p className="text-[color:var(--text-muted)] uppercase tracking-[0.3em] text-[10px] font-bold">
 								The repository is currently empty
 							</p>
 						</div>

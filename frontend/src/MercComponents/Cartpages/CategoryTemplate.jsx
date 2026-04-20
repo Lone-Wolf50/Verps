@@ -72,11 +72,11 @@ const ToastStack = ({ toasts, onDismiss }) => {
 							minWidth: 300,
 							maxWidth: 360,
 							background: "rgba(14,14,14,0.97)",
-							border: "1px solid rgba(255,255,255,0.08)",
+							border: "1px solid var(--border-medium)",
 							borderRadius: 16,
 							padding: "14px 16px 18px",
 							boxShadow:
-								"0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+								"0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 var(--overlay-4)",
 							backdropFilter: "blur(20px)",
 							overflow: "hidden",
 						}}
@@ -162,7 +162,7 @@ const ToastStack = ({ toasts, onDismiss }) => {
 										height: 38,
 										borderRadius: 8,
 										overflow: "hidden",
-										border: "1px solid rgba(255,255,255,0.06)",
+										border: "1px solid var(--overlay-4)",
 										flexShrink: 0,
 									}}
 								>
@@ -182,7 +182,7 @@ const ToastStack = ({ toasts, onDismiss }) => {
 									width: 24,
 									height: 24,
 									borderRadius: 6,
-									background: "rgba(255,255,255,0.04)",
+									background: "var(--overlay-3)",
 									border: "none",
 									cursor: "pointer",
 									display: "flex",
@@ -193,12 +193,12 @@ const ToastStack = ({ toasts, onDismiss }) => {
 								}}
 								onMouseEnter={(e) => {
 									e.currentTarget.style.background =
-										"rgba(255,255,255,0.09)";
+										"var(--border-medium)";
 									e.currentTarget.style.color = "rgba(255,255,255,0.6)";
 								}}
 								onMouseLeave={(e) => {
 									e.currentTarget.style.background =
-										"rgba(255,255,255,0.04)";
+										"var(--overlay-3)";
 									e.currentTarget.style.color = "rgba(255,255,255,0.48)";
 								}}
 							>
@@ -368,7 +368,7 @@ const CategoryTemplate = ({
 	const popularIds = usePopularProducts();
 
 	return (
-		<div className="bg-[#050505] text-white min-h-screen font-sans">
+		<div className="bg-[var(--bg-deep)] text-[color:var(--text-primary)] min-h-screen font-sans">
 			{/* Toast portal */}
 			<ToastStack toasts={toasts} onDismiss={dismiss} />
 
@@ -378,7 +378,7 @@ const CategoryTemplate = ({
 					<div className="flex items-center gap-3 sm:gap-5">
 						<button
 							onClick={() => navigate(-1)}
-							className="group flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/10 bg-white/5 backdrop-blur-md hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/40 transition-all active:scale-95"
+							className="group flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[color:var(--border-medium)] bg-[var(--overlay-2)] backdrop-blur-md hover:bg-[#ec5b13]/10 hover:border-[#ec5b13]/40 transition-all active:scale-95"
 							aria-label="Go back"
 						>
 							<ArrowLeft className="w-3.5 h-3.5 text-[#ec5b13] group-hover:-translate-x-0.5 transition-transform" />
@@ -397,7 +397,7 @@ const CategoryTemplate = ({
 
 						{description && (
 							<div className="hidden lg:block flex-shrink-0 max-w-[220px] text-right">
-								<p className="text-[9px] text-white/30 uppercase tracking-[0.3em] leading-relaxed">
+								<p className="text-[9px] text-[color:var(--text-muted)] uppercase tracking-[0.3em] leading-relaxed">
 									{description}
 								</p>
 							</div>
@@ -405,16 +405,16 @@ const CategoryTemplate = ({
 					</div>
 
 					{description && (
-						<p className="lg:hidden text-[9px] text-white/30 uppercase tracking-[0.3em] leading-relaxed max-w-sm pl-[52px] sm:pl-[60px]">
+						<p className="lg:hidden text-[9px] text-[color:var(--text-muted)] uppercase tracking-[0.3em] leading-relaxed max-w-sm pl-[52px] sm:pl-[60px]">
 							{description}
 						</p>
 					)}
 				</div>
 
 				{/* Inventory label */}
-				<div className="flex items-center gap-2 mb-6 border-b border-white/5 pb-4">
+				<div className="flex items-center gap-2 mb-6 border-b border-[color:var(--border-light)] pb-4">
 					<LayoutGrid className="w-3.5 h-3.5 text-[#ec5b13]" />
-					<h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">
+					<h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[color:var(--text-muted)]">
 						Current Inventory
 					</h2>
 				</div>
@@ -423,13 +423,13 @@ const CategoryTemplate = ({
 				{loading ? (
 					<div className="flex flex-col items-center justify-center py-32 gap-4">
 						<Loader2 className="w-6 h-6 text-[#ec5b13] animate-spin" />
-						<span className="text-[10px] font-mono tracking-[0.5em] uppercase text-white/20">
+						<span className="text-[10px] font-mono tracking-[0.5em] uppercase text-[color:var(--text-muted)]">
 							Verp Syncing...
 						</span>
 					</div>
 				) : products.length === 0 ? (
-					<div className="py-32 text-center border border-dashed border-white/10 rounded-xl">
-						<p className="text-[10px] font-mono tracking-widest text-white/30 uppercase italic">
+					<div className="py-32 text-center border border-dashed border-[color:var(--border-medium)] rounded-xl">
+						<p className="text-[10px] font-mono tracking-widest text-[color:var(--text-muted)] uppercase italic">
 							No entries found ...
 						</p>
 					</div>
@@ -438,7 +438,7 @@ const CategoryTemplate = ({
 						{products.map((p, i) => (
 							<div
 								key={p.id || i}
-								className="group relative flex flex-col h-full overflow-hidden border border-white/[0.05] bg-[#0a0a0a] transition-all duration-500 hover:border-[#ec5b13]/30"
+								className="group relative flex flex-col h-full overflow-hidden border border-white/[0.05] bg-[var(--bg-main)] transition-all duration-500 hover:border-[#ec5b13]/30"
 							>
 								<div className="relative aspect-square overflow-hidden bg-[#121212]">
 									<img
@@ -448,7 +448,7 @@ const CategoryTemplate = ({
 									/>
 									{p.is_new && (
 										<div className="absolute top-2 left-2">
-											<span className="bg-[#ec5b13] px-1.5 py-0.5 rounded-sm text-[6px] font-black uppercase tracking-widest text-white italic">
+											<span className="bg-[#ec5b13] px-1.5 py-0.5 rounded-sm text-[6px] font-black uppercase tracking-widest text-[color:var(--text-primary)] italic">
 												New
 											</span>
 										</div>
@@ -460,7 +460,7 @@ const CategoryTemplate = ({
 										<h3 className="hidden md:block text-[13px] font-bold tracking-tight uppercase group-hover:text-[#ec5b13] transition-colors line-clamp-1">
 											{p.name}
 										</h3>
-										<p className="text-[7px] md:text-[8px] font-mono text-white/40 tracking-widest uppercase italic">
+										<p className="text-[7px] md:text-[8px] font-mono text-[color:var(--text-muted)] tracking-widest uppercase italic">
 											SKU // {p.sku || `VERP-${collectionIndex}-${i + 1}`}
 										</p>
 									</div>
@@ -472,13 +472,13 @@ const CategoryTemplate = ({
 									<div className="mt-auto flex flex-col gap-1.5">
 										<button
 											onClick={() => handleAddToCart(p)}
-											className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-white font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-[8px] md:text-[9px] uppercase tracking-[0.2em]"
+											className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-[color:var(--text-primary)] font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-[8px] md:text-[9px] uppercase tracking-[0.2em]"
 										>
 											<ShoppingCart className="w-3 h-3" /> Add cart
 										</button>
 										<button
 											onClick={() => openQuickView(p)}
-											className="w-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-bold py-2 rounded-lg border border-white/10 transition-all flex items-center justify-center gap-2 text-[8px] md:text-[9px] uppercase tracking-[0.2em]"
+											className="w-full bg-[var(--overlay-2)] hover:bg-white/10 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] font-bold py-2 rounded-lg border border-[color:var(--border-medium)] transition-all flex items-center justify-center gap-2 text-[8px] md:text-[9px] uppercase tracking-[0.2em]"
 										>
 											<Eye className="w-3 h-3 text-[#ec5b13]" /> Quick View
 										</button>
@@ -497,15 +497,15 @@ const CategoryTemplate = ({
 						className="absolute inset-0 bg-black/96 backdrop-blur-xl animate-in fade-in duration-300"
 						onClick={closeQuickView}
 					/>
-					<div className="relative w-full max-w-4xl max-h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300">
+					<div className="relative w-full max-w-4xl max-h-[85vh] bg-[var(--bg-main)] border border-[color:var(--border-medium)] rounded-xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300">
 						<button
 							onClick={closeQuickView}
-							className="absolute top-3 right-3 md:top-4 md:right-4 z-50 p-2 rounded-full bg-black/80 text-white/60 hover:text-[#ec5b13] hover:bg-black transition-all border border-white/10 hover:border-[#ec5b13]/50"
+							className="absolute top-3 right-3 md:top-4 md:right-4 z-50 p-2 rounded-full bg-[var(--overlay-4)] text-[color:var(--text-secondary)] hover:text-[#ec5b13] hover:bg-black transition-all border border-[color:var(--border-medium)] hover:border-[#ec5b13]/50"
 						>
 							<X className="w-4 h-4" />
 						</button>
 
-						<div className="w-full md:w-[45%] h-[35vh] md:h-auto overflow-hidden bg-[#0d0d0d] relative flex-shrink-0">
+						<div className="w-full md:w-[45%] h-[35vh] md:h-auto overflow-hidden bg-[var(--bg-panel)] relative flex-shrink-0">
 							<img
 								src={selectedProduct.image_url}
 								className="w-full h-full object-cover"
@@ -514,8 +514,8 @@ const CategoryTemplate = ({
 							<div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent md:hidden" />
 						</div>
 
-						<div className="w-full md:w-[55%] flex flex-col bg-[#0a0a0a] max-h-[50vh] md:max-h-full">
-							<div className="p-5 md:p-7 pb-3 md:pb-4 flex-shrink-0 border-b border-white/5">
+						<div className="w-full md:w-[55%] flex flex-col bg-[var(--bg-main)] max-h-[50vh] md:max-h-full">
+							<div className="p-5 md:p-7 pb-3 md:pb-4 flex-shrink-0 border-b border-[color:var(--border-light)]">
 								<div className="flex items-center gap-2 mb-2">
 									<span className="text-[8px] font-black text-[#ec5b13] uppercase tracking-[0.3em]">
 										Limited Release
@@ -529,7 +529,7 @@ const CategoryTemplate = ({
 									<p className="text-lg md:text-xl text-[#ec5b13] font-mono tracking-tight">
 										GH&#8373; {Number(selectedProduct.price).toLocaleString()}
 									</p>
-									<span className="flex items-center gap-1 px-2 py-0.5 rounded border border-white/5 bg-white/5 text-[7px] text-white/40 uppercase tracking-wider font-bold">
+									<span className="flex items-center gap-1 px-2 py-0.5 rounded border border-[color:var(--border-light)] bg-[var(--overlay-2)] text-[7px] text-[color:var(--text-muted)] uppercase tracking-wider font-bold">
 										<ShieldCheck className="w-2.5 h-2.5 text-[#ec5b13]" />{" "}
 										Verified
 									</span>
@@ -539,12 +539,12 @@ const CategoryTemplate = ({
 							<div className="flex-1 overflow-y-auto px-5 md:px-7 py-4 custom-scrollbar">
 								<div className="mb-5">
 									<div className="flex items-center justify-between mb-2">
-										<h4 className="text-[8px] font-bold uppercase tracking-[0.25em] text-white/40">
+										<h4 className="text-[8px] font-bold uppercase tracking-[0.25em] text-[color:var(--text-muted)]">
 											Description
 										</h4>
 										<button
 											onClick={() => setIsDescExpanded(!isDescExpanded)}
-											className="text-[#ec5b13] flex items-center gap-1 text-[8px] font-black uppercase tracking-tight hover:text-white transition-colors"
+											className="text-[#ec5b13] flex items-center gap-1 text-[8px] font-black uppercase tracking-tight hover:text-[color:var(--text-primary)] transition-colors"
 										>
 											{isDescExpanded ? (
 												<ChevronUp className="w-3 h-3" />
@@ -555,7 +555,7 @@ const CategoryTemplate = ({
 										</button>
 									</div>
 									<p
-										className={`text-white/60 leading-relaxed font-light transition-all duration-300 text-[11px] md:text-[12px] tracking-wide ${!isDescExpanded ? "line-clamp-3" : "line-clamp-none"}`}
+										className={`text-[color:var(--text-secondary)] leading-relaxed font-light transition-all duration-300 text-[11px] md:text-[12px] tracking-wide ${!isDescExpanded ? "line-clamp-3" : "line-clamp-none"}`}
 									>
 										{selectedProduct.description ||
 											"Archived premium selection. Handcrafted for the modern explorer with focus on durability and refined aesthetics. Each piece represents timeless design merged with contemporary functionality."}
@@ -563,8 +563,8 @@ const CategoryTemplate = ({
 								</div>
 
 								{relatedItems.length > 0 && (
-									<div className="pt-4 border-t border-white/5">
-										<h4 className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30 mb-3">
+									<div className="pt-4 border-t border-[color:var(--border-light)]">
+										<h4 className="text-[8px] font-black uppercase tracking-[0.25em] text-[color:var(--text-muted)] mb-3">
 											Related Product
 										</h4>
 										<div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
@@ -575,7 +575,7 @@ const CategoryTemplate = ({
 														setSelectedProduct(item);
 														setIsDescExpanded(false);
 													}}
-													className="group flex flex-col gap-1.5 p-2 rounded-lg bg-white/[0.02] border border-white/5 hover:border-[#ec5b13]/40 transition-all text-left"
+													className="group flex flex-col gap-1.5 p-2 rounded-lg bg-white/[0.02] border border-[color:var(--border-light)] hover:border-[#ec5b13]/40 transition-all text-left"
 												>
 													<div className="aspect-square rounded overflow-hidden bg-[#121212]">
 														<img
@@ -585,7 +585,7 @@ const CategoryTemplate = ({
 														/>
 													</div>
 													<div className="overflow-hidden px-0.5">
-														<p className="text-[8px] md:text-[9px] uppercase font-bold text-white/60 truncate group-hover:text-white/80 transition-colors">
+														<p className="text-[8px] md:text-[9px] uppercase font-bold text-[color:var(--text-secondary)] truncate group-hover:text-white/80 transition-colors">
 															{item.name}
 														</p>
 														<p className="text-[8px] text-[#ec5b13] font-mono">
@@ -599,9 +599,9 @@ const CategoryTemplate = ({
 								)}
 
 								{/* ── CUSTOMER REVIEWS ── */}
-								<div className="pt-4 border-t border-white/5">
+								<div className="pt-4 border-t border-[color:var(--border-light)]">
 									<div className="flex items-center justify-between mb-3">
-										<h4 className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30">
+										<h4 className="text-[8px] font-black uppercase tracking-[0.25em] text-[color:var(--text-muted)]">
 											Customer Reviews
 										</h4>
 										{productReviews.length > 0 && (
@@ -632,8 +632,8 @@ const CategoryTemplate = ({
 													key={i}
 													style={{
 														padding: "11px 14px",
-														background: "rgba(255,255,255,0.02)",
-														border: "1px solid rgba(255,255,255,0.05)",
+														background: "var(--overlay-1)",
+														border: "1px solid var(--border-light)",
 														borderLeft: "2px solid rgba(236,91,19,0.4)",
 														borderRadius: 10,
 													}}
@@ -642,7 +642,7 @@ const CategoryTemplate = ({
 													<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
 														<span style={{ color: "#ec5b13", fontSize: 11, letterSpacing: 2 }}>
 															{"★".repeat(r.rating)}
-															<span style={{ color: "rgba(255,255,255,0.1)" }}>{"★".repeat(5 - r.rating)}</span>
+															<span style={{ color: "var(--border-medium)" }}>{"★".repeat(5 - r.rating)}</span>
 														</span>
 														<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em" }}>
 															{new Date(r.created_at).toLocaleDateString("en", { day: "numeric", month: "short" })}
@@ -650,7 +650,7 @@ const CategoryTemplate = ({
 													</div>
 													{/* text */}
 													{r.review_text && (
-														<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+														<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6 }}>
 															"{r.review_text}"
 														</p>
 													)}
@@ -665,13 +665,13 @@ const CategoryTemplate = ({
 								</div>
 							</div>
 
-							<div className="p-5 md:p-7 pt-3 md:pt-4 bg-[#0a0a0a] border-t border-white/5 flex-shrink-0">
+							<div className="p-5 md:p-7 pt-3 md:pt-4 bg-[var(--bg-main)] border-t border-[color:var(--border-light)] flex-shrink-0">
 								<button
 									onClick={() => {
 										handleAddToCart(selectedProduct);
 										closeQuickView();
 									}}
-									className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-white font-bold py-3 md:py-3.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-3 text-[9px] md:text-[10px] uppercase tracking-[0.25em] shadow-lg hover:shadow-xl"
+									className="w-full bg-[#ec5b13] hover:bg-white hover:text-black text-[color:var(--text-primary)] font-bold py-3 md:py-3.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-3 text-[9px] md:text-[10px] uppercase tracking-[0.25em] shadow-lg hover:shadow-xl"
 								>
 									<ShoppingCart className="w-3.5 h-3.5" />
 									Add to Cart
@@ -687,7 +687,7 @@ const CategoryTemplate = ({
 					width: 4px;
 				}
 				.custom-scrollbar::-webkit-scrollbar-track {
-					background: rgba(255, 255, 255, 0.02);
+					background: var(--overlay-1);
 				}
 				.custom-scrollbar::-webkit-scrollbar-thumb {
 					background: rgba(236, 91, 19, 0.3);

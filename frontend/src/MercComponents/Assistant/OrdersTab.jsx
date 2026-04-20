@@ -108,7 +108,7 @@ const CustomerInfoPanel = ({ order }) => {
 				</div>
 				<div style={{ minWidth: 0, flex: 1 }}>
 					{deliveryName && (
-						<p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontStyle: "italic", color: "white", lineHeight: 1.25, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+						<p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontStyle: "italic", color: "var(--text-primary)", lineHeight: 1.25, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
 							{deliveryName}
 						</p>
 					)}
@@ -133,7 +133,7 @@ const CustomerInfoPanel = ({ order }) => {
 			</div>
 
 			{/* Divider */}
-			<div style={{ height: 1, background: "rgba(255,255,255,0.04)", borderRadius: 1 }} />
+			<div style={{ height: 1, background: "var(--overlay-3)", borderRadius: 1 }} />
 
 			{/* Details rows */}
 			<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -210,21 +210,21 @@ const OrdersTab = () => {
 		const name   = order.delivery_name || order.customer_name || order.client_email || order.email || "Valued Client";
 		const amount = Number(order.total_amount || 0).toLocaleString();
 		return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
-<body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;min-height:100vh;">
+<body style="margin:0;padding:0;background:var(--bg-deep);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:var(--bg-deep);min-height:100vh;">
 <tr><td align="center" style="padding:40px 20px;">
   <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
     <tr><td align="center" style="padding-bottom:28px;"><p style="margin:0;font-family:'Courier New',monospace;font-size:8px;letter-spacing:0.42em;text-transform:uppercase;color:rgba(255,255,255,0.15);">VERP EXECUTIVE COLLECTION</p></td></tr>
-    <tr><td style="background:linear-gradient(135deg,#0d0d0d,#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+    <tr><td style="background:linear-gradient(135deg,var(--bg-panel),#111);border-radius:24px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr><td style="height:3px;background:linear-gradient(90deg,${color},transparent);"></td></tr>
-        <tr><td style="background:linear-gradient(135deg,${color}14,${color}04);padding:28px 36px 22px;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <tr><td style="background:linear-gradient(135deg,${color}14,${color}04);padding:28px 36px 22px;border-bottom:1px solid var(--border-light);">
           <table width="100%" cellpadding="0" cellspacing="0"><tr>
             <td><p style="margin:0 0 9px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.38em;text-transform:uppercase;color:${color};">STATUS: ${status.toUpperCase()}</p><p style="margin:0 0 7px;font-size:25px;font-weight:300;color:#fff;">${c.headline}</p></td>
             <td align="right" valign="middle" style="padding-left:16px;width:50px;"><div style="font-size:36px;line-height:1;text-align:center;display:block;">${c.icon}</div></td>
           </tr></table>
         </td></tr>
-        <tr><td style="padding:20px 36px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <tr><td style="padding:20px 36px;border-bottom:1px solid var(--overlay-3);">
           <table width="100%" cellpadding="0" cellspacing="0"><tr>
             <td><p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">ORDER</p><p style="margin:0;font-family:'Courier New',monospace;font-size:13px;color:${color};font-weight:700;">${order.order_number || "—"}</p></td>
             <td align="right"><p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.22);">VALUE</p><p style="margin:0;font-size:18px;font-weight:700;color:${color};">GH₵ ${amount}</p></td>
@@ -235,7 +235,7 @@ const OrdersTab = () => {
         <tr><td style="padding:0 36px 28px;"><table cellpadding="0" cellspacing="0"><tr><td style="background:${color}16;border:1px solid ${color}45;border-radius:999px;padding:6px 18px;"><p style="margin:0;font-family:'Courier New',monospace;font-size:8px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:${color};">STATUS: ${status.toUpperCase()}</p></td></tr></table></td></tr>
       </table>
     </td></tr>
-    <tr><td align="center" style="padding:28px 20px 0;"><p style="margin:0;font-size:10px;color:rgba(255,255,255,0.08);line-height:1.7;">Automated message from Verp. For questions, contact our support team.</p></td></tr>
+    <tr><td align="center" style="padding:28px 20px 0;"><p style="margin:0;font-size:10px;color:var(--border-medium);line-height:1.7;">Automated message from Verp. For questions, contact our support team.</p></td></tr>
   </table>
 </td></tr>
 </table></body></html>`;
@@ -283,7 +283,7 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 		const toEmail = selected.customer_email || selected.client_email || selected.email || null;
 		if (!toEmail) {
 			setBusy(false);
-			Swal.fire({ title: "No Email Found", text: "This order has no customer email on record.", icon: "error", background: T.obsidian, color: "#fff" });
+			Swal.fire({ title: "No Email Found", text: "This order has no customer email on record.", icon: "error", background: T.obsidian, color: "var(--text-primary)" });
 			return;
 		}
 		const { error } = await supabase.from("verp_inbox_messages").insert([{
@@ -295,10 +295,10 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 		setPrivateMsg("");
 		setBusy(false);
 		if (error) {
-			Swal.fire({ title: "Error", text: error.message, icon: "error", background: T.obsidian, color: "#fff" });
+			Swal.fire({ title: "Error", text: error.message, icon: "error", background: T.obsidian, color: "var(--text-primary)" });
 			return;
 		}
-		Swal.fire({ title: "Sent!", text: "Client will see this in their Inbox.", background: T.obsidian, color: "#fff", icon: "success", timer: 2000, showConfirmButton: false });
+		Swal.fire({ title: "Sent!", text: "Client will see this in their Inbox.", background: T.obsidian, color: "var(--text-primary)", icon: "success", timer: 2000, showConfirmButton: false });
 	};
 
 	return (
@@ -333,7 +333,7 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 						>
 							<div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
 								<div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-									<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+									<p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
 										{order.delivery_name || order.customer_name || order.customer_email || order.client_email || "—"}
 									</p>
 									<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", marginTop: 2, letterSpacing: "0.08em" }}>
@@ -359,9 +359,9 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 										{items.slice(0, 5).map((item, i) => (
 											<div key={i} style={{ position: "relative", flexShrink: 0 }}>
 												{item.image ? (
-													<img src={item.image} alt={item.name || ""} title={`${item.name || ""} × ${item.quantity || 1}`} style={{ width: 38, height: 38, objectFit: "cover", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }} onError={e => { e.currentTarget.style.display = "none"; }} />
+													<img src={item.image} alt={item.name || ""} title={`${item.name || ""} × ${item.quantity || 1}`} style={{ width: 38, height: 38, objectFit: "cover", borderRadius: 8, border: "1px solid var(--border-medium)" }} onError={e => { e.currentTarget.style.display = "none"; }} />
 												) : (
-													<div style={{ width: 38, height: 38, borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+													<div style={{ width: 38, height: 38, borderRadius: 8, background: "var(--overlay-3)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center" }}>
 														<span className="material-symbols-outlined" style={{ fontSize: 14, color: "rgba(255,255,255,0.2)" }}>image</span>
 													</div>
 												)}
@@ -371,7 +371,7 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 											</div>
 										))}
 										{items.length > 5 && (
-											<div style={{ width: 38, height: 38, borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.3)" }}>
+											<div style={{ width: 38, height: 38, borderRadius: 8, background: "var(--overlay-3)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.3)" }}>
 												+{items.length - 5}
 											</div>
 										)}
@@ -420,9 +420,9 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 											{items.slice(0, 5).map((item, i) => (
 												<div key={i} style={{ position: "relative", flexShrink: 0 }}>
 													{item.image ? (
-														<img src={item.image} alt={item.name || "item"} title={`${item.name || ""} × ${item.quantity || 1}`} style={{ width: 46, height: 46, objectFit: "cover", borderRadius: 9, border: "1px solid rgba(255,255,255,0.08)" }} onError={e => { e.currentTarget.style.display = "none"; }} />
+														<img src={item.image} alt={item.name || "item"} title={`${item.name || ""} × ${item.quantity || 1}`} style={{ width: 46, height: 46, objectFit: "cover", borderRadius: 9, border: "1px solid var(--border-medium)" }} onError={e => { e.currentTarget.style.display = "none"; }} />
 													) : (
-														<div style={{ width: 46, height: 46, borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+														<div style={{ width: 46, height: 46, borderRadius: 9, background: "var(--overlay-3)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center" }}>
 															<span className="material-symbols-outlined" style={{ fontSize: 16, color: "rgba(255,255,255,0.2)" }}>image</span>
 														</div>
 													)}
@@ -432,7 +432,7 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 												</div>
 											))}
 											{items.length > 5 && (
-												<div style={{ width: 46, height: 46, borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.3)" }}>
+												<div style={{ width: 46, height: 46, borderRadius: 9, background: "var(--overlay-3)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: "rgba(255,255,255,0.3)" }}>
 													+{items.length - 5}
 												</div>
 											)}
@@ -462,8 +462,8 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/send-email`, {
 								<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 8 }}>PRIVATE MESSAGE</p>
 								<textarea value={privateMsg} onChange={(e) => setPrivateMsg(e.target.value)} rows={4} placeholder="Write message to client..." style={{ width: "100%", background: "#111", border: T.border, borderRadius: 11, padding: "10px 14px", fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.8)", outline: "none", resize: "none", lineHeight: 1.6, boxSizing: "border-box" }} />
 								<button onClick={sendPrivate} disabled={busy} style={{ marginTop: 8, width: "100%", padding: "10px", background: "transparent", border: T.border, borderRadius: 11, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", transition: "all 200ms", opacity: busy ? 0.5 : 1 }}
-									onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.emberBorder; e.currentTarget.style.color = "white"; }}
-									onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
+									onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.emberBorder; e.currentTarget.style.color = "var(--text-primary)"; }}
+									onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--overlay-4)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
 								>
 									SEND TO CLIENT
 								</button>

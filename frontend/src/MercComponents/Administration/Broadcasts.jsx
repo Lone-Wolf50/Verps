@@ -4,18 +4,18 @@ import Swal from "sweetalert2";
 
 const T = {
 	ember: "#ec5b13",
-	obsidian: "#0d0d0d",
-	border: "1px solid rgba(255,255,255,0.06)",
-	sub: "1px solid rgba(255,255,255,0.03)",
+	obsidian: "var(--bg-panel)",
+	border: "1px solid var(--overlay-4)",
+	sub: "1px solid var(--overlay-2)",
 };
 
 const SWAL = {
-	background: "#0a0a0a",
-	color: "#fff",
+	background: "var(--bg-main)",
+	color: "var(--text-primary)",
 	confirmButtonColor: "#ec5b13",
 	cancelButtonColor: "#1a1a1a",
 	customClass: {
-		popup: "rounded-3xl border border-white/10",
+		popup: "rounded-3xl border border-[color:var(--border-medium)]",
 		confirmButton: "rounded-xl px-8 py-3 uppercase tracking-widest text-[10px] font-bold",
 		cancelButton:  "rounded-xl px-8 py-3 uppercase tracking-widest text-[10px] font-bold",
 	},
@@ -128,7 +128,7 @@ const Broadcasts = () => {
 							fontSize: "clamp(18px,2.5vw,26px)",
 							fontStyle: "italic",
 							fontWeight: 400,
-							color: "white",
+							color: "var(--text-primary)",
 						}}
 					>
 						Broadcast <span style={{ color: T.ember }}>History</span>
@@ -168,19 +168,19 @@ const Broadcasts = () => {
 						onChange={(e) => setSearch(e.target.value)}
 						placeholder="Search broadcasts..."
 						style={{
-							background: "rgba(255,255,255,0.03)",
+							background: "var(--overlay-2)",
 							border: T.border,
 							borderRadius: 12,
 							padding: "9px 14px 9px 36px",
 							fontFamily: "'DM Sans',sans-serif",
 							fontSize: 12,
-							color: "rgba(255,255,255,0.7)",
+							color: "var(--text-secondary)",
 							outline: "none",
 							width: 220,
 							transition: "border-color 200ms",
 						}}
 						onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(236,91,19,0.4)")}
-						onBlur={(e)  => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
+						onBlur={(e)  => (e.currentTarget.style.borderColor = "var(--overlay-4)")}
 					/>
 				</div>
 			</div>
@@ -188,7 +188,7 @@ const Broadcasts = () => {
 			{/* ── Loading ── */}
 			{loading && (
 				<div className="flex items-center justify-center py-32">
-					<div className="w-7 h-7 border-2 border-t-[#ec5b13] border-white/10 rounded-full animate-spin" />
+					<div className="w-7 h-7 border-2 border-t-[#ec5b13] border-[color:var(--border-medium)] rounded-full animate-spin" />
 				</div>
 			)}
 
@@ -237,13 +237,13 @@ const Broadcasts = () => {
 											onChange={(e) => setEditSubject(e.target.value)}
 											placeholder="Subject..."
 											style={{
-												background: "rgba(255,255,255,0.04)",
+												background: "var(--overlay-3)",
 												border: "1px solid rgba(236,91,19,0.3)",
 												borderRadius: 10,
 												padding: "10px 14px",
 												fontFamily: "'DM Sans',sans-serif",
 												fontSize: 13,
-												color: "white",
+												color: "var(--text-primary)",
 												fontWeight: 600,
 												outline: "none",
 												width: "100%",
@@ -254,7 +254,7 @@ const Broadcasts = () => {
 											onChange={(e) => setEditBody(e.target.value)}
 											rows={4}
 											style={{
-												background: "rgba(255,255,255,0.04)",
+												background: "var(--overlay-3)",
 												border: "1px solid rgba(236,91,19,0.3)",
 												borderRadius: 10,
 												padding: "10px 14px",
@@ -271,7 +271,7 @@ const Broadcasts = () => {
 												onClick={() => setEditingId(null)}
 												style={{
 													background: "transparent",
-													border: "1px solid rgba(255,255,255,0.1)",
+													border: "1px solid var(--border-medium)",
 													borderRadius: 9,
 													padding: "8px 18px",
 													cursor: "pointer",
@@ -316,7 +316,7 @@ const Broadcasts = () => {
 														fontFamily: "'DM Sans',sans-serif",
 														fontSize: 14,
 														fontWeight: 700,
-														color: "white",
+														color: "var(--text-primary)",
 														marginBottom: 4,
 														wordBreak: "break-word",
 													}}
@@ -342,7 +342,7 @@ const Broadcasts = () => {
 													onClick={() => startEdit(msg)}
 													title="Edit broadcast"
 													style={{
-														background: "rgba(255,255,255,0.04)",
+														background: "var(--overlay-3)",
 														border: "1px solid rgba(255,255,255,0.07)",
 														borderRadius: 9,
 														padding: "7px 10px",

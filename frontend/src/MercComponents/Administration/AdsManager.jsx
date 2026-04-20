@@ -41,21 +41,21 @@ const deleteAdStorageFile = async (url) => {
 
 /* ── tokens ───────────────────────────────────────────────────── */
 const T = {
-  void:    "#080808",
-  obsidian:"#0d0d0d",
+  void:    "var(--bg-dark)",
+  obsidian:"var(--bg-panel)",
   ember:   "#ec5b13",
   green:   "#22c55e",
   red:     "#ef4444",
   amber:   "#f59e0b",
   blue:    "#38bdf8",
-  border:  "1px solid rgba(255,255,255,0.06)",
+  border:  "1px solid var(--overlay-4)",
 };
 
 const SWAL_CFG = {
-  background: "#0a0a0a", color: "#fff",
+  background: "var(--bg-main)", color: "var(--text-primary)",
   confirmButtonColor: "#ec5b13", cancelButtonColor: "#1a1a1a",
   customClass: {
-    popup: "rounded-3xl border border-white/10",
+    popup: "rounded-3xl border border-[color:var(--border-medium)]",
     confirmButton: "rounded-xl px-8 py-3 uppercase tracking-widest text-[10px] font-bold",
     cancelButton:  "rounded-xl px-8 py-3 uppercase tracking-widest text-[10px] font-bold",
   },
@@ -160,7 +160,7 @@ const ProductPicker = ({ value, onChange }) => {
             }} />
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <p style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {selected.name}
             </p>
             <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
@@ -196,8 +196,8 @@ const ProductPicker = ({ value, onChange }) => {
           {results.length > 0 && (
             <div style={{
               position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
-              background: "#0d0d0d",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-medium)",
               borderRadius: 10, zIndex: 50,
               overflow: "hidden",
               boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
@@ -212,10 +212,10 @@ const ProductPicker = ({ value, onChange }) => {
                     width: "100%", padding: "10px 14px",
                     background: "transparent", border: "none",
                     cursor: "pointer", textAlign: "left",
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    borderBottom: "1px solid var(--overlay-3)",
                     transition: "background 120ms",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--overlay-3)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   {p.image_url && (
@@ -242,8 +242,8 @@ const ProductPicker = ({ value, onChange }) => {
 
 /* ── helpers ──────────────────────────────────────────────────── */
 const inputStyle = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  background: "var(--overlay-2)",
+  border: "1px solid var(--border-medium)",
   borderRadius: 10,
   padding: "10px 14px",
   color: "rgba(255,255,255,0.8)",
@@ -256,7 +256,7 @@ const inputStyle = {
 };
 
 const focus = (e) => (e.currentTarget.style.borderColor = "rgba(236,91,19,0.4)");
-const blur  = (e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)");
+const blur  = (e) => (e.currentTarget.style.borderColor = "var(--border-medium)");
 
 /* ── Field wrapper with label + hint ─────────────────────────── */
 const Field = ({ label, hint, children }) => (
@@ -340,7 +340,7 @@ const ImagePicker = ({ value, onChange }) => {
             onClick={() => setMode(m.id)}
             style={{
               padding: "5px 14px", borderRadius: 8, cursor: "pointer",
-              border: `1px solid ${mode === m.id ? T.ember : "rgba(255,255,255,0.08)"}`,
+              border: `1px solid ${mode === m.id ? T.ember : "var(--border-medium)"}`,
               background: mode === m.id ? `${T.ember}14` : "transparent",
               color: mode === m.id ? T.ember : "rgba(255,255,255,0.35)",
               fontFamily: "'JetBrains Mono',monospace", fontSize: 8,
@@ -399,7 +399,7 @@ const ImagePicker = ({ value, onChange }) => {
             alt="preview"
             style={{
               width: 64, height: 40, objectFit: "cover",
-              borderRadius: 6, border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 6, border: "1px solid var(--border-medium)",
             }}
             onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
@@ -433,7 +433,7 @@ const ImagePicker = ({ value, onChange }) => {
 const AdPreview = ({ form }) => {
   if (!form.title.trim()) return (
     <div style={{
-      background: "rgba(255,255,255,0.02)", border: T.border,
+      background: "var(--overlay-1)", border: T.border,
       borderRadius: 12, padding: "20px", textAlign: "center",
     }}>
       <p style={{
@@ -471,7 +471,7 @@ const AdPreview = ({ form }) => {
           <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.28em", textTransform: "uppercase", color: T.ember, marginBottom: 5 }}>
             Featured
           </p>
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 700, color: "white", lineHeight: 1.2, marginBottom: form.subtitle ? 4 : 0 }}>
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2, marginBottom: form.subtitle ? 4 : 0 }}>
             {form.title}
           </p>
           {form.subtitle && (
@@ -523,7 +523,7 @@ const AdCard = ({ ad, onDelete, onReactivate }) => {
           <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.2em", textTransform: "uppercase", color: T.ember, marginBottom: 4 }}>
             {pos?.label || ad.position}
           </p>
-          <h4 style={{ color: "white", fontWeight: 700, fontSize: 14, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <h4 style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 14, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {ad.title}
           </h4>
           {ad.subtitle && (
@@ -586,7 +586,7 @@ const AdCard = ({ ad, onDelete, onReactivate }) => {
         <div style={{
           display: "flex", gap: "6px 24px", flexWrap: "wrap",
           marginTop: 8, paddingTop: 8,
-          borderTop: "1px solid rgba(255,255,255,0.04)",
+          borderTop: "1px solid var(--overlay-3)",
         }}>
           {ad.starts_at && (
             <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
@@ -682,7 +682,7 @@ const AdsManager = () => {
           Set a new end date to run the ad again, or leave blank to run with no expiry.
         </p>
         <input id="new-end-date" type="datetime-local" style="
-          width:100%; background:rgba(255,255,255,0.05);
+          width:100%; background:var(--border-light);
           border:1px solid rgba(255,255,255,0.15); border-radius:10px;
           padding:10px 14px; color:white; font-family:'DM Sans',sans-serif;
           font-size:14px; outline:none; box-sizing:border-box; color-scheme:dark;
@@ -734,7 +734,7 @@ const AdsManager = () => {
           <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginBottom: 4 }}>
             Homepage Promotions
           </p>
-          <h2 style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 26, color: "white", fontWeight: 400 }}>
+          <h2 style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 26, color: "var(--text-primary)", fontWeight: 400 }}>
             Ad <span style={{ color: T.ember }}>Manager</span>
           </h2>
         </div>
@@ -743,7 +743,7 @@ const AdsManager = () => {
           style={{
             display: "flex", alignItems: "center", gap: 8,
             padding: "10px 20px", borderRadius: 12, cursor: "pointer",
-            background: showForm ? "rgba(255,255,255,0.05)" : T.ember,
+            background: showForm ? "var(--border-light)" : T.ember,
             border: "none",
             color: showForm ? "rgba(255,255,255,0.5)" : "#000",
             fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: 11,
@@ -904,19 +904,19 @@ const AdsManager = () => {
               onClick={() => set("is_active", !form.is_active)}
               style={{
                 width: 38, height: 22, borderRadius: 99,
-                background: form.is_active ? T.ember : "rgba(255,255,255,0.08)",
+                background: form.is_active ? T.ember : "var(--border-medium)",
                 position: "relative", cursor: "pointer", transition: "background 200ms",
                 flexShrink: 0,
               }}
             >
               <div style={{
                 position: "absolute", top: 4, left: form.is_active ? 19 : 4,
-                width: 14, height: 14, borderRadius: "50%", background: "white",
+                width: 14, height: 14, borderRadius: "50%", background: "var(--text-primary)",
                 transition: "left 200ms", boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
               }} />
             </div>
             <div>
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "var(--text-secondary)" }}>
                 {form.is_active ? "Active — will go live immediately when published" : "Inactive — saved but not shown to clients yet"}
               </p>
               <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: "rgba(255,255,255,0.2)", letterSpacing: "0.12em", marginTop: 2 }}>
@@ -939,7 +939,7 @@ const AdsManager = () => {
             disabled={!canSave}
             style={{
               padding: "12px 32px", borderRadius: 12, cursor: canSave ? "pointer" : "default",
-              background: canSave ? T.ember : "rgba(255,255,255,0.05)",
+              background: canSave ? T.ember : "var(--border-light)",
               border: "none",
               color: canSave ? "#000" : "rgba(255,255,255,0.2)",
               fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: 11,

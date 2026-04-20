@@ -21,13 +21,13 @@ const Newsletter = () => {
       html: `
         <div style="text-align:center;padding:4px 0 12px;">
           <p style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:16px;">VERP ACCESS GRANTED</p>
-          <p style="font-family:'DM Sans',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.7;">
+          <p style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-muted);line-height:1.7;">
             You'll be the first to hear about limited drops, private looks, and exclusive offers — delivered directly to your inbox.
           </p>
         </div>
       `,
-      background: "#0d0d0d",
-      color: "#fff",
+      background: "var(--bg-panel)",
+      color: "var(--text-primary)",
       confirmButtonColor: "#ec5b13",
       confirmButtonText: `<span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.2em;">CONTINUE</span>`,
       customClass: {
@@ -43,12 +43,12 @@ const Newsletter = () => {
   return (
     <section style={{
       padding: "100px 24px",
-      background: "#080808",
-      borderTop: "1px solid rgba(255,255,255,0.04)",
+      background: "var(--bg-dark)",
+      borderTop: "1px solid var(--overlay-3)",
     }}>
       <style>{`
         .newsletter-swal-popup {
-          border: 1px solid rgba(255,255,255,0.08) !important;
+          border: 1px solid var(--border-medium) !important;
           border-radius: 24px !important;
         }
         .newsletter-swal-btn {
@@ -89,7 +89,7 @@ const Newsletter = () => {
           fontWeight:900,
           letterSpacing:"-0.03em",
           textTransform:"uppercase",
-          color:"white",
+          color:"var(--text-primary)",
           lineHeight:1,
           marginBottom:16,
         }}>
@@ -136,13 +136,13 @@ const Newsletter = () => {
               style={{
                 flex:1,
                 minWidth:200,
-                background:"rgba(255,255,255,0.04)",
-                border:"1px solid rgba(255,255,255,0.1)",
+                background:"var(--overlay-3)",
+                border:"1px solid var(--border-medium)",
                 borderRadius:999,
                 padding:"14px 22px",
                 fontFamily:"'DM Sans',sans-serif",
                 fontSize:13,
-                color:"white",
+                color:"var(--text-primary)",
                 transition:"border-color 200ms, box-shadow 200ms",
               }}
             />

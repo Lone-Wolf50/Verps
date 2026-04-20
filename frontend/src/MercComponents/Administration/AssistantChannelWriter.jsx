@@ -15,11 +15,11 @@ import { supabase } from "../supabaseClient";
  */
 
 const T = {
-	void: "#080808",
-	obsidian: "#0d0d0d",
+	void: "var(--bg-dark)",
+	obsidian: "var(--bg-panel)",
 	ember: "#ec5b13",
 	shipped: "#38bdf8",
-	sub: "1px solid rgba(255,255,255,0.03)",
+	sub: "1px solid var(--overlay-2)",
 };
 
 const AssistantChannelWriter = () => {
@@ -444,7 +444,7 @@ const AssistantChannelWriter = () => {
 								padding: "10px 14px",
 								fontFamily: "'DM Sans',sans-serif",
 								fontSize: 12,
-								color: "rgba(255,255,255,0.85)",
+								color: "var(--text-primary)",
 								outline: "none",
 								transition: "border-color 200ms",
 							}}
@@ -483,7 +483,7 @@ const AssistantChannelWriter = () => {
 							fontSize: 6,
 							letterSpacing: "0.2em",
 							textTransform: "uppercase",
-							color: "rgba(255,255,255,0.08)",
+							color: "var(--border-medium)",
 							textAlign: "center",
 							marginTop: 8,
 						}}

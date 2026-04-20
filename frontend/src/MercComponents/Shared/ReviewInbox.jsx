@@ -26,16 +26,16 @@ const INTERNAL_SECRET = import.meta.env.VITE_INTERNAL_SECRET || "";
 
 /* ── design tokens ───────────────────────────────────────────── */
 const T = {
-  void:     "#080808",
-  obsidian: "#0d0d0d",
+  void:     "var(--bg-dark)",
+  obsidian: "var(--bg-panel)",
   ember:    "#ec5b13",
   blue:     "#38bdf8",
   green:    "#22c55e",
   red:      "#ef4444",
   amber:    "#f59e0b",
   purple:   "#a78bfa",
-  border:   "1px solid rgba(255,255,255,0.06)",
-  sub:      "1px solid rgba(255,255,255,0.03)",
+  border:   "1px solid var(--overlay-4)",
+  sub:      "1px solid var(--overlay-2)",
 };
 
 /* ── review tags ──────────────────────────────────────────────── */
@@ -134,7 +134,7 @@ const DeclineModal = ({ review, onClose, onDone }) => {
           <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase", color: T.red, marginBottom: 10 }}>
             Decline Review
           </p>
-          <p style={{ color: "white", fontWeight: 600, fontSize: 15, marginBottom: 6 }}>
+          <p style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: 15, marginBottom: 6 }}>
             What do you want to do with this review?
           </p>
           <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginBottom: 22, lineHeight: 1.55 }}>
@@ -154,7 +154,7 @@ const DeclineModal = ({ review, onClose, onDone }) => {
                   flex: 1,
                   padding: "14px 10px",
                   borderRadius: 14,
-                  border: `1px solid ${disposition === id ? border : "rgba(255,255,255,0.08)"}`,
+                  border: `1px solid ${disposition === id ? border : "var(--border-medium)"}`,
                   background: disposition === id ? `${border}12` : "transparent",
                   cursor: "pointer",
                   textAlign: "left",
@@ -181,7 +181,7 @@ const DeclineModal = ({ review, onClose, onDone }) => {
                     style={{
                       padding: "5px 12px",
                       borderRadius: 99,
-                      border: `1px solid ${tag === t.id ? t.color : "rgba(255,255,255,0.08)"}`,
+                      border: `1px solid ${tag === t.id ? t.color : "var(--border-medium)"}`,
                       background: tag === t.id ? `${t.color}18` : "transparent",
                       cursor: "pointer",
                       fontFamily: "'JetBrains Mono',monospace",
@@ -203,11 +203,11 @@ const DeclineModal = ({ review, onClose, onDone }) => {
                 placeholder="Optional note (e.g. 'mentions specific batch issue')..."
                 style={{
                   width: "100%",
-                  background: "rgba(255,255,255,0.03)",
+                  background: "var(--overlay-2)",
                   border: "1px solid rgba(255,255,255,0.07)",
                   borderRadius: 10,
                   padding: "10px 12px",
-                  color: "rgba(255,255,255,0.7)",
+                  color: "var(--text-secondary)",
                   fontSize: 12,
                   resize: "none",
                   outline: "none",
@@ -224,7 +224,7 @@ const DeclineModal = ({ review, onClose, onDone }) => {
               onClick={onClose}
               style={{
                 flex: 1, padding: "12px 0", borderRadius: 12,
-                background: "transparent", border: "1px solid rgba(255,255,255,0.08)",
+                background: "transparent", border: "1px solid var(--border-medium)",
                 color: "rgba(255,255,255,0.35)", fontSize: 10, fontWeight: 700,
                 letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer",
               }}
@@ -236,7 +236,7 @@ const DeclineModal = ({ review, onClose, onDone }) => {
               disabled={!disposition || saving}
               style={{
                 flex: 2, padding: "12px 0", borderRadius: 12,
-                background: disposition ? T.red : "rgba(255,255,255,0.04)",
+                background: disposition ? T.red : "var(--overlay-3)",
                 border: "none",
                 color: disposition ? "#000" : "rgba(255,255,255,0.2)",
                 fontSize: 10, fontWeight: 700, letterSpacing: "0.15em",
@@ -297,7 +297,7 @@ const AssistantNoteModal = ({ review, onClose, onDone }) => {
           <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase", color: T.blue, marginBottom: 10 }}>
             Assistant Note
           </p>
-          <p style={{ color: "white", fontWeight: 600, fontSize: 14, marginBottom: 18 }}>
+          <p style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: 14, marginBottom: 18 }}>
             Add your triage note for admin
           </p>
 
@@ -337,7 +337,7 @@ const AssistantNoteModal = ({ review, onClose, onDone }) => {
                 onClick={() => setFlag(id)}
                 style={{
                   flex: 1, padding: "10px 0", borderRadius: 12,
-                  border: `1px solid ${flag === id ? color : "rgba(255,255,255,0.08)"}`,
+                  border: `1px solid ${flag === id ? color : "var(--border-medium)"}`,
                   background: flag === id ? `${color}14` : "transparent",
                   cursor: "pointer",
                   color: flag === id ? color : "rgba(255,255,255,0.4)",
@@ -360,11 +360,11 @@ const AssistantNoteModal = ({ review, onClose, onDone }) => {
               style={{
                 width: "100%",
                 marginTop: 12,
-                background: "rgba(255,255,255,0.03)",
+                background: "var(--overlay-2)",
                 border: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 10,
                 padding: "10px 12px",
-                color: "rgba(255,255,255,0.7)",
+                color: "var(--text-secondary)",
                 fontSize: 12,
                 outline: "none",
                 fontFamily: "'DM Sans',sans-serif",
@@ -374,7 +374,7 @@ const AssistantNoteModal = ({ review, onClose, onDone }) => {
           )}
 
           <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-            <button onClick={onClose} style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: "transparent", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)", fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>
+            <button onClick={onClose} style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: "transparent", border: "1px solid var(--border-medium)", color: "rgba(255,255,255,0.35)", fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>
               Cancel
             </button>
             <button
@@ -438,7 +438,7 @@ const ReviewCard = ({ review, role, onRefresh }) => {
             : isAccepted
             ? `3px solid ${T.green}`
             : isDeclined
-            ? `3px solid rgba(255,255,255,0.08)`
+            ? `3px solid var(--border-medium)`
             : `3px solid ${T.amber}`,
           borderRadius: 16,
           padding: "18px 20px",
@@ -464,7 +464,7 @@ const ReviewCard = ({ review, role, onRefresh }) => {
 
         {/* review text */}
         {review.review_text && (
-          <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, lineHeight: 1.65, marginBottom: 12, padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 10, borderLeft: "2px solid rgba(255,255,255,0.08)" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.65, marginBottom: 12, padding: "10px 14px", background: "var(--overlay-2)", borderRadius: 10, borderLeft: "2px solid var(--border-medium)" }}>
             "{review.review_text}"
           </p>
         )}
@@ -475,7 +475,7 @@ const ReviewCard = ({ review, role, onRefresh }) => {
             <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 7, color: T.blue, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>
               📝 Assistant Note
             </p>
-            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, lineHeight: 1.5 }}>
+            <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
               {review.assistant_note}
             </p>
             {review.assistant_flag_reason && (
@@ -732,7 +732,7 @@ const ReviewInbox = ({ role = "admin" }) => {
             fontSize: "clamp(18px,3vw,26px)",
             fontStyle: "italic",
             fontWeight: 400,
-            color: "white",
+            color: "var(--text-primary)",
             marginBottom: 20,
           }}
         >
@@ -748,7 +748,7 @@ const ReviewInbox = ({ role = "admin" }) => {
               style={{
                 padding: "7px 16px",
                 borderRadius: 99,
-                border: `1px solid ${filter === f.id ? f.color : "rgba(255,255,255,0.08)"}`,
+                border: `1px solid ${filter === f.id ? f.color : "var(--border-medium)"}`,
                 background: filter === f.id ? `${f.color}14` : "transparent",
                 cursor: "pointer",
                 fontFamily: "'JetBrains Mono',monospace",

@@ -15,15 +15,15 @@ import { supabase } from "../supabaseClient";
 
 /* ── tokens ──────────────────────────────────────────────────── */
 const T = {
-  void:     "#080808",
-  obsidian: "#0d0d0d",
+  void:     "var(--bg-dark)",
+  obsidian: "var(--bg-panel)",
   ember:    "#ec5b13",
   blue:     "#38bdf8",
   green:    "#22c55e",
   red:      "#ef4444",
   amber:    "#f59e0b",
   purple:   "#a78bfa",
-  border:   "1px solid rgba(255,255,255,0.06)",
+  border:   "1px solid var(--overlay-4)",
 };
 
 const CHART_COLORS = [T.ember, T.blue, T.purple, T.green, T.amber, T.red];
@@ -68,7 +68,7 @@ const StatCard = ({ label, value, sub, accent, subColor }) => (
     <p style={{ ...mono, fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 8 }}>
       {label}
     </p>
-    <p style={{ ...serif, fontSize: 34, color: "white", lineHeight: 1 }}>
+    <p style={{ ...serif, fontSize: 34, color: "var(--text-primary)", lineHeight: 1 }}>
       {value}
     </p>
     {sub && (
@@ -85,7 +85,7 @@ const HBar = ({ label, value, max, color, count }) => (
     <span style={{ ...mono, fontSize: 9, color, width: 110, flexShrink: 0, letterSpacing: "0.08em" }}>
       {label}
     </span>
-    <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.04)", borderRadius: 99, overflow: "hidden" }}>
+    <div style={{ flex: 1, height: 6, background: "var(--overlay-3)", borderRadius: 99, overflow: "hidden" }}>
       <div
         style={{
           height: "100%",
@@ -272,7 +272,7 @@ const ReviewAnalytics = () => {
       <p style={{ ...mono, fontSize: 7, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)", marginBottom: 6 }}>
         Review Intelligence
       </p>
-      <h2 style={{ ...serif, fontSize: "clamp(18px,3vw,26px)", color: "white", marginBottom: 24 }}>
+      <h2 style={{ ...serif, fontSize: "clamp(18px,3vw,26px)", color: "var(--text-primary)", marginBottom: 24 }}>
         Review <span style={{ color: T.ember }}>Analytics</span>
       </h2>
 
@@ -346,11 +346,11 @@ const ReviewAnalytics = () => {
             Spam & suspicious activity
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "var(--overlay-2)", borderRadius: 10 }}>
               <span style={{ ...mono, fontSize: 9, color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>Total Discarded</span>
               <span style={{ ...mono, fontSize: 13, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>{discard.length}</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "var(--overlay-2)", borderRadius: 10 }}>
               <span style={{ ...mono, fontSize: 9, color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>This Month</span>
               <span style={{ ...mono, fontSize: 13, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>
                 {discard.filter((r) => {
@@ -391,12 +391,12 @@ const ReviewAnalytics = () => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "12px 0",
-                  borderBottom: i < topProducts.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                  borderBottom: i < topProducts.length - 1 ? "1px solid var(--overlay-3)" : "none",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <span style={{ ...mono, fontSize: 9, color: T.ember, width: 16 }}>{i + 1}</span>
-                  <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: 500 }}>{p.name}</p>
+                  <p style={{ color: "var(--text-secondary)", fontSize: 13, fontWeight: 500 }}>{p.name}</p>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <span style={{ ...mono, fontSize: 9, color: T.amber }}>★ {p.avg}</span>

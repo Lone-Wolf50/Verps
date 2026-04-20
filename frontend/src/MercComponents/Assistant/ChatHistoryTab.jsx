@@ -47,19 +47,19 @@ const ChatHistoryTab = () => {
 
 	const Spinner = () => (
 		<div style={{ display: "flex", justifyContent: "center", padding: 30 }}>
-			<div style={{ width: 20, height: 20, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.1)", borderTopColor: T.ember, animation: "pd 1s linear infinite" }} />
+			<div style={{ width: 20, height: 20, borderRadius: "50%", border: "1.5px solid var(--border-medium)", borderTopColor: T.ember, animation: "pd 1s linear infinite" }} />
 		</div>
 	);
 
 	return (
 		<div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
 			{/* ── Session list ── */}
-			<div style={{ width: 260, background: "#0a0a0a", borderRight: T.borderSub, display: "flex", flexDirection: "column", flexShrink: 0 }}>
+			<div style={{ width: 260, background: "var(--bg-main)", borderRight: T.borderSub, display: "flex", flexDirection: "column", flexShrink: 0 }}>
 				<div style={{ padding: "14px 14px 10px", borderBottom: T.borderSub }}>
 					<p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>RESOLVED SESSIONS</p>
 					<div style={{ position: "relative" }}>
 						<span className="material-symbols-outlined" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 15, color: "rgba(255,255,255,0.2)", pointerEvents: "none" }}>search</span>
-						<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search email or message…" style={{ width: "100%", background: "#111", border: T.border, borderRadius: 10, padding: "9px 12px 9px 34px", fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.7)", outline: "none", boxSizing: "border-box" }} />
+						<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search email or message…" style={{ width: "100%", background: "#111", border: T.border, borderRadius: 10, padding: "9px 12px 9px 34px", fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "var(--text-secondary)", outline: "none", boxSizing: "border-box" }} />
 					</div>
 				</div>
 				<div style={{ flex: 1, overflowY: "auto" }}>

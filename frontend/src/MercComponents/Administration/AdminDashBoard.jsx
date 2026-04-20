@@ -16,12 +16,12 @@ import Swal from "sweetalert2";
 
 /* ─── HELPERS ────────────────────────────────────────────────── */
 const PREMIUM_SWAL = {
-	background: "#0a0a0a",
-	color: "#fff",
+	background: "var(--bg-main)",
+	color: "var(--text-primary)",
 	confirmButtonColor: "#ec5b13",
 	cancelButtonColor: "#1a1a1a",
 	customClass: {
-		popup: "rounded-3xl border border-white/10",
+		popup: "rounded-3xl border border-[color:var(--border-medium)]",
 		confirmButton:
 			"rounded-xl px-8 py-3 uppercase tracking-widest text-[10px] font-bold",
 		cancelButton:
@@ -133,7 +133,7 @@ const AdminDashBoard = () => {
 		if (loading && activeTab === "inventory") {
 			return (
 				<div className="flex items-center justify-center py-32">
-					<div className="animate-pulse text-white/20 uppercase tracking-widest text-xs font-bold">
+					<div className="animate-pulse text-[color:var(--text-muted)] uppercase tracking-widest text-xs font-bold">
 						Accessing Vault...
 					</div>
 				</div>
@@ -182,7 +182,7 @@ const AdminDashBoard = () => {
 
 	return (
 		<div
-			className="flex bg-[#050505] text-white overflow-x-hidden"
+			className="flex bg-[var(--bg-deep)] text-[color:var(--text-primary)] overflow-x-hidden"
 			style={{
 				fontFamily: "'DM Sans',sans-serif",
 				minHeight: isFullscreen ? "100vh" : undefined,
@@ -213,7 +213,7 @@ const AdminDashBoard = () => {
 			>
 				{/* Page header (non-fullscreen only) */}
 				{!isFullscreen && (
-					<header className="px-4 md:px-8 lg:px-12 pt-8 pb-6 flex justify-between items-center border-b border-white/5">
+					<header className="px-4 md:px-8 lg:px-12 pt-8 pb-6 flex justify-between items-center border-b border-[color:var(--border-light)]">
 						<div>
 							<h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter">
 								Control <span style={{ color: "#ec5b13" }}>Center</span>

@@ -5,7 +5,7 @@ import { Badge } from "./SharredComponents";
 
 /* ─── Session list sidebar ───────────────────────────────────── */
 const SessionList = ({ list, title, selectedChat, isMobile, onSelect }) => (
-	<div style={{ width: isMobile ? "100%" : 250, background: "#0a0a0a", borderRight: T.borderSub, display: "flex", flexDirection: "column", flexShrink: 0, height: isMobile && selectedChat ? "0" : "100%", overflow: isMobile && selectedChat ? "hidden" : "visible" }}>
+	<div style={{ width: isMobile ? "100%" : 250, background: "var(--bg-main)", borderRight: T.borderSub, display: "flex", flexDirection: "column", flexShrink: 0, height: isMobile && selectedChat ? "0" : "100%", overflow: isMobile && selectedChat ? "hidden" : "visible" }}>
 		<div style={{ height: 48, borderBottom: T.borderSub, display: "flex", alignItems: "center", padding: "0 16px", justifyContent: "space-between", flexShrink: 0 }}>
 			<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>{title}</span>
 			<span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: T.ember }}>{list.length}</span>
