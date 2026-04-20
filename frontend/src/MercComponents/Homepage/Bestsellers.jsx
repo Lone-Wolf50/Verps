@@ -272,7 +272,7 @@ const Bestsellers = () => {
               fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 800,
               letterSpacing: "0.2em", textTransform: "uppercase",
               color: "rgba(255,255,255,0.8)", background: "rgba(0,0,0,0.55)",
-              backdropFilter: "blur(10px)", border: "1px solid var(--border-medium)",
+              backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.1)",
               padding: "3px 9px", borderRadius: 999,
             }}>
               {product.category || "Collection"}
@@ -319,12 +319,12 @@ const Bestsellers = () => {
   ══════════════════════════════════════════════════════════════ */
   if (loading) {
     return (
-      <section style={{ padding: "80px 0 60px", background: "var(--bg-deep)", borderTop: "1px solid var(--overlay-3)" }}>
+      <section style={{ padding: "80px 0 60px", background: "#050505", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
         <style>{`@keyframes bsPulse{0%,100%{opacity:0.35}50%{opacity:0.8}}`}</style>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 clamp(16px,4vw,40px)" }}>
           <div style={{ display: "flex", gap: GAP }}>
             {[...Array(VISIBLE)].map((_, i) => (
-              <div key={i} style={{ flex: 1, aspectRatio: "3/4", borderRadius: 20, background: "var(--overlay-2)", border: "1px solid var(--overlay-3)", animation: `bsPulse 1.8s ${i * 0.18}s ease-in-out infinite` }} />
+              <div key={i} style={{ flex: 1, aspectRatio: "3/4", borderRadius: 20, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)", animation: `bsPulse 1.8s ${i * 0.18}s ease-in-out infinite` }} />
             ))}
           </div>
         </div>
@@ -336,7 +336,7 @@ const Bestsellers = () => {
      RENDER
   ══════════════════════════════════════════════════════════════ */
   return (
-    <section id="bestsellers" style={{ padding: "80px 0 100px", background: "var(--bg-deep)", borderTop: "1px solid var(--overlay-3)", overflow: "hidden" }}>
+    <section id="bestsellers" style={{ padding: "80px 0 100px", background: "#050505", borderTop: "1px solid rgba(255,255,255,0.04)", overflow: "hidden" }}>
       <style>{`
       
         @keyframes bsFadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
@@ -391,7 +391,7 @@ const Bestsellers = () => {
         .bs-nav {
           position:absolute; top:50%; transform:translateY(-50%);
           width:46px; height:46px; border-radius:50%;
-          background:rgba(8,8,8,0.92); border:1px solid var(--border-medium);
+          background:rgba(8,8,8,0.92); border:1px solid rgba(255,255,255,0.1);
           display:flex; align-items:center; justify-content:center;
           cursor:pointer; color:rgba(255,255,255,0.5); backdrop-filter:blur(14px);
           transition:border-color 0.22s, color 0.22s, box-shadow 0.22s, transform 0.22s;
@@ -456,7 +456,7 @@ const Bestsellers = () => {
                   <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 8 }}>
                     {quickView.category || "Collection"}{quickView.origin ? ` · ${quickView.origin}` : ""}
                   </p>
-                  <h3 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 8, lineHeight: 1.1, color: "var(--text-primary)" }}>
+                  <h3 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 8, lineHeight: 1.1, color: "white" }}>
                     {quickView.name}
                   </h3>
                   {quickView.series && (
@@ -510,7 +510,7 @@ const Bestsellers = () => {
                 Editor's Select
               </span>
             </div>
-            <h2 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "clamp(26px,4vw,48px)", fontWeight: 900, letterSpacing: "-0.03em", textTransform: "uppercase", color: "var(--text-primary)", lineHeight: 1 }}>
+            <h2 style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "clamp(26px,4vw,48px)", fontWeight: 900, letterSpacing: "-0.03em", textTransform: "uppercase", color: "white", lineHeight: 1 }}>
               Seasonal{" "}
               <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontWeight: 400, color: "#ec5b13" }}>Picks</em>
             </h2>
@@ -524,9 +524,9 @@ const Bestsellers = () => {
             )}
             <Link
               to="/categories"
-              style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", color: "var(--text-muted)", textDecoration: "none", transition: "color 200ms" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", textDecoration: "none", transition: "color 200ms" }}
               onMouseEnter={e => e.currentTarget.style.color = "#ec5b13"}
-              onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.55)"}
             >
               View All <ChevronRight size={14} />
             </Link>
@@ -575,7 +575,7 @@ const Bestsellers = () => {
           </div>
 
         ) : slotA.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 0", color: "var(--border-medium)", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase" }}>
+          <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.08)", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase" }}>
             COLLECTION LOADING
           </div>
 
@@ -646,9 +646,9 @@ const Bestsellers = () => {
         <div style={{ textAlign: "center", marginTop: 56 }}>
           <Link
             to="/categories"
-            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "13px 34px", background: "transparent", border: "1px solid var(--border-medium)", borderRadius: 999, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 800, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", textDecoration: "none", transition: "all 220ms" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "13px 34px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 800, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", textDecoration: "none", transition: "all 220ms" }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = "#ec5b13"; e.currentTarget.style.color = "#ec5b13"; e.currentTarget.style.boxShadow = "0 0 28px rgba(236,91,19,0.12)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border-medium)"; e.currentTarget.style.color = "rgba(255,255,255,0.38)"; e.currentTarget.style.boxShadow = "none"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.38)"; e.currentTarget.style.boxShadow = "none"; }}
           >
             View All Collections
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>arrow_forward</span>

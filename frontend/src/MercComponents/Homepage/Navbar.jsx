@@ -179,9 +179,9 @@ const ProfileTray = ({ userName, avatarUrl, onLogout, onTerminate, isOpen, onClo
         </div>
         <div style={{ padding: "6px 8px" }}>
           {[
-            { label: "Profile", icon: "person", path: "/profile" },
-            { label: "Orders", icon: "inventory_2", path: "/orderpage" },
-            { label: "Inbox", icon: "mail", path: "/inbox" },
+            { label: "Profile", icon: "person",      path: "/profile"   },
+            { label: "Orders",  icon: "inventory_2", path: "/orderpage" },
+            { label: "Inbox",   icon: "mail",        path: "/inbox"     },
           ].map((item) => (
             <Link key={item.path} to={item.path} onClick={onClose} style={{
               display: "flex", alignItems: "center", gap: 10,
@@ -267,9 +267,9 @@ const Navbar_UserMenu = ({ userName, avatarUrl, onLogout, onTerminate }) => {
               </div>
             </div>
             {[
-              { label: "Profile", icon: "person", path: "/profile" },
-              { label: "Orders", icon: "inventory_2", path: "/orderpage" },
-              { label: "Inbox", icon: "mail", path: "/inbox" },
+              { label: "Profile", icon: "person",      path: "/profile"   },
+              { label: "Orders",  icon: "inventory_2", path: "/orderpage" },
+              { label: "Inbox",   icon: "mail",        path: "/inbox"     },
             ].map((item) => (
               <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
                 className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg no-underline hover:bg-white/[0.05] transition-colors duration-150"
@@ -321,7 +321,7 @@ const useTerminateAccount = () => {
       inputValidator: (v) => v !== "DELETE" ? "You must type DELETE to confirm" : null,
     });
     if (!r2.isConfirmed) return;
-    const email = localStorage.getItem("userEmail");
+    const email  = localStorage.getItem("userEmail");
     const userId = localStorage.getItem("userId");
     if (!email && !userId) return;
     try {
@@ -344,18 +344,18 @@ const useTerminateAccount = () => {
    MAIN NAVBAR
    ══════════════════════════════════════════════════════ */
 const Navbar = () => {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [profileTrayOpen, setProfileTray] = useState(false);
-  const [authPrompt, setAuthPrompt] = useState({ open: false, path: "" });
-  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("userEmail"));
-  const [userName, setUserName] = useState(() => localStorage.getItem("userName") || "");
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchOpen,    setIsSearchOpen]  = useState(false);
+  const [profileTrayOpen, setProfileTray]   = useState(false);
+  const [authPrompt,      setAuthPrompt]    = useState({ open: false, path: "" });
+  const [isLoggedIn,      setIsLoggedIn]    = useState(() => !!localStorage.getItem("userEmail"));
+  const [userName,        setUserName]      = useState(() => localStorage.getItem("userName") || "");
+  const [avatarUrl,       setAvatarUrl]     = useState(null);
+  const [unreadCount,     setUnreadCount]   = useState(0);
+  const [isScrolled,      setIsScrolled]    = useState(false);
 
   const { cart, resetCart, syncFromDB } = useCart();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location        = useLocation();
+  const navigate        = useNavigate();
   const handleTerminate = useTerminateAccount();
 
   const itemCount = isLoggedIn
@@ -407,13 +407,13 @@ const Navbar = () => {
     if (!isLoggedIn) return;
     const check = async () => {
       const userId = localStorage.getItem("userId");
-      const fp = localStorage.getItem("deviceFingerprint");
+      const fp     = localStorage.getItem("deviceFingerprint");
       if (!userId || !fp) return;
       const { data } = await supabase
         .from("verp_sessions").select("device_fingerprint")
         .eq("user_id", userId).maybeSingle();
       if (data && data.device_fingerprint !== fp) {
-        ["userEmail", "userId", "userName", "deviceFingerprint", "luxury_cart"].forEach((k) => localStorage.removeItem(k));
+        ["userEmail","userId","userName","deviceFingerprint","luxury_cart"].forEach((k) => localStorage.removeItem(k));
         setIsLoggedIn(false);
         navigate("/login", { replace: true });
       }
@@ -433,7 +433,7 @@ const Navbar = () => {
           .select("id", { count: "exact", head: true })
           .eq("to_email", email).is("read_at", null);
         if (count !== null) setUnreadCount(count);
-      } catch (_) { }
+      } catch (_) {}
     };
     fetchUnread();
     const id = setInterval(fetchUnread, 30_000);
@@ -527,12 +527,12 @@ const Navbar = () => {
 
   const handleLogout = () => {
     resetCart();
-    ["userEmail", "userId", "userName", "deviceFingerprint", "luxury_cart", "guest_cart"].forEach((k) => localStorage.removeItem(k));
+    ["userEmail","userId","userName","deviceFingerprint","luxury_cart","guest_cart"].forEach((k) => localStorage.removeItem(k));
     setIsLoggedIn(false);
     navigate("/");
   };
 
-  const PROTECTED = ["/cart", "/orderpage", "/checkout", "/inbox", "/support", "/reviews"];
+  const PROTECTED = ["/cart","/orderpage","/checkout","/inbox","/support","/reviews"];
   const handleNavClick = (e, path) => {
     if (!isLoggedIn && PROTECTED.includes(path)) {
       e.preventDefault();
@@ -542,18 +542,18 @@ const Navbar = () => {
   const isActive = (p) => location.pathname === p;
 
   const guestBottomNav = [
-    { label: "Home", icon: "home", path: "/", protected: false },
-    { label: "About", icon: "info", path: "/about", protected: false },
-    { label: "Cart", icon: "shopping_cart", path: "/cart", protected: true },
-    { label: "Inbox", icon: "mail", path: "/inbox", protected: true },
-    { label: "Reviews", icon: "star", path: "/reviews", protected: true },
+    { label: "Home",    icon: "home",          path: "/",        protected: false },
+    { label: "About",   icon: "info",          path: "/about",   protected: false },
+    { label: "Cart",    icon: "shopping_cart", path: "/cart",    protected: true  },
+    { label: "Inbox",   icon: "mail",          path: "/inbox",   protected: true  },
+    { label: "Reviews", icon: "star",          path: "/reviews", protected: true  },
   ];
   const loggedInBottomNav = [
-    { label: "Home", icon: "home", path: "/", protected: false },
-    { label: "Orders", icon: "inventory_2", path: "/orderpage", protected: true },
-    { label: "Cart", icon: "shopping_cart", path: "/cart", protected: true, isCart: true },
-    { label: "Inbox", icon: "mail", path: "/inbox", protected: true, isInbox: true },
-    { label: "Profile", icon: null, path: null, isProfile: true },
+    { label: "Home",    icon: "home",          path: "/",          protected: false },
+    { label: "Orders",  icon: "inventory_2",   path: "/orderpage", protected: true  },
+    { label: "Cart",    icon: "shopping_cart", path: "/cart",      protected: true, isCart: true  },
+    { label: "Inbox",   icon: "mail",          path: "/inbox",     protected: true, isInbox: true },
+    { label: "Profile", icon: null,            path: null,         isProfile: true },
   ];
   const bottomNavItems = isLoggedIn ? loggedInBottomNav : guestBottomNav;
 
@@ -660,11 +660,11 @@ const Navbar = () => {
             </Link>
             <div className="flex items-center gap-8">
               {[
-                { name: "About", path: "/about" },
-                { name: "Orders", path: "/orderpage", protected: true },
+                { name: "About",   path: "/about"     },
+                { name: "Orders",  path: "/orderpage", protected: true },
                 { name: `Cart${isLoggedIn && itemCount > 0 ? ` (${itemCount})` : ""}`, path: "/cart", protected: true, isCart: true },
-                { name: "Inbox", path: "/inbox", protected: true, isInbox: true },
-                { name: "Reviews", path: "/reviews", protected: true },
+                { name: "Inbox",   path: "/inbox",     protected: true, isInbox: true },
+                { name: "Reviews", path: "/reviews",   protected: true },
               ].filter(link => !(link.isCart && location.pathname === "/cart")).map((link) => (
                 <Link
                   key={link.path}
@@ -785,7 +785,7 @@ const Navbar = () => {
 
           <div style={{ display: "flex", alignItems: "stretch", padding: "8px 4px 8px" }}>
             {bottomNavItems.filter(item => !(item.isCart && location.pathname === "/cart")).map((item) => {
-              const active = item.path ? isActive(item.path) : false;
+              const active   = item.path ? isActive(item.path) : false;
               const isLocked = !isLoggedIn && item.protected;
 
               if (item.isProfile) {

@@ -83,7 +83,7 @@ const FloatingSupport = () => {
       }}
     >
       <span
-        className="material-symbols-outlined text-[color:var(--text-primary)] text-2xl"
+        className="material-symbols-outlined text-white text-2xl"
         style={{ pointerEvents: "none" }}
       >
         support_agent

@@ -69,7 +69,7 @@ const VerpInstallBanner = () => {
           zIndex: 800, fontFamily: "'DM Sans', sans-serif",
           background: "rgba(10,10,10,0.98)",
           backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)",
-          border: "1px solid var(--border-medium)",
+          border: "1px solid rgba(255,255,255,0.1)",
           borderRadius: 24, padding: 20, overflow: "hidden",
           animation: "vrpSlideUp 0.3s cubic-bezier(0.16,1,0.3,1) both",
         }}>
@@ -93,10 +93,10 @@ const VerpInstallBanner = () => {
               background: "linear-gradient(135deg,#ec5b13,#c94400)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontFamily: "'Playfair Display',serif", fontStyle: "italic",
-              fontSize: 22, color: "var(--text-primary)",
+              fontSize: 22, color: "#fff",
             }}>V</div>
             <div>
-              <p style={{ margin: 0, fontWeight: 700, color: "var(--text-primary)", fontSize: 15, fontFamily: "'Playfair Display',serif", fontStyle: "italic" }}>Install Verp</p>
+              <p style={{ margin: 0, fontWeight: 700, color: "#fff", fontSize: 15, fontFamily: "'Playfair Display',serif", fontStyle: "italic" }}>Install Verp</p>
               <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "'JetBrains Mono',monospace" }}>Add to home screen</p>
             </div>
             <button
@@ -149,7 +149,7 @@ const VerpInstallBanner = () => {
             onClick={() => handleDismiss(false)}
             style={{
               width: "100%", padding: "12px 0", borderRadius: 12,
-              border: "1px solid var(--border-medium)",
+              border: "1px solid rgba(255,255,255,0.08)",
               background: "transparent", color: "rgba(255,255,255,0.4)",
               fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase",
               fontFamily: "'JetBrains Mono',monospace", cursor: "pointer",
@@ -191,7 +191,7 @@ const VerpInstallBanner = () => {
         }),
         background: "rgba(10,10,10,0.98)",
         backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)",
-        border: "1px solid var(--border-medium)",
+        border: "1px solid rgba(255,255,255,0.1)",
         borderRadius: isMobile ? 24 : 16,
         boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
         padding: isMobile ? "20px" : "14px 16px",
@@ -218,11 +218,11 @@ const VerpInstallBanner = () => {
                 width: 48, height: 48, borderRadius: 14, flexShrink: 0,
                 background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, color: "var(--text-primary)",
+                fontSize: 22, color: "#fff",
                 fontFamily: "'Playfair Display',serif", fontStyle: "italic",
               }}>V</div>
               <div>
-                <p style={{ margin: 0, fontWeight: 700, color: "var(--text-primary)", fontSize: 15, fontFamily: "'Playfair Display',serif", fontStyle: "italic" }}>Verp</p>
+                <p style={{ margin: 0, fontWeight: 700, color: "#fff", fontSize: 15, fontFamily: "'Playfair Display',serif", fontStyle: "italic" }}>Verp</p>
                 <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: "0.16em", textTransform: "uppercase", fontFamily: "'JetBrains Mono',monospace" }}>Add to home screen</p>
               </div>
               <button
@@ -231,7 +231,7 @@ const VerpInstallBanner = () => {
               >×</button>
             </div>
 
-            <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}>
               Install the Verp app for faster access, online browsing, and a seamless full-screen experience.
             </p>
 
@@ -240,7 +240,7 @@ const VerpInstallBanner = () => {
                 onClick={() => handleDismiss(true)}
                 style={{
                   flex: 1, padding: "12px 0", borderRadius: 12,
-                  border: "1px solid var(--border-medium)",
+                  border: "1px solid rgba(255,255,255,0.1)",
                   background: "transparent", color: "rgba(255,255,255,0.5)",
                   fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase",
                   fontFamily: "'JetBrains Mono',monospace", cursor: "pointer",
@@ -252,7 +252,7 @@ const VerpInstallBanner = () => {
                   flex: 2, padding: "12px 0", borderRadius: 12,
                   border: "1px solid rgba(236,91,19,0.6)",
                   background: "linear-gradient(135deg,rgba(236,91,19,0.28),rgba(217,78,15,0.18))",
-                  color: "var(--text-primary)", fontSize: 11, fontWeight: 800,
+                  color: "#fff", fontSize: 11, fontWeight: 800,
                   letterSpacing: "0.2em", textTransform: "uppercase",
                   fontFamily: "'JetBrains Mono',monospace", cursor: "pointer",
                   boxShadow: "0 0 20px rgba(236,91,19,0.2)",
@@ -267,11 +267,11 @@ const VerpInstallBanner = () => {
               width: 40, height: 40, borderRadius: 10, flexShrink: 0,
               background: "linear-gradient(135deg,#ec5b13,#d94e0f)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 18, color: "var(--text-primary)",
+              fontSize: 18, color: "#fff",
               fontFamily: "'Playfair Display',serif", fontStyle: "italic",
             }}>V</div>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Install Verp</p>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#fff" }}>Install Verp</p>
               <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Add to your desktop for quick access</p>
             </div>
             <button

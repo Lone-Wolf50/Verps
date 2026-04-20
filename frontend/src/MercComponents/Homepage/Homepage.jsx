@@ -9,7 +9,7 @@ import AdBanner from "./AdBanner";
 const Homepage = () => {
 	const homeStyles = {
 		"--primary-color": "#d4af35",
-		"--bg-dark": "var(--bg-main)",
+		"--bg-dark": "#0a0a0a",
 		"--neutral-dark": "#1a1a1a",
 		"--neutral-card": "#121212",
 	};

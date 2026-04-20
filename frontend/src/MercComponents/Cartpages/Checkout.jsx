@@ -165,13 +165,13 @@ const Checkout = () => {
     if (!validate()) return;
 
     const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-
+    
     if (!window.PaystackPop) {
-      Swal.fire({
-        title: "System Error",
-        text: "Payment gateway not loaded. Please refresh.",
-        icon: "error",
-        background: "#0a0a0a", color: "#fff"
+      Swal.fire({ 
+        title: "System Error", 
+        text: "Payment gateway not loaded. Please refresh.", 
+        icon: "error", 
+        background: "#0a0a0a", color: "#fff" 
       });
       return;
     }
@@ -210,15 +210,15 @@ const Checkout = () => {
                 delivery_method: formData.deliveryMethod,
                 payment_reference: response.reference,
                 payment_status: "paid",
-                items: cart,
+                items: cart, 
                 total_amount: cartTotal, // Log what YOU receive
                 status: "ordered",
               }])
               .select().single();
 
             if (dbErr) throw dbErr;
-            await clearCart();
-
+            await clearCart(); 
+            
             fetch(`${import.meta.env.VITE_SERVER_URL}/api/alert-staff`, {
               method: "POST",
               headers: { "Content-Type": "application/json", "x-internal-secret": import.meta.env.VITE_INTERNAL_SECRET },
@@ -229,7 +229,7 @@ const Checkout = () => {
                 orderValue: cartTotal,
                 orderStatus: "ordered",
               }),
-            }).catch(() => { });
+            }).catch(() => {});
 
             await Swal.fire({
               title: "ACQUISITION COMPLETE",
@@ -277,7 +277,7 @@ const Checkout = () => {
 
       <div style={{ minHeight: "100vh", paddingTop: 96, paddingBottom: 64, background: "linear-gradient(180deg,#050505,#080808)", fontFamily: "'DM Sans',sans-serif" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
-
+          
           <div className="co-fade" style={{ marginBottom: 40 }}>
             <h1 style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: "clamp(40px,7vw,80px)", color: "white", margin: 0, lineHeight: 1 }}>Checkout</h1>
             <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.42)", marginTop: 10 }}>SECURE VERP ACQUISITION</p>
@@ -294,12 +294,12 @@ const Checkout = () => {
                   </div>
                   <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
                     {/* Account name — read only display */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <label style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: "0.3em" }}>ACCOUNT NAME</label>
-                      <div style={{ width: "100%", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: "14px 18px", fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: "rgba(255,255,255,0.55)", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 14 }}>👤</span>
+                    <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                      <label style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 10, fontWeight:700, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.3em" }}>ACCOUNT NAME</label>
+                      <div style={{ width:"100%", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.05)", borderRadius:14, padding:"14px 18px", fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.55)", boxSizing:"border-box", display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontSize:14 }}>👤</span>
                         <span>{formData.name || "—"}</span>
-                        <span style={{ marginLeft: "auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.18)", letterSpacing: "0.15em" }}>NOT EDITABLE</span>
+                        <span style={{ marginLeft:"auto", fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.18)", letterSpacing:"0.15em" }}>NOT EDITABLE</span>
                       </div>
                     </div>
 
@@ -312,7 +312,7 @@ const Checkout = () => {
                         placeholder="Full name to use for delivery & calls"
                         autoComplete="off"
                       />
-                      <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.42)", letterSpacing: "0.12em", marginTop: 6, lineHeight: 1.6 }}>
+                      <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.42)", letterSpacing:"0.12em", marginTop:6, lineHeight:1.6 }}>
                         YOUR ACCOUNT NAME IS NOT USED FOR ORDERS — ENTER THE NAME OUR TEAM SHOULD ASK FOR WHEN THEY CONTACT YOU.
                       </p>
                     </Field>
@@ -335,24 +335,24 @@ const Checkout = () => {
                       overflow: "hidden",
                     }}>
                       {/* shimmer line */}
-                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg,transparent,rgba(236,91,19,0.4),transparent)" }} />
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(236,91,19,0.15)", border: "1px solid rgba(236,91,19,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                          <span style={{ fontSize: 16 }}>📍</span>
+                      <div style={{ position:"absolute", top:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,rgba(236,91,19,0.4),transparent)" }} />
+                      <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+                        <div style={{ width:36, height:36, borderRadius:10, background:"rgba(236,91,19,0.15)", border:"1px solid rgba(236,91,19,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
+                          <span style={{ fontSize:16 }}>📍</span>
                         </div>
                         <div>
-                          <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", textTransform: "uppercase", color: "#ec5b13", marginBottom: 6 }}>LOCATION ACCURACY IS CRITICAL</p>
-                          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, marginBottom: 10 }}>
+                          <p style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 10, fontWeight:700, letterSpacing:"0.25em", textTransform:"uppercase", color:"#ec5b13", marginBottom:6 }}>LOCATION ACCURACY IS CRITICAL</p>
+                          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.7, marginBottom:10 }}>
                             An incorrect location will directly affect your delivery. Please fill both fields carefully.
                           </p>
-                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "5px 10px" }}>
-                              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.58)", letterSpacing: "0.15em" }}>LOCATION — </span>
-                              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.6)", letterSpacing: "0.1em" }}>City / Area (e.g. Accra)</span>
+                          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, padding:"5px 10px" }}>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.58)", letterSpacing:"0.15em" }}>LOCATION — </span>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.6)", letterSpacing:"0.1em" }}>City / Area (e.g. Accra)</span>
                             </div>
-                            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "5px 10px" }}>
-                              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.58)", letterSpacing: "0.15em" }}>ADDRESS — </span>
-                              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "rgba(255,255,255,0.6)", letterSpacing: "0.1em" }}>Specific place (e.g. Madina)</span>
+                            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, padding:"5px 10px" }}>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.58)", letterSpacing:"0.15em" }}>ADDRESS — </span>
+                              <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize: 9, color:"rgba(255,255,255,0.6)", letterSpacing:"0.1em" }}>Specific place (e.g. Madina)</span>
                             </div>
                           </div>
                         </div>
@@ -409,7 +409,7 @@ const Checkout = () => {
                     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.48)", textTransform: "uppercase", letterSpacing: "0.2em" }}>Subtotal</span>
                     <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>GH₵{cartTotal.toLocaleString()}</span>
                   </div>
-
+                  
                   {/* Service Fee — with loader */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.48)", textTransform: "uppercase", letterSpacing: "0.2em", display: "flex", alignItems: "center", gap: 6 }}>

@@ -18,7 +18,7 @@ const Card = ({ cat, index, isHero = false }) => (
   <Link
     to={`/category/${cat.slug || cat.name.toLowerCase()}`}
     className="group relative overflow-hidden rounded-2xl bg-[#111] block h-full w-full"
-    style={{ border: "1px solid var(--overlay-4)" }}
+    style={{ border: "1px solid rgba(255,255,255,0.06)" }}
   >
     {/* Image */}
     <img
@@ -49,7 +49,7 @@ const Card = ({ cat, index, isHero = false }) => (
         {String(index + 1).padStart(2, "0")}
       </span>
       <h3
-        className="font-black uppercase leading-none text-[color:var(--text-primary)] transition-colors duration-300 group-hover:text-[#ec5b13]"
+        className="font-black uppercase leading-none text-white transition-colors duration-300 group-hover:text-[#ec5b13]"
         style={{ letterSpacing: "-0.03em", fontSize: isHero ? "30px" : "22px" }}
       >
         {cat.name}
@@ -94,7 +94,7 @@ const MobileCarousel = ({ categories }) => {
           <p className="font-black uppercase mb-1" style={{ fontSize: "12px", letterSpacing: "0.3em", color: "#ec5b13" }}>
             Featured Collection
           </p>
-          <h3 className="text-[color:var(--text-primary)] font-black uppercase leading-none" style={{ fontSize: "22px", letterSpacing: "-0.03em" }}>
+          <h3 className="text-white font-black uppercase leading-none" style={{ fontSize: "22px", letterSpacing: "-0.03em" }}>
             {categories[current]?.name}
           </h3>
         </div>
@@ -105,7 +105,7 @@ const MobileCarousel = ({ categories }) => {
               onClick={() => go(dir)}
               aria-label={dir}
               className="w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 hover:border-[#ec5b13]"
-              style={{ border: "1px solid var(--border-medium)", color: "rgba(255,255,255,0.4)" }}
+              style={{ border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)" }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
                 {dir === "prev" ? "chevron_left" : "chevron_right"}
@@ -166,7 +166,7 @@ const MobileGrid = ({ categories }) => (
       <span className="font-black uppercase" style={{ fontSize: "12px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.5)" }}>
         All Categories
       </span>
-      <div className="flex-1 h-px" style={{ background: "var(--border-light)" }} />
+      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.05)" }} />
     </div>
     <div className="grid grid-cols-2 gap-3">
       {categories.slice(0, 6).map((cat, i) => (
@@ -183,7 +183,7 @@ const ViewAllBtn = ({ count }) => (
   <div className="flex justify-center mt-8">
     <Link
       to="/categories"
-      className="group flex items-center gap-3 font-black uppercase transition-all duration-300 hover:border-[#ec5b13] hover:text-[color:var(--text-primary)]"
+      className="group flex items-center gap-3 font-black uppercase transition-all duration-300 hover:border-[#ec5b13] hover:text-white"
       style={{
         padding: "14px 32px",
         border: "1px solid rgba(255,255,255,0.12)",
@@ -224,7 +224,7 @@ const CategoriesGrid = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center" style={{ height: "260px", background: "var(--bg-main)" }}>
+      <div className="flex items-center justify-center" style={{ height: "260px", background: "#0a0a0a" }}>
         <div className="text-center">
           <div
             className="mx-auto mb-3 animate-spin rounded-full"
@@ -241,7 +241,7 @@ const CategoriesGrid = () => {
   const f = categories.slice(0, 6);
 
   return (
-    <section style={{ padding: "80px 20px", background: "var(--bg-main)", overflowX: "hidden" }}>
+    <section style={{ padding: "80px 20px", background: "#0a0a0a", overflowX: "hidden" }}>
       <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
 
         {/* Header */}
@@ -251,7 +251,7 @@ const CategoriesGrid = () => {
               Curated Selection
             </p>
             <h2
-              className="font-black uppercase text-[color:var(--text-primary)] leading-none"
+              className="font-black uppercase text-white leading-none"
               style={{ fontSize: "clamp(28px, 4vw, 42px)", letterSpacing: "-0.03em" }}
             >
               Popular Categories

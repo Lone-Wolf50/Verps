@@ -45,7 +45,7 @@ const InfoModal = ({ message, onClose }) => (
     <div
       onClick={e => e.stopPropagation()}
       style={{
-        background: "var(--bg-panel)", border: "1px solid rgba(236,91,19,0.22)",
+        background: "#0d0d0d", border: "1px solid rgba(236,91,19,0.22)",
         borderRadius: 20, padding: "36px 40px", maxWidth: 440, width: "100%",
         boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
         animation: "modalIn 0.28s cubic-bezier(0.16,1,0.3,1) both",
@@ -81,7 +81,7 @@ const AccordionItem = ({ title, links, open, onToggle, onInfo }) => (
       onClick={onToggle}
       style={{ width: "100%", padding: "18px 0", display: "flex", alignItems: "center", justifyContent: "space-between", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
     >
-      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: open ? "#ec5b13" : "var(--text-primary)", transition: "color 200ms" }}>{title}</span>
+      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: open ? "#ec5b13" : "rgba(255,255,255,0.85)", transition: "color 200ms" }}>{title}</span>
       <span className="material-symbols-outlined" style={{ fontSize: 18, color: "rgba(255,255,255,0.45)", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 300ms" }}>expand_more</span>
     </button>
     <div style={{ overflow: "hidden", maxHeight: open ? 500 : 0, opacity: open ? 1 : 0, transition: "max-height 0.3s ease, opacity 0.3s ease" }}>
@@ -121,7 +121,7 @@ const Footer = () => {
   const [modalMsg, setModalMsg] = useState(null);
 
   return (
-    <footer style={{ background: "var(--bg-deep)", borderTop: "1px solid var(--border-light)" }}>
+    <footer style={{ background: "#050505", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
       <style>{`
         @keyframes footerFadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
@@ -132,9 +132,9 @@ const Footer = () => {
           justify-content: center;
           align-items: stretch;
           gap: 0;
-          border-bottom: 1px solid var(--border-light);
-          border-top: 1px solid var(--border-light);
-          background: var(--bg-dark);
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+          border-top: 1px solid rgba(255,255,255,0.05);
+          background: #080808;
         }
         .trust-badge {
           flex: 1;
@@ -144,7 +144,7 @@ const Footer = () => {
           justify-content: center;
           padding: 28px 20px;
           gap: 10px;
-          border-right: 1px solid var(--border-light);
+          border-right: 1px solid rgba(255,255,255,0.05);
           transition: background 250ms;
           cursor: default;
         }
@@ -155,8 +155,8 @@ const Footer = () => {
         .tb-icon-wrap {
           width: 52px; height: 52px; border-radius: 14px;
           display: flex; align-items: center; justify-content: center;
-          background: var(--overlay-4);
-          border: 1px solid var(--border-medium);
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
           transition: all 250ms;
         }
         .tb-icon {
@@ -169,8 +169,8 @@ const Footer = () => {
         .footer-link-row .f-icon {
           width: 28px; height: 28px; border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
-          background: var(--border-light);
-          border: 1px solid var(--border-medium);
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.08);
           transition: all 200ms;
           flex-shrink: 0;
         }
@@ -190,7 +190,7 @@ const Footer = () => {
         }
         @media(max-width:767px){
           .trust-strip { flex-wrap: wrap; }
-          .trust-badge { flex: 1 1 50%; border-bottom: 1px solid var(--border-light); }
+          .trust-badge { flex: 1 1 50%; border-bottom: 1px solid rgba(255,255,255,0.05); }
           .footer-main-grid { grid-template-columns: 1fr !important; }
           .footer-desktop-cols { display: none !important; }
           .mobile-accordion { display: block !important; }
@@ -224,13 +224,13 @@ const Footer = () => {
           <div className="footer-col brand-col" style={{ animationDelay: "0s" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
               <img src={logo} alt="Verp" style={{ height: 56, width: 56, objectFit: "contain", borderRadius: 10 }} />
-              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 28, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "var(--text-primary)" }}>Verp</span>
+              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 28, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "white" }}>Verp</span>
             </div>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: 0, maxWidth: 270 }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "rgba(255,255,255,0.7)", lineHeight: 1.8, marginBottom: 0, maxWidth: 270 }}>
               Premium streetwear built for those who set the standard. Not the trend — the standard. Every piece ships from Accra, made to last a decade.
             </p>
 
-            <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid var(--overlay-4)" }}>
+            <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
               <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 8 }}>Got Something to Say?</p>
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, marginBottom: 14 }}>
                 Orders, collabs, press, or just a thought — tap below and your message lands directly with the Verp team.
@@ -270,16 +270,16 @@ const Footer = () => {
           {/* 3 link columns */}
           {Object.entries(footerLinks).map(([title, links], idx) => (
             <div key={title} className="footer-col" style={{ animationDelay: `${(idx + 1) * 0.07}s` }}>
-              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 20 }}>{title}</p>
+              <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", marginBottom: 20 }}>{title}</p>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                 {links.map(link => (
                   <li key={link.label}>
                     {link.to ? (
                       <Link to={link.to}
                         className="footer-link-row"
-                        style={{ textDecoration: "none", color: "var(--text-secondary)", transition: "color 200ms" }}
+                        style={{ textDecoration: "none", color: "rgba(255,255,255,0.7)", transition: "color 200ms" }}
                         onMouseEnter={e => e.currentTarget.style.color = "#ec5b13"}
-                        onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}
+                        onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
                       >
                         <span className="f-icon">
                           <span className="material-symbols-outlined" style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>{link.icon}</span>
@@ -290,9 +290,9 @@ const Footer = () => {
                       <button
                         onClick={() => setModalMsg(link.info)}
                         className="footer-link-row"
-                        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-secondary)", transition: "color 200ms", textAlign: "left", width: "100%" }}
+                        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "rgba(255,255,255,0.7)", transition: "color 200ms", textAlign: "left", width: "100%" }}
                         onMouseEnter={e => e.currentTarget.style.color = "#ec5b13"}
-                        onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}
+                        onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
                       >
                         <span className="f-icon">
                           <span className="material-symbols-outlined" style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>{link.icon}</span>
@@ -312,7 +312,7 @@ const Footer = () => {
         <div style={{ marginBottom: 40, display: "none" }} className="mobile-accordion">
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <img src={logo} alt="Verp" style={{ height: 44, width: 44, objectFit: "contain", borderRadius: 8 }} />
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 24, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "var(--text-primary)" }}>Verp</span>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 24, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase", color: "white" }}>Verp</span>
           </div>
 
           <div style={{ marginBottom: 32, paddingBottom: 28, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
